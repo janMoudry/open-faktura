@@ -1,0 +1,568 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura public quotation links",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/public/quotes/resolve": {
+      "post": {
+        "operationId": "publicQuoteResolve",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "Unknown, expired, revoked, archived or deleted; no content disclosed"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "503": {
+            "description": "Unavailable"
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuote"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/public/quotes/pdf": {
+      "post": {
+        "operationId": "publicQuotePdf",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "Unknown, expired, revoked, archived or deleted; no content disclosed"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "503": {
+            "description": "Unavailable"
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/public/quotes/view": {
+      "post": {
+        "operationId": "publicQuoteView",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "visit_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "token",
+                  "visit_id",
+                  "revision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "Unknown, expired, revoked, archived or deleted; no content disclosed"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "503": {
+            "description": "Unavailable"
+          },
+          "204": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InvoiceAmounts": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "gross"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceLineResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amounts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTaxSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tax_mode",
+          "vat_percent",
+          "amounts"
+        ],
+        "properties": {
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "lines",
+          "tax_summary",
+          "amounts",
+          "rounding",
+          "payable"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineResult"
+            }
+          },
+          "tax_summary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceTaxSummary"
+            }
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "payable": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "PaymentSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bank_account",
+          "iban",
+          "variable_symbol",
+          "method"
+        ],
+        "properties": {
+          "bank_account": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          }
+        }
+      },
+      "DraftData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contact_id",
+          "supplier",
+          "customer",
+          "payment",
+          "calculation",
+          "issued_on",
+          "due_on",
+          "tax_on",
+          "language",
+          "order_number",
+          "note"
+        ],
+        "properties": {
+          "contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartySnapshot"
+              }
+            ],
+            "nullable": true
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSnapshot"
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/DraftCalculation"
+          },
+          "issued_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          }
+        }
+      },
+      "DraftCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DraftLine"
+            },
+            "maxItems": 500
+          }
+        }
+      },
+      "PublicQuote": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/DraftData"
+          },
+          "totals": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              }
+            ]
+          }
+        },
+        "required": [
+          "number",
+          "revision",
+          "name",
+          "status",
+          "invoice",
+          "totals"
+        ]
+      }
+    }
+  }
+}

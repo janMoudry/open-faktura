@@ -1,0 +1,24 @@
+node_modules/
+target/
+dist/
+.env
+.env.*
+!.env.example
+.DS_Store
+apps/desktop/src-tauri/gen/
+playwright-report/
+test-results/
+
+.secrets/
+backups/
+infra/production.env
+
+tmp/
+
+output/
+
+# Local visual research/QA captures may contain account data.
+docs/research/screenshots/**/*.jpg
+docs/research/screenshots/**/*.png
+docs/design/*.jpg
+docs/design/*.png

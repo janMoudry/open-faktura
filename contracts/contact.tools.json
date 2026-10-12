@@ -1,0 +1,512 @@
+[
+  {
+    "name": "contact_lookup_ares",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "ico": {
+          "type": "string",
+          "pattern": "^[0-9]{8}$"
+        }
+      },
+      "required": [
+        "company_id",
+        "ico"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contacts_list",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "archived": {
+          "type": "boolean",
+          "default": false
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 1
+        },
+        "page_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 25
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contact_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contact_create",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "registration_number",
+            "vat_number",
+            "billing_address",
+            "delivery_addresses",
+            "default_delivery_id",
+            "email",
+            "phone",
+            "persons",
+            "recipients",
+            "maturity_days",
+            "payment_method",
+            "bank_account",
+            "iban",
+            "note"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            },
+            "registration_number": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "vat_number": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "billing_address": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "street",
+                "city",
+                "postal_code",
+                "country"
+              ],
+              "properties": {
+                "street": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "city": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "postal_code": {
+                  "type": "string",
+                  "maxLength": 30
+                },
+                "country": {
+                  "type": "string",
+                  "maxLength": 2
+                }
+              }
+            },
+            "delivery_addresses": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "name",
+                  "address"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "address": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "street",
+                      "city",
+                      "postal_code",
+                      "country"
+                    ],
+                    "properties": {
+                      "street": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "city": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "postal_code": {
+                        "type": "string",
+                        "maxLength": 30
+                      },
+                      "country": {
+                        "type": "string",
+                        "maxLength": 2
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default_delivery_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            },
+            "email": {
+              "type": "string",
+              "maxLength": 254
+            },
+            "phone": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "persons": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "email",
+                  "phone"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 50
+                  }
+                }
+              }
+            },
+            "recipients": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "maxLength": 254
+              }
+            },
+            "maturity_days": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 365
+            },
+            "payment_method": {
+              "type": "string",
+              "enum": [
+                "",
+                "cash",
+                "bank_transfer"
+              ]
+            },
+            "bank_account": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "iban": {
+              "type": "string",
+              "maxLength": 34
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "data"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contact_update",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "registration_number",
+            "vat_number",
+            "billing_address",
+            "delivery_addresses",
+            "default_delivery_id",
+            "email",
+            "phone",
+            "persons",
+            "recipients",
+            "maturity_days",
+            "payment_method",
+            "bank_account",
+            "iban",
+            "note"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            },
+            "registration_number": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "vat_number": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "billing_address": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "street",
+                "city",
+                "postal_code",
+                "country"
+              ],
+              "properties": {
+                "street": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "city": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "postal_code": {
+                  "type": "string",
+                  "maxLength": 30
+                },
+                "country": {
+                  "type": "string",
+                  "maxLength": 2
+                }
+              }
+            },
+            "delivery_addresses": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "name",
+                  "address"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "address": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "street",
+                      "city",
+                      "postal_code",
+                      "country"
+                    ],
+                    "properties": {
+                      "street": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "city": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "postal_code": {
+                        "type": "string",
+                        "maxLength": 30
+                      },
+                      "country": {
+                        "type": "string",
+                        "maxLength": 2
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default_delivery_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            },
+            "email": {
+              "type": "string",
+              "maxLength": 254
+            },
+            "phone": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "persons": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "email",
+                  "phone"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 50
+                  }
+                }
+              }
+            },
+            "recipients": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "maxLength": 254
+              }
+            },
+            "maturity_days": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 365
+            },
+            "payment_method": {
+              "type": "string",
+              "enum": [
+                "",
+                "cash",
+                "bank_transfer"
+              ]
+            },
+            "bank_account": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "iban": {
+              "type": "string",
+              "maxLength": 34
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "revision",
+        "archived",
+        "data"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

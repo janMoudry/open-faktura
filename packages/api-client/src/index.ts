@@ -1,0 +1,53 @@
+export type Health = { status: "ok" | "ready" | "unavailable" };
+export async function getHealth(
+  baseUrl: string,
+  endpoint: "health" | "ready",
+  signal?: AbortSignal,
+): Promise<Health> {
+  const response = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/api/${endpoint}`,
+    { signal },
+  );
+  const data: unknown = await response.json();
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("status" in data) ||
+    !["ok", "ready", "unavailable"].includes(String(data.status))
+  )
+    throw new Error("Neplatná odpověď serveru");
+  if (
+    !response.ok &&
+    !(response.status === 503 && data.status === "unavailable")
+  )
+    throw new Error("Server vrátil chybu");
+  return data as Health;
+}
+
+export * from "./auth";
+export {
+  CompanyFailure,
+  listCompanies,
+  getCompany,
+  createCompany,
+  updateCompany,
+  deleteCompany,
+  type Company,
+  type CompanySettings,
+} from "./company";
+export * from "./contact";
+export * from "./invoice";
+export * from "./draft";
+export * from "./payment";
+export * from "./import";
+
+export * from "./catalog";
+
+export * from "./sales";
+export * from "./public-quote";
+
+export * from "./invoice-delivery";
+
+export * from "./smtp";
+
+export * from "./attachment";

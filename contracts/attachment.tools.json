@@ -1,0 +1,168 @@
+[
+  {
+    "name": "attachment_list",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "quote"
+          ]
+        },
+        "document_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "kind",
+        "document_id"
+      ]
+    }
+  },
+  {
+    "name": "attachment_upload",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "quote"
+          ]
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "filename": {
+          "type": "string",
+          "maxLength": 180
+        },
+        "base64": {
+          "type": "string",
+          "maxLength": 2796204
+        }
+      },
+      "required": [
+        "company_id",
+        "kind",
+        "document_id",
+        "request_id",
+        "filename",
+        "base64"
+      ]
+    }
+  },
+  {
+    "name": "attachment_download",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "quote"
+          ]
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "kind",
+        "document_id",
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "attachment_delete",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "quote"
+          ]
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "kind",
+        "document_id",
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "attachment_historydownload",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "quote"
+          ]
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "delivery": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "kind",
+        "document_id",
+        "id",
+        "delivery"
+      ]
+    }
+  }
+]

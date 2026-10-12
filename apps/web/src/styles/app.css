@@ -1,0 +1,503 @@
+@import "tailwindcss";
+@import "@fontsource-variable/manrope";
+@import "@open-faktura/design-tokens";
+@import "@open-faktura/ui/styles.css";
+@source "../../../../packages/ui/src";
+@layer base {
+  body {
+    @apply m-0 bg-canvas text-foreground font-sans antialiased;
+  }
+  button,
+  input,
+  select,
+  textarea,
+  a,
+  summary {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-focus;
+  }
+  button,
+  summary {
+    @apply cursor-pointer;
+  }
+  input[type="date"] {
+    min-width: 0;
+  }
+}
+
+@layer components {
+  .workspace-shell {
+    @apply lg:grid lg:grid-cols-[var(--spacing-workspace-sidebar)_minmax(0,1fr)];
+  }
+  .workspace-sidebar {
+    @apply flex flex-col border-b border-border bg-surface lg:fixed lg:bottom-0 lg:left-0 lg:top-workspace-appbar lg:z-20 lg:w-workspace-sidebar lg:overflow-y-auto lg:overscroll-contain lg:border-b-0 lg:border-r;
+  }
+  .workspace-nav-item {
+    @apply flex w-full items-center gap-control rounded-control px-control py-control text-left text-sm;
+  }
+  .workspace-nav-group > summary {
+    @apply cursor-pointer list-none;
+  }
+  .workspace-nav-group > summary::-webkit-details-marker {
+    display: none;
+  }
+  .workspace-nav-group[open] > summary {
+    @apply font-semibold;
+  }
+  .workspace-context {
+    @apply flex flex-wrap items-center justify-between gap-field border-b border-border bg-surface px-group py-control;
+  }
+  .workspace-content {
+    @apply w-full min-w-0 px-workspace-gutter py-group;
+  }
+  .workspace-panel,
+  .profile-form {
+    @apply overflow-hidden rounded-control border border-border bg-surface;
+  }
+  .profile-section {
+    @apply space-y-field p-form-inset;
+  }
+  .profile-actions {
+    @apply flex flex-wrap items-center justify-end gap-control border-t border-border bg-sidebar p-field;
+  }
+}
+
+@layer components {
+  .workspace-appbar {
+    @apply grid grid-cols-[auto_minmax(0,1fr)_auto] items-center lg:flex lg:h-full;
+  }
+  .workspace-brand {
+    @apply flex shrink-0 items-center px-field py-field text-base font-bold lg:px-group lg:text-lg tracking-tight lg:w-workspace-sidebar lg:self-stretch lg:border-r lg:border-border;
+  }
+}
+
+@layer components {
+  .account-menu-item.ui-button {
+    @apply w-full justify-start gap-control border-transparent bg-transparent px-control text-sm font-medium shadow-none;
+    transform: none;
+  }
+  .account-menu-item.ui-button:hover:not(:disabled) {
+    @apply bg-canvas;
+  }
+  .account-menu-item.ui-button:disabled {
+    @apply border-transparent bg-transparent text-muted;
+  }
+  .account-language-option.ui-button {
+    @apply flex-1 justify-center gap-inline border-transparent px-inline text-xs font-medium shadow-none;
+    transform: none;
+  }
+  .account-language-option[aria-pressed="true"] {
+    @apply bg-primary-soft text-foreground;
+  }
+  .account-popover :is(button, a):focus-visible {
+    outline-offset: -2px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .account-popover {
+      transform-origin: top right;
+      animation: account-popover-in var(--duration-overlay) var(--ease-feedback);
+    }
+  }
+  @keyframes account-popover-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer components {
+  .invoice-sheet {
+    @apply rounded-control border border-border bg-surface;
+  }
+  .invoice-section {
+    @apply space-y-field border-b border-border p-form-inset;
+  }
+  .invoice-parties {
+    @apply grid gap-group lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)];
+  }
+}
+
+@layer components {
+  .panel-toolbar {
+    @apply flex flex-wrap items-end justify-between gap-field border-b border-border p-form-inset;
+  }
+  .panel-tabs {
+    @apply overflow-x-auto border-b border-border px-form-inset pt-control;
+  }
+  .panel-footer {
+    @apply flex flex-wrap items-center justify-between gap-field border-t border-border px-form-inset py-control;
+  }
+}
+
+@layer components {
+  .invoice-list-tabs .ui-filter-tabs {
+    @apply flex-nowrap overflow-x-auto px-field;
+  }
+  .invoice-list-tabs .ui-filter-tab {
+    @apply shrink-0 whitespace-nowrap;
+  }
+}
+
+.invoice-register-table .ui-table-cell {
+  @apply px-control py-inline;
+}
+.invoice-sort {
+  @apply inline-flex items-center gap-inline py-0 font-semibold hover:text-foreground;
+}
+.invoice-facts {
+  @apply grid gap-control text-sm;
+}
+.invoice-facts > div {
+  @apply grid grid-cols-2 gap-field;
+}
+.invoice-facts dt {
+  @apply text-muted;
+}
+.invoice-facts dd {
+  @apply min-w-0 break-words;
+}
+
+.invoice-register-table .ui-table-head {
+  @apply px-control;
+}
+
+.invoice-line-head {
+  @apply hidden;
+}
+.invoice-editor-line {
+  @apply grid grid-cols-2 items-start gap-control border-b border-border pb-field;
+}
+.invoice-line-description,
+.invoice-line-options {
+  @apply col-span-2;
+}
+.invoice-line-total {
+  @apply self-center whitespace-nowrap;
+}
+@media (min-width: 1024px) {
+  .invoice-line-head,
+  .invoice-editor-line {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 3fr) minmax(0, 1.2fr) minmax(0, 1fr)
+      minmax(0, 1.2fr) minmax(0, 1.3fr) var(--size-control);
+    @apply gap-control;
+  }
+  .invoice-line-head {
+    @apply bg-sidebar px-control py-control text-xs text-muted;
+  }
+  .invoice-editor-line {
+    @apply px-control;
+  }
+  .invoice-line-description {
+    grid-column: auto;
+  }
+  .invoice-line-options {
+    grid-column: 1 / -1;
+  }
+  .invoice-line-input > div > div:first-child:has(> label),
+  .invoice-line-input .ui-selection-label {
+    @apply sr-only;
+  }
+}
+
+.contact-sheet {
+  @apply overflow-hidden rounded-panel border border-border bg-surface;
+}
+.contact-section {
+  @apply border-b border-border p-form-inset last:border-b-0;
+}
+.contact-facts {
+  @apply grid gap-control text-sm;
+}
+.contact-facts > div {
+  @apply grid grid-cols-2 gap-field;
+}
+.contact-facts dt {
+  @apply text-muted;
+}
+.contact-facts dd {
+  @apply min-w-0 whitespace-pre-line break-words;
+}
+.contact-register-table .ui-table-cell {
+  @apply px-control py-inline;
+}
+.contact-register-table .ui-table-head {
+  @apply px-control;
+}
+
+.contact-disclosure {
+  @apply flex cursor-pointer list-none items-center gap-inline text-sm font-medium;
+}
+.contact-disclosure::-webkit-details-marker {
+  display: none;
+}
+.contact-disclosure svg {
+  transition: transform var(--duration-feedback) var(--ease-feedback);
+}
+details[open] > .contact-disclosure svg {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-disclosure svg {
+    transition: none;
+  }
+}
+@media (min-width: 64rem) {
+  .contact-facts {
+    @apply gap-inline;
+  }
+  .contact-facts > div {
+    grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
+    gap: var(--spacing-inline);
+    min-height: var(--size-control-sm);
+    align-items: center;
+  }
+  .contact-register-table .ui-table-cell,
+  .invoice-register-table .ui-table-cell {
+    @apply py-0;
+    height: var(--size-register-row);
+  }
+}
+.contact-section-heading {
+  @apply flex items-center justify-between gap-inline;
+  min-height: var(--size-control-sm);
+}
+
+/* The workspace frame follows reference E023; colours remain Open Faktura tokens. */
+@layer components {
+  .workspace-root {
+    @apply min-h-screen bg-surface;
+  }
+  .workspace-content {
+    @apply bg-canvas;
+    min-height: calc(100dvh - var(--spacing-workspace-appbar));
+  }
+  .workspace-nav-item {
+    min-height: var(--size-control);
+  }
+  .workspace-nav-item[aria-current="page"] {
+    @apply bg-primary text-surface;
+  }
+  .workspace-nav-children {
+    @apply space-y-inline bg-canvas p-inline;
+  }
+  .workspace-nav-group[open] > summary {
+    @apply bg-primary-soft;
+  }
+  .workspace-nav-group > summary > svg:last-child {
+    transition: transform var(--duration-feedback) var(--ease-feedback);
+  }
+  .workspace-nav-group[open] > summary > svg:last-child {
+    transform: rotate(180deg);
+  }
+  .workspace-nav-item:not(:disabled):not([aria-current="page"]):hover {
+    @apply bg-primary-soft;
+  }
+  @media (min-width: 64rem) {
+    body:has(.workspace-root) {
+      @apply bg-primary;
+    }
+    .workspace-root {
+      margin: var(--spacing-workspace-frame);
+      border-radius: var(--radius-workspace);
+      min-height: calc(100dvh - 2 * var(--spacing-workspace-frame));
+    }
+    .workspace-header {
+      top: var(--spacing-workspace-frame);
+      border-radius: var(--radius-workspace) var(--radius-workspace) 0 0;
+      border-bottom: 0;
+    }
+    .workspace-sidebar {
+      left: var(--spacing-workspace-frame);
+      top: calc(
+        var(--spacing-workspace-frame) + var(--spacing-workspace-appbar)
+      );
+      bottom: var(--spacing-workspace-frame);
+      border: 0;
+      border-bottom-left-radius: var(--radius-workspace);
+    }
+    .workspace-brand {
+      @apply border-0;
+    }
+    .workspace-content {
+      padding: var(--spacing-group);
+      border-radius: var(--radius-workspace) 0 var(--radius-workspace) 0;
+      min-height: calc(
+        100dvh - var(--spacing-workspace-appbar) - 2 *
+          var(--spacing-workspace-frame)
+      );
+    }
+    .workspace-nav-item {
+      border-radius: var(--radius-action);
+      min-height: var(--size-control);
+      padding-block: var(--spacing-inline);
+    }
+    .workspace-panel,
+    .profile-form,
+    .invoice-sheet,
+    .contact-sheet {
+      border-radius: var(--radius-panel);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .workspace-nav-group > summary > svg:last-child {
+      transition: none;
+    }
+  }
+}
+
+@layer components {
+  .profile-grid {
+    @apply grid gap-field xl:grid-cols-2;
+  }
+  .profile-facts {
+    @apply grid gap-inline xl:grid-cols-2;
+  }
+  .profile-facts > div {
+    @apply grid grid-cols-2 items-center gap-inline;
+    min-height: var(--size-control-sm);
+  }
+  @media (min-width: 64rem) {
+    .profile-facts > div {
+      grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
+    }
+  }
+}
+
+@layer components {
+  .profile-identity-fields {
+    @apply max-w-3xl space-y-field;
+  }
+  @media (min-width: 64rem) {
+    .profile-identity-fields > .space-y-control {
+      margin-left: calc(var(--spacing-form-label) + var(--spacing-inline));
+    }
+    .profile-section .ui-selection {
+      display: grid;
+      grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
+      column-gap: var(--spacing-inline);
+      align-items: center;
+    }
+    .profile-section .ui-selection-label {
+      @apply mb-0 font-normal text-muted;
+    }
+    .profile-section .ui-selection > [role="alert"] {
+      grid-column: 2;
+    }
+  }
+}
+
+@layer components {
+  .workspace-page-heading {
+    min-height: var(--size-control);
+  }
+  .register-pagination {
+    @apply flex flex-wrap items-center justify-between gap-field px-field py-group;
+  }
+  .register-current-page {
+    @apply inline-flex items-center justify-center rounded-full bg-primary text-sm text-surface tabular-nums;
+    width: var(--size-control);
+    min-height: var(--size-control);
+  }
+  .register-pagination > .ui-selection {
+    @apply flex items-center gap-control;
+  }
+  .register-pagination .ui-selection-label {
+    @apply mb-0 text-xs font-normal text-muted;
+  }
+  .register-pagination .ui-select-trigger {
+    @apply w-20;
+  }
+  .register-sheet {
+    @apply border-0;
+  }
+  .register-sheet .invoice-list-tabs {
+    @apply bg-canvas;
+  }
+  .register-sheet .ui-filter-tabs {
+    @apply gap-inline border-0 px-0;
+  }
+  .register-sheet .ui-filter-tab {
+    @apply rounded-t-panel px-group;
+  }
+  .register-sheet .ui-filter-tab[aria-pressed="true"] {
+    @apply bg-surface;
+  }
+  .register-sheet .ui-tab-indicator {
+    @apply bg-transparent;
+  }
+  @media (min-width: 64rem) {
+    .workspace-page-heading {
+      min-height: var(--size-control-desktop);
+    }
+    .register-current-page {
+      width: var(--size-control-desktop);
+      min-height: var(--size-control-desktop);
+    }
+    .contact-register-table,
+    .invoice-register-table {
+      font-size: var(--text-register);
+    }
+    .contact-register-table .ui-table-head,
+    .invoice-register-table .ui-table-head {
+      @apply py-control-compact font-semibold text-foreground;
+      height: var(--size-register-row);
+    }
+    .invoice-sort {
+      @apply py-0 font-semibold;
+    }
+  }
+}
+
+@layer components {
+  .register-sheet > .p-field {
+    border-top-right-radius: var(--radius-panel);
+  }
+  .invoice-description.ui-textarea {
+    min-height: var(--size-textarea-compact);
+  }
+  @media (min-width: 64rem) {
+    .invoice-form-facts .ui-selection,
+    .invoice-customer-picker > .ui-selection {
+      display: grid;
+      grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
+      align-items: center;
+      column-gap: var(--spacing-inline);
+    }
+    .invoice-form-facts .ui-selection-label,
+    .invoice-party-summary .ui-selection-label {
+      @apply mb-0 font-normal text-muted;
+    }
+    .invoice-form-facts .ui-selection > [role="alert"] {
+      grid-column: 2;
+    }
+    .invoice-facts > div {
+      grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
+      gap: var(--spacing-inline);
+      min-height: var(--size-control-sm);
+      align-items: center;
+    }
+    .invoice-form-facts .ui-compound-control {
+      min-height: var(--size-control-sm);
+    }
+  }
+}
+
+@layer components {
+  @media (min-width: 64rem) {
+    .catalog-fields .ui-selection {
+      display: grid;
+      grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
+      align-items: center;
+      gap: var(--spacing-inline);
+    }
+    .catalog-fields .ui-selection-label {
+      @apply mb-0 font-normal text-muted;
+    }
+  }
+}

@@ -1,0 +1,67 @@
+name: open-faktura-production
+services:
+  postgres:
+    image: postgres:18.3-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: faktura
+      POSTGRES_DB: faktura
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U faktura -d faktura"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  app:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    image: open-faktura:${APP_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL_FILE: /run/secrets/database_url
+      SMTP_ENCRYPTION_KEY_FILE: /run/secrets/smtp_key
+      BOOTSTRAP_SECRET_FILE: /run/secrets/bootstrap
+      CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN in infra/production.env}
+      PUBLIC_WEB_URL: https://${APP_DOMAIN:?Set APP_DOMAIN in infra/production.env}
+    secrets: [database_url, bootstrap, smtp_key]
+    volumes:
+      - files:/data/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://127.0.0.1:3001/api/ready]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  proxy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+secrets:
+  smtp_key:
+    file: ../.secrets/smtp-key
+  db_password:
+    file: ../.secrets/db_password
+  database_url:
+    file: ../.secrets/database_url
+  bootstrap:
+    file: ../.secrets/bootstrap
+volumes:
+  postgres-data:
+  files:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,123 @@
+use crate::auth::{self, AuthState};
+use crate::company::Failure;
+use axum::{
+    extract::{DefaultBodyLimit, Path, Query, State},
+    http::{header, HeaderMap, HeaderValue},
+    response::{IntoResponse, Response},
+    routing::get,
+    Json, Router,
+};
+use faktura_application::sales::{self, Create, Search, Update};
+use faktura_infrastructure::{auth::PgAuth, sales::PgSales};
+use sqlx::PgPool;
+use std::sync::Arc;
+#[derive(Clone)]
+struct SalesState {
+    store: PgSales,
+    auth: AuthState,
+}
+pub fn router(pool: PgPool, origins: Vec<String>, secure: bool) -> Router {
+    Router::new()
+        .route(
+            "/api/companies/{company}/sales/{id}/convert",
+            axum::routing::post(convert),
+        )
+        .route("/api/companies/{company}/sales", get(list).post(create))
+        .route(
+            "/api/companies/{company}/sales/{id}",
+            get(detail).put(update),
+        )
+        .layer(DefaultBodyLimit::max(1048576))
+        .layer(axum::middleware::map_response(
+            |mut response: Response| async move {
+                response
+                    .headers_mut()
+                    .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+                response
+            },
+        ))
+        .with_state(SalesState {
+            store: PgSales(pool.clone()),
+            auth: AuthState {
+                store: Arc::new(PgAuth::new(pool, None)),
+                origins,
+                secure,
+            },
+        })
+}
+async fn actor(s: &SalesState, headers: &HeaderMap, write: bool) -> Result<String, auth::Failure> {
+    if write {
+        auth::same_origin(&s.auth, headers)?;
+    }
+    Ok(s.auth
+        .store
+        .session(&auth::token(headers, s.auth.secure))
+        .await?
+        .id)
+}
+fn response<T: serde::Serialize>(result: sales::Result<T>) -> Response {
+    match result {
+        Ok(value) => Json(value).into_response(),
+        Err(error) => Failure(error).into_response(),
+    }
+}
+async fn list(
+    State(s): State<SalesState>,
+    h: HeaderMap,
+    Path(company): Path<String>,
+    Query(search): Query<Search>,
+) -> Response {
+    let actor = match actor(&s, &h, false).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(sales::list(&s.store, &actor, &company, search).await)
+}
+async fn detail(
+    State(s): State<SalesState>,
+    h: HeaderMap,
+    Path((company, id)): Path<(String, String)>,
+) -> Response {
+    let actor = match actor(&s, &h, false).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(sales::get(&s.store, &actor, &company, &id).await)
+}
+async fn create(
+    State(s): State<SalesState>,
+    h: HeaderMap,
+    Path(company): Path<String>,
+    Json(body): Json<Create>,
+) -> Response {
+    let actor = match actor(&s, &h, true).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(sales::create(&s.store, &actor, &company, body).await)
+}
+async fn update(
+    State(s): State<SalesState>,
+    h: HeaderMap,
+    Path((company, id)): Path<(String, String)>,
+    Json(body): Json<Update>,
+) -> Response {
+    let actor = match actor(&s, &h, true).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(sales::update(&s.store, &actor, &company, &id, body).await)
+}
+
+async fn convert(
+    State(s): State<SalesState>,
+    h: HeaderMap,
+    Path((company, id)): Path<(String, String)>,
+    Json(body): Json<sales::Convert>,
+) -> Response {
+    let actor = match actor(&s, &h, true).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(sales::convert(&s.store, &actor, &company, &id, body).await)
+}

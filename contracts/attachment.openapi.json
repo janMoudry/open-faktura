@@ -1,0 +1,460 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Document attachments",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company_id}/attachments/{kind}/{document_id}": {
+      "get": {
+        "operationId": "attachmentList",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "quote"
+              ]
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped result. Downloads are no-store attachment/nosniff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Attachment"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found in profile"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "413": {
+            "description": "Too large"
+          },
+          "422": {
+            "description": "File invalid or quota exceeded"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "attachmentUpload",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "quote"
+              ]
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped result. Downloads are no-store attachment/nosniff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attachment"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found in profile"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "413": {
+            "description": "Too large"
+          },
+          "422": {
+            "description": "File invalid or quota exceeded"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Upload"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company_id}/attachments/{kind}/{document_id}/{id}": {
+      "get": {
+        "operationId": "attachmentDownload",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "quote"
+              ]
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped result. Downloads are no-store attachment/nosniff.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found in profile"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "413": {
+            "description": "Too large"
+          },
+          "422": {
+            "description": "File invalid or quota exceeded"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "attachmentDelete",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "quote"
+              ]
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped result. Downloads are no-store attachment/nosniff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "deleted"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found in profile"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "413": {
+            "description": "Too large"
+          },
+          "422": {
+            "description": "File invalid or quota exceeded"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company_id}/attachments/{kind}/{document_id}/deliveries/{delivery}/{id}": {
+      "get": {
+        "operationId": "attachmentHistoryDownload",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "quote"
+              ]
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "delivery",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped result. Downloads are no-store attachment/nosniff.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found in profile"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "413": {
+            "description": "Too large"
+          },
+          "422": {
+            "description": "File invalid or quota exceeded"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Attachment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "media_type": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "media_type",
+          "sha256",
+          "created_at",
+          "size"
+        ]
+      },
+      "Upload": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "base64": {
+            "type": "string",
+            "maxLength": 2796204
+          }
+        },
+        "required": [
+          "request_id",
+          "filename",
+          "base64"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,474 @@
+@layer components {
+  :where(.ui-button, .ui-control):focus-visible {
+    @apply outline-2 outline-offset-4 outline-focus;
+  }
+  .ui-button {
+    @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent text-sm leading-5 font-semibold disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted disabled:border-border;
+    min-height: var(--size-control);
+  }
+  .ui-button {
+    transition:
+      color var(--duration-feedback) ease,
+      background-color var(--duration-feedback) ease,
+      border-color var(--duration-feedback) ease,
+      transform var(--duration-feedback) var(--ease-feedback);
+    touch-action: manipulation;
+  }
+  .ui-button:active:not(:disabled):not(:focus-visible) {
+    transform: scale(0.98);
+  }
+  .ui-button-md {
+    @apply px-4 py-2.5;
+  }
+  .ui-button-sm {
+    @apply px-3 py-1.5;
+    min-height: var(--size-control-sm);
+  }
+  .ui-icon-button {
+    @apply p-0;
+    width: var(--size-control);
+  }
+  .ui-icon-button.ui-button-sm {
+    width: var(--size-control-sm);
+  }
+  .ui-button-primary {
+    @apply bg-primary text-surface enabled:hover:bg-primary-hover;
+  }
+  .ui-button-secondary {
+    @apply border-border bg-surface text-foreground enabled:hover:bg-canvas;
+  }
+  .ui-button-ghost {
+    @apply text-primary enabled:hover:bg-primary-soft;
+  }
+  .ui-button-danger {
+    @apply bg-danger text-surface enabled:hover:bg-danger-hover;
+  }
+  .ui-control {
+    @apply block w-full min-w-0 rounded-control border border-control-border bg-surface px-3 py-2.5 text-base leading-5 text-foreground placeholder:text-muted disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted sm:text-sm;
+    min-height: var(--size-control);
+  }
+  .ui-control[readonly] {
+    @apply bg-canvas;
+  }
+  .ui-control[aria-invalid="true"] {
+    @apply border-danger bg-danger-soft/30;
+  }
+  .ui-control:focus-visible {
+    @apply border-primary;
+  }
+  .ui-textarea {
+    @apply resize-y;
+    min-height: 6rem;
+  }
+  .ui-dialog {
+    @apply fixed top-1/2 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-panel border border-border bg-surface p-6 text-foreground shadow-paper;
+    max-width: min(32rem, calc(100% - 2rem));
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .ui-dialog-overlay {
+    @apply fixed inset-0 z-40 bg-overlay;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-button {
+      transition: none;
+    }
+    .ui-button:active:not(:disabled):not(:focus-visible) {
+      transform: none;
+    }
+  }
+}
+
+.ui-chart {
+  height: 17rem;
+  min-width: 0;
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .ui-select-trigger {
+    @apply flex items-center gap-3 text-left;
+  }
+  .ui-select-trigger [data-placeholder] {
+    @apply text-muted;
+  }
+  .ui-compound-control {
+    @apply flex min-w-0 items-center rounded-control border border-control-border bg-surface text-foreground;
+    min-height: var(--size-control);
+  }
+  .ui-compound-control:focus-within {
+    @apply outline-2 outline-offset-4 outline-focus;
+  }
+  .ui-combo-input {
+    @apply w-full min-w-0 flex-1 rounded-control bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-muted sm:text-sm;
+  }
+  .ui-control-addon {
+    @apply flex shrink-0 items-center justify-center self-stretch rounded-r-lg text-muted enabled:hover:bg-canvas disabled:cursor-not-allowed;
+    width: var(--size-control);
+  }
+  .ui-control-addon:focus-visible {
+    @apply outline-2 outline-offset-2 outline-focus;
+  }
+  .ui-selection[data-invalid] :is(.ui-compound-control, .ui-select-trigger) {
+    @apply border-danger bg-danger-soft/30;
+  }
+  .ui-selection[data-disabled] :is(.ui-compound-control, .ui-select-trigger) {
+    @apply cursor-not-allowed bg-disabled text-muted;
+  }
+  .ui-selection[data-readonly] .ui-compound-control {
+    @apply bg-canvas;
+  }
+  .ui-popover {
+    @apply z-50 overflow-auto rounded-popover border border-border bg-surface text-foreground shadow-paper;
+    max-width: calc(100vw - 2rem);
+    overscroll-behavior: contain;
+  }
+  .ui-select-popover {
+    width: var(--trigger-width);
+  }
+  .ui-options {
+    @apply p-1 outline-none;
+    max-height: 18rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .ui-option {
+    @apply flex cursor-pointer items-center gap-3 rounded-control px-3 py-3 text-sm outline-none;
+  }
+  .ui-option[data-focused],
+  .ui-option[data-selected] {
+    @apply bg-primary-soft;
+  }
+  .ui-option[data-focus-visible] {
+    @apply outline-2 -outline-offset-2 outline-focus;
+  }
+  .ui-option[data-disabled] {
+    @apply cursor-not-allowed text-muted;
+  }
+  .ui-option[data-disabled] [slot="label"] {
+    @apply line-through;
+  }
+  .ui-date-input {
+    @apply flex min-w-0 flex-1 items-center px-3 py-2 text-base tabular-nums sm:text-sm;
+  }
+  .ui-date-segment {
+    @apply rounded px-0.5 outline-none;
+  }
+  .ui-date-segment[data-placeholder] {
+    @apply text-muted;
+  }
+  .ui-date-segment:focus {
+    @apply bg-primary text-surface;
+  }
+  .ui-calendar-popover {
+    @apply p-3;
+  }
+  .ui-calendar {
+    width: 19.25rem;
+    max-width: 100%;
+  }
+  .ui-calendar-nav {
+    @apply flex h-11 w-11 items-center justify-center rounded-control enabled:hover:bg-canvas disabled:text-muted;
+  }
+  .ui-calendar-nav:focus-visible {
+    @apply outline-2 outline-focus;
+  }
+  .ui-calendar-cell {
+    @apply flex cursor-pointer items-center justify-center rounded-control text-sm tabular-nums outline-none;
+    width: min(var(--size-control), calc((100vw - 4rem) / 7));
+    height: var(--size-control);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .ui-calendar-cell:not([data-disabled]):not([data-unavailable]):not(
+        [data-selected]
+      ):hover {
+      @apply bg-canvas;
+    }
+  }
+  .ui-calendar-cell[data-outside-month] {
+    @apply text-muted;
+  }
+  .ui-calendar-cell[data-selected] {
+    @apply bg-primary text-surface;
+  }
+  .ui-calendar-cell[data-disabled],
+  .ui-calendar-cell[data-unavailable] {
+    @apply cursor-not-allowed text-muted line-through;
+  }
+  .ui-calendar-cell[data-focus-visible] {
+    @apply outline-2 -outline-offset-2 outline-focus;
+  }
+}
+
+@layer components {
+  .ui-switch {
+    @apply inline-flex min-h-11 cursor-pointer items-center gap-3 text-sm has-disabled:cursor-not-allowed has-disabled:text-muted;
+  }
+  .ui-switch-track {
+    @apply flex h-6 w-10 shrink-0 items-center rounded-full border border-control-border bg-canvas px-0.5 peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-focus peer-disabled:bg-disabled;
+  }
+  .ui-switch-track {
+    transition:
+      background-color var(--duration-switch) ease,
+      border-color var(--duration-switch) ease;
+  }
+  .ui-switch-thumb {
+    transition:
+      translate var(--duration-switch) var(--ease-switch),
+      background-color var(--duration-switch) ease;
+    @apply h-4 w-4 rounded-full bg-muted;
+  }
+  .ui-switch input:focus-visible + .ui-switch-track,
+  .ui-switch input:focus-visible + .ui-switch-track .ui-switch-thumb {
+    transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-switch-track,
+    .ui-switch-thumb {
+      transition: none;
+    }
+  }
+  .ui-switch input:checked + .ui-switch-track .ui-switch-thumb {
+    @apply translate-x-4 bg-surface;
+  }
+}
+
+@layer components {
+  .ui-heading {
+    @apply font-display font-semibold text-foreground;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    scroll-margin-top: var(--spacing-group);
+  }
+  .ui-heading-page {
+    @apply text-heading-page tracking-tight;
+  }
+  .ui-heading-section {
+    @apply text-heading-section tracking-tight;
+  }
+  .ui-heading-card {
+    @apply text-heading-card;
+  }
+  .ui-heading-label {
+    @apply text-heading-label;
+  }
+  .ui-filter-tabs {
+    @apply relative flex flex-wrap gap-x-group border-b border-border px-5;
+  }
+  .ui-filter-tab {
+    @apply flex min-h-12 items-center gap-inline border-b-2 border-transparent py-3 text-sm disabled:cursor-not-allowed disabled:text-muted disabled:opacity-50;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    max-width: 100%;
+    transition: color var(--duration-tabs) ease;
+  }
+  .ui-tab-indicator {
+    @apply pointer-events-none absolute top-0 left-0 h-0.5 bg-primary;
+  }
+  .ui-tab-indicator[data-animate] {
+    transition:
+      translate var(--duration-tabs) var(--ease-tabs),
+      width var(--duration-tabs) var(--ease-tabs);
+  }
+  @media (max-width: 639px) {
+    .ui-heading-page {
+      font-size: var(--text-heading-section);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-tab-indicator[data-animate],
+    .ui-filter-tab {
+      transition: none;
+    }
+  }
+}
+
+@layer components {
+  .ui-control {
+    transition:
+      border-color var(--duration-feedback) ease,
+      background-color var(--duration-feedback) ease;
+  }
+  .ui-selection[data-readonly] .ui-control-addon {
+    cursor: default;
+  }
+  .ui-button:focus-visible {
+    transition: none;
+  }
+  .ui-filter-tab:focus-visible {
+    transition: none;
+  }
+  .ui-switch input:disabled + .ui-switch-track .ui-switch-thumb {
+    @apply bg-control-border;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-control {
+      transition: none;
+    }
+  }
+}
+
+@keyframes ui-dialog-enter {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes ui-overlay-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .ui-dialog[data-state="open"][data-animate] {
+      animation: ui-dialog-enter var(--duration-overlay) var(--ease-feedback);
+    }
+    .ui-dialog-overlay[data-state="open"][data-animate] {
+      animation: ui-overlay-enter var(--duration-overlay) ease-out;
+    }
+  }
+}
+
+@layer components {
+  .ui-native-choice:focus-visible {
+    @apply outline-2 outline-offset-4 outline-focus;
+  }
+  .ui-selection {
+    overflow-wrap: anywhere;
+  }
+  .ui-button {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+@layer components {
+  .ui-table {
+    @apply w-full border-collapse text-left text-sm;
+  }
+  .ui-table-header {
+    @apply border-y border-border bg-sidebar;
+  }
+  .ui-table-head {
+    @apply whitespace-nowrap px-field py-control text-xs font-medium text-muted;
+  }
+  .ui-table-cell {
+    @apply px-field py-control align-middle;
+    overflow-wrap: anywhere;
+  }
+  .ui-table-row {
+    @apply border-b border-border/60 last:border-b-0;
+  }
+  tbody > .ui-table-row {
+    transition: background-color var(--duration-feedback) var(--ease-feedback);
+  }
+  tbody > .ui-table-row:hover,
+  tbody > .ui-table-row:focus-within {
+    @apply bg-canvas/60;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    tbody > .ui-table-row {
+      transition: none;
+    }
+  }
+}
+
+.ui-content-tab-list {
+  @apply flex gap-inline overflow-x-auto;
+}
+.ui-content-tab {
+  @apply cursor-pointer whitespace-nowrap rounded-t-panel px-group py-field text-sm font-medium text-muted outline-none;
+  transition:
+    color var(--duration-feedback),
+    background-color var(--duration-feedback);
+}
+.ui-content-tab[data-selected] {
+  @apply bg-surface text-foreground;
+}
+.ui-content-tab[data-hovered] {
+  @apply text-foreground bg-primary-soft;
+}
+.ui-content-tab[data-disabled] {
+  @apply cursor-not-allowed opacity-50;
+}
+.ui-content-tab[data-focus-visible] {
+  @apply outline-2 outline-offset-2 outline-primary;
+}
+.ui-content-panel[data-inert] {
+  display: none;
+}
+.ui-content-panel {
+  @apply outline-none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-content-tab {
+    transition: none;
+  }
+}
+
+/* The same label column can be used by a read-only summary and its editor. */
+@media (min-width: 64rem) {
+  .ui-field-horizontal {
+    display: grid;
+    grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
+    column-gap: var(--spacing-inline);
+    align-items: start;
+  }
+  .ui-field-horizontal > div:first-child {
+    min-height: var(--size-control-sm);
+    margin-bottom: 0;
+    font-weight: 400;
+    color: var(--color-muted);
+  }
+  .ui-field-horizontal > p {
+    grid-column: 2;
+  }
+  .ui-field-horizontal .ui-control:not(textarea) {
+    min-height: var(--size-control-sm);
+    height: var(--size-control-sm);
+  }
+}
+
+/* Compact desktop controls; touch layouts retain the 44 px control token. */
+@layer components {
+  .ui-button {
+    border-radius: var(--radius-action);
+  }
+  .ui-textarea {
+    border-radius: var(--radius-control);
+  }
+  @media (min-width: 64rem) {
+    .ui-button,
+    .ui-button-sm,
+    .ui-control,
+    .ui-compound-control {
+      min-height: var(--size-control-desktop);
+    }
+    .ui-button-md,
+    .ui-button-sm,
+    .ui-control,
+    .ui-combo-input {
+      padding-block: var(--spacing-control-compact);
+    }
+    .ui-icon-button,
+    .ui-icon-button.ui-button-sm {
+      width: var(--size-control-desktop);
+    }
+    .ui-control:not(.ui-textarea),
+    .ui-compound-control {
+      border-radius: var(--radius-action);
+    }
+    .ui-textarea {
+      min-height: 6rem;
+    }
+  }
+}

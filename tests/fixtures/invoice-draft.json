@@ -1,0 +1,60 @@
+{
+  "contact_id": null,
+  "supplier": {
+    "name": "Synthetic supplier",
+    "registration_number": "",
+    "vat_number": "",
+    "email": "",
+    "phone": "",
+    "address": {
+      "street": "Test 1",
+      "city": "Praha",
+      "postal_code": "11000",
+      "country": "CZ"
+    }
+  },
+  "customer": {
+    "name": "Synthetic customer",
+    "registration_number": "",
+    "vat_number": "",
+    "email": "",
+    "phone": "",
+    "address": {
+      "street": "Test 1",
+      "city": "Praha",
+      "postal_code": "11000",
+      "country": "CZ"
+    }
+  },
+  "payment": {
+    "method": "bank_transfer",
+    "bank_account": "",
+    "iban": "",
+    "variable_symbol": ""
+  },
+  "calculation": {
+    "calculation_version": "of-czk-v1",
+    "currency": "CZK",
+    "tax_mode": "vat_payer",
+    "price_mode": "net",
+    "discount_percent": "0",
+    "rounding": "none",
+    "lines": [
+      {
+        "id": "line-1",
+        "description": "Synthetic service",
+        "unit": "h",
+        "quantity": "3",
+        "unit_price": "19.995",
+        "discount_percent": "0",
+        "vat_percent": "21"
+      }
+    ]
+  },
+  "issued_on": "2026-10-11",
+  "due_on": "2026-10-25",
+  "tax_on": "2026-10-11",
+  "language": "cs",
+  "order_number": "ORDER-1",
+  "note": ""
+}

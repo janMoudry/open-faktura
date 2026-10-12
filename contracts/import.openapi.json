@@ -1,0 +1,2019 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura migration",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/companies/{company}/imports": {
+      "get": {
+        "operationId": "imports_list",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ImportBatch"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "import_prepare",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportBatch"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareImport"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/imports/{id}": {
+      "get": {
+        "operationId": "import_get",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportBatch"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "import_apply",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportBatch"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyImport"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/imports/table": {
+      "post": {
+        "operationId": "import_table",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportTable"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportTableInput"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Address": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "postal_code": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 2
+          }
+        }
+      },
+      "DeliveryAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "address"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "Person": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "email",
+          "phone"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 50
+          }
+        }
+      },
+      "ContactData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "billing_address",
+          "delivery_addresses",
+          "default_delivery_id",
+          "email",
+          "phone",
+          "persons",
+          "recipients",
+          "maturity_days",
+          "payment_method",
+          "bank_account",
+          "iban",
+          "note"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "registration_number": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "vat_number": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "billing_address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "delivery_addresses": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/DeliveryAddress"
+            }
+          },
+          "default_delivery_id": {
+            "type": "string",
+            "maxLength": 64,
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "persons": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            }
+          },
+          "recipients": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "maxLength": 254
+            }
+          },
+          "maturity_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 365,
+            "nullable": true
+          },
+          "payment_method": {
+            "type": "string",
+            "enum": [
+              "",
+              "cash",
+              "bank_transfer"
+            ]
+          },
+          "bank_account": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "iban": {
+            "type": "string",
+            "maxLength": 34
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      },
+      "Contact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "company_id",
+          "revision",
+          "archived",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "company_id": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ContactData"
+          }
+        }
+      },
+      "ContactPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          }
+        }
+      },
+      "CreateContact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "data"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ContactData"
+          }
+        }
+      },
+      "UpdateContact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "archived",
+          "data"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ContactData"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "unauthorized",
+              "not_found",
+              "forbidden",
+              "invalid_input",
+              "revision_conflict",
+              "unavailable"
+            ]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RegistryContact": {
+        "type": "object",
+        "required": [
+          "registration_number",
+          "name",
+          "vat_number",
+          "billing_address"
+        ],
+        "properties": {
+          "registration_number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "billing_address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "InvoiceLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          }
+        }
+      },
+      "InvoiceCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLine"
+            },
+            "maxItems": 500
+          }
+        }
+      },
+      "InvoiceAmounts": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "gross"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceLineResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amounts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTaxSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tax_mode",
+          "vat_percent",
+          "amounts"
+        ],
+        "properties": {
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "lines",
+          "tax_summary",
+          "amounts",
+          "rounding",
+          "payable"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineResult"
+            }
+          },
+          "tax_summary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceTaxSummary"
+            }
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "payable": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "fields"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "PaymentSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bank_account",
+          "iban",
+          "variable_symbol",
+          "method"
+        ],
+        "properties": {
+          "bank_account": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          }
+        }
+      },
+      "DraftData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contact_id",
+          "supplier",
+          "customer",
+          "payment",
+          "calculation",
+          "issued_on",
+          "due_on",
+          "tax_on",
+          "language",
+          "order_number",
+          "note"
+        ],
+        "properties": {
+          "contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartySnapshot"
+              }
+            ],
+            "nullable": true
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSnapshot"
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/DraftCalculation"
+          },
+          "issued_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          }
+        }
+      },
+      "DraftCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DraftLine"
+            },
+            "maxItems": 500
+          }
+        }
+      },
+      "Draft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "company_id",
+          "revision",
+          "data",
+          "totals",
+          "number",
+          "issued_at",
+          "settlement"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          },
+          "totals": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              }
+            ],
+            "nullable": true
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "issued_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "settlement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Settlement"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "DraftPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Draft"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          }
+        }
+      },
+      "CreateDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "data"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        }
+      },
+      "UpdateDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "data"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        }
+      },
+      "IssueInvoice": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "Settlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paid",
+          "outstanding",
+          "overpayment",
+          "status",
+          "overdue",
+          "revision",
+          "today"
+        ],
+        "properties": {
+          "paid": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partial",
+              "paid",
+              "overpaid"
+            ]
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "PaymentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "paid_on",
+          "method",
+          "note"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amount",
+          "paid_on",
+          "method",
+          "note",
+          "actor_id",
+          "created_at",
+          "reversed_at",
+          "reason",
+          "reversed_by",
+          "replacement_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "paid_on": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "reversed_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "reversed_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "replacement_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Payments": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "summary",
+          "items"
+        ],
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/Settlement"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            }
+          }
+        }
+      },
+      "RegisterPayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "payment"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentInput"
+          }
+        }
+      },
+      "ReversePayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "reason",
+          "replacement"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "replacement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentInput"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "Overview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issued_count",
+          "draft_count",
+          "outstanding_count",
+          "overdue_count",
+          "outstanding",
+          "overdue",
+          "received",
+          "overpayment",
+          "currency",
+          "today"
+        ],
+        "properties": {
+          "issued_count": {
+            "type": "integer"
+          },
+          "draft_count": {
+            "type": "integer"
+          },
+          "outstanding_count": {
+            "type": "integer"
+          },
+          "overdue_count": {
+            "type": "integer"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overdue": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "received": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "today": {
+            "type": "string"
+          }
+        }
+      },
+      "ImportRecord": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "contact"
+                ]
+              },
+              "key": {
+                "type": "string"
+              },
+              "data": {
+                "$ref": "#/components/schemas/ContactData"
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "data"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "invoice"
+                ]
+              },
+              "key": {
+                "type": "string"
+              },
+              "number": {
+                "type": "string"
+              },
+              "contact_key": {
+                "type": "string",
+                "nullable": true
+              },
+              "data": {
+                "$ref": "#/components/schemas/DraftData"
+              },
+              "totals": {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              },
+              "payments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PaymentInput"
+                }
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "number",
+              "contact_key",
+              "data",
+              "totals",
+              "payments"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "PrepareImport": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "idoklad",
+              "fakturaonline",
+              "generic"
+            ]
+          },
+          "agenda": {
+            "type": "string"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRecord"
+            }
+          }
+        },
+        "required": [
+          "request_id",
+          "source",
+          "agenda",
+          "records"
+        ],
+        "additionalProperties": false
+      },
+      "ApplyImport": {
+        "type": "object",
+        "properties": {
+          "skip": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "skip"
+        ],
+        "additionalProperties": false
+      },
+      "ImportRow": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "invalid",
+              "conflict",
+              "duplicate",
+              "imported",
+              "skipped"
+            ]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "target_id": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "index",
+          "kind",
+          "key",
+          "label",
+          "status",
+          "fields",
+          "target_id"
+        ],
+        "additionalProperties": false
+      },
+      "ImportTotals": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "imported": {
+            "type": "string"
+          },
+          "skipped": {
+            "type": "string"
+          },
+          "payments": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "source",
+          "imported",
+          "skipped",
+          "payments"
+        ],
+        "additionalProperties": false
+      },
+      "ImportBatch": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "agenda": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "running",
+              "done"
+            ]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRow"
+            }
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportTotals"
+            }
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "agenda",
+          "status",
+          "rows",
+          "totals",
+          "limitations"
+        ],
+        "additionalProperties": false
+      },
+      "ImportTableInput": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "xlsx"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "delimiter": {
+            "type": "string",
+            "enum": [
+              ";",
+              ",",
+              "tab"
+            ]
+          }
+        },
+        "required": [
+          "format",
+          "content",
+          "delimiter"
+        ],
+        "additionalProperties": false
+      },
+      "ImportTable": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "headers",
+          "rows"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "faktura_session"
+      }
+    }
+  },
+  "security": [
+    {
+      "session": []
+    }
+  ]
+}

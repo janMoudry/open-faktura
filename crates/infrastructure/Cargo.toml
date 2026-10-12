@@ -1,0 +1,35 @@
+[package]
+name = "faktura-infrastructure"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+sqlx.workspace = true
+faktura-application = { path = "../application" }
+async-trait = "0.1"
+argon2 = "0.5"
+rand = "0.8"
+sha2 = "0.10"
+subtle = "2"
+tokio = { workspace = true, features = ["sync"] }
+serde_json = "1"
+faktura-domain = { path = "../domain" }
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json"] }
+
+genpdf = "=0.2.0"
+
+uuid = { version = "1", features = ["v4"] }
+rust_decimal = "1"
+
+csv = "=1.4.0"
+calamine = "=0.36.1"
+zip = { version = "8.6", default-features = false, features = ["deflate"] }
+quick-xml = "0.41"
+
+lettre = { version = "=0.11.23", default-features = false, features = ["builder", "smtp-transport", "tokio1-rustls-tls", "ring", "webpki-roots"] }
+
+ring = "=0.17.14"
+
+base64 = "0.22"

@@ -1,0 +1,108 @@
+[
+  {
+    "name": "smtp_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "smtp_save",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "environment",
+            "custom",
+            "disabled"
+          ]
+        },
+        "host": {
+          "type": "string",
+          "maxLength": 253
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "security": {
+          "type": "string",
+          "enum": [
+            "starttls",
+            "tls",
+            "plain"
+          ]
+        },
+        "sender": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "username": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "password": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096,
+          "writeOnly": true,
+          "description": "null preserves stored secret; empty clears it"
+        }
+      },
+      "required": [
+        "revision",
+        "mode",
+        "host",
+        "port",
+        "security",
+        "sender",
+        "username"
+      ]
+    }
+  },
+  {
+    "name": "smtp_test",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recipient": {
+          "type": "string",
+          "format": "email"
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "cs",
+            "en"
+          ]
+        }
+      },
+      "required": [
+        "request_id",
+        "revision",
+        "recipient",
+        "language"
+      ]
+    }
+  }
+]

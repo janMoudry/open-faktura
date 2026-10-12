@@ -1,0 +1,134 @@
+[
+  {
+    "kind": "contact",
+    "key": "customer-1",
+    "data": {
+      "name": "Synthetic customer",
+      "registration_number": "87654321",
+      "vat_number": "",
+      "billing_address": {
+        "street": "Test 1",
+        "city": "Praha",
+        "postal_code": "11000",
+        "country": "CZ"
+      },
+      "delivery_addresses": [],
+      "default_delivery_id": null,
+      "email": "",
+      "phone": "",
+      "persons": [],
+      "recipients": [],
+      "maturity_days": null,
+      "payment_method": "",
+      "bank_account": "",
+      "iban": "",
+      "note": ""
+    }
+  },
+  {
+    "kind": "invoice",
+    "key": "invoice-1",
+    "number": "HIST-2025-001",
+    "contact_key": "customer-1",
+    "data": {
+      "contact_id": null,
+      "supplier": {
+        "name": "Synthetic supplier",
+        "registration_number": "12345678",
+        "vat_number": "",
+        "email": "",
+        "phone": "",
+        "address": {
+          "street": "Test 1",
+          "city": "Praha",
+          "postal_code": "11000",
+          "country": "CZ"
+        }
+      },
+      "customer": {
+        "name": "Synthetic customer",
+        "registration_number": "",
+        "vat_number": "",
+        "email": "",
+        "phone": "",
+        "address": {
+          "street": "Test 1",
+          "city": "Praha",
+          "postal_code": "11000",
+          "country": "CZ"
+        }
+      },
+      "payment": {
+        "method": "cash",
+        "bank_account": "",
+        "iban": "",
+        "variable_symbol": ""
+      },
+      "calculation": {
+        "calculation_version": "of-czk-v1",
+        "currency": "CZK",
+        "tax_mode": "non_payer",
+        "price_mode": "net",
+        "discount_percent": "0",
+        "rounding": "none",
+        "lines": [
+          {
+            "id": "line-1",
+            "description": "Synthetic service",
+            "unit": "h",
+            "quantity": "3",
+            "unit_price": "19.995",
+            "discount_percent": "0",
+            "vat_percent": "0"
+          }
+        ]
+      },
+      "issued_on": "2025-01-01",
+      "due_on": "2025-01-15",
+      "tax_on": null,
+      "language": "cs",
+      "order_number": "ORDER-1",
+      "note": ""
+    },
+    "totals": {
+      "calculation_version": "import-v1",
+      "currency": "CZK",
+      "lines": [
+        {
+          "id": "line-1",
+          "amounts": {
+            "net": "59.99",
+            "vat": "0.00",
+            "gross": "59.99"
+          }
+        }
+      ],
+      "tax_summary": [
+        {
+          "tax_mode": "non_payer",
+          "vat_percent": "0",
+          "amounts": {
+            "net": "59.99",
+            "vat": "0.00",
+            "gross": "59.99"
+          }
+        }
+      ],
+      "amounts": {
+        "net": "59.99",
+        "vat": "0.00",
+        "gross": "59.99"
+      },
+      "rounding": "0.00",
+      "payable": "59.99"
+    },
+    "payments": [
+      {
+        "amount": "20.00",
+        "paid_on": "2025-01-10",
+        "method": "cash",
+        "note": "Synthetic source payment"
+      }
+    ]
+  }
+]

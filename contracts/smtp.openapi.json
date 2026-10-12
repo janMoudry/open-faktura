@@ -1,0 +1,315 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Installation SMTP",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/installation/smtp": {
+      "get": {
+        "operationId": "smtpGet",
+        "description": "Installation administrator only. Write requires same-origin and X-Faktura-Request. Test sends real mail using saved settings; stable request_id prevents retries from sending twice.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmtpState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Stale revision or idempotency conflict"
+          },
+          "422": {
+            "description": "Invalid settings or rate limit"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "put": {
+        "operationId": "smtpSave",
+        "description": "Installation administrator only. Write requires same-origin and X-Faktura-Request. Test sends real mail using saved settings; stable request_id prevents retries from sending twice.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmtpState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Stale revision or idempotency conflict"
+          },
+          "422": {
+            "description": "Invalid settings or rate limit"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmtpSave"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/installation/smtp/test": {
+      "post": {
+        "operationId": "smtpTest",
+        "description": "Installation administrator only. Write requires same-origin and X-Faktura-Request. Test sends real mail using saved settings; stable request_id prevents retries from sending twice.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmtpTestResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Stale revision or idempotency conflict"
+          },
+          "422": {
+            "description": "Invalid settings or rate limit"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmtpTest"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SmtpState": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "environment",
+              "custom",
+              "disabled"
+            ]
+          },
+          "host": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "security": {
+            "type": "string",
+            "enum": [
+              "starttls",
+              "tls",
+              "plain"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "password_set": {
+            "type": "boolean"
+          },
+          "encryption_ready": {
+            "type": "boolean"
+          },
+          "configured": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "revision",
+          "mode",
+          "host",
+          "port",
+          "security",
+          "sender",
+          "username",
+          "password_set",
+          "encryption_ready",
+          "configured"
+        ]
+      },
+      "SmtpSave": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "environment",
+              "custom",
+              "disabled"
+            ]
+          },
+          "host": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "security": {
+            "type": "string",
+            "enum": [
+              "starttls",
+              "tls",
+              "plain"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "password": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096,
+            "writeOnly": true,
+            "description": "null preserves stored secret; empty clears it"
+          }
+        },
+        "required": [
+          "revision",
+          "mode",
+          "host",
+          "port",
+          "security",
+          "sender",
+          "username"
+        ]
+      },
+      "SmtpTest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "recipient": {
+            "type": "string",
+            "format": "email"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "revision",
+          "recipient",
+          "language"
+        ]
+      },
+      "SmtpTestResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "sending",
+              "sent",
+              "failed",
+              "uncertain"
+            ]
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "status",
+          "error_code"
+        ]
+      }
+    }
+  }
+}

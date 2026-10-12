@@ -1,0 +1,11 @@
+[package]
+name = "faktura-domain"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde.workspace = true
+chrono = { version = "0.4", default-features = false, features = ["std", "serde"] }
+chrono-tz = "0.10"
+rust_decimal = { version = "1", default-features = false, features = ["std"] }

@@ -1,0 +1,65 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22.22.0"
+      - run: npm install --global pnpm@10.29.3
+      - run: pnpm install --frozen-lockfile
+      - run: rustup show
+      - run: pnpm build:web
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm --filter @open-faktura/desktop build --debug --bundles app
+  integration:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22.22.0"
+      - run: npm install --global pnpm@10.29.3
+      - run: pnpm install --frozen-lockfile
+      - run: rustup show
+      - run: pnpm db:up
+      - run: cp .env.example .env
+      - run: node scripts/init-secrets.mjs
+      - run: cargo build --locked -p faktura-server
+      - run: pnpm generate:api && git diff --exit-code -- packages/api-client/src/auth.generated.ts packages/api-client/src/company.generated.ts packages/api-client/src/contact.generated.ts contracts/contact.tools.json packages/api-client/src/invoice.generated.ts contracts/invoice.tools.json contracts/draft.tools.json packages/api-client/src/sales.generated.ts packages/api-client/src/public-quote.generated.ts contracts/sales.tools.json packages/api-client/src/invoice-delivery.generated.ts contracts/invoice-delivery.tools.json packages/api-client/src/smtp.generated.ts contracts/smtp.tools.json packages/api-client/src/attachment.generated.ts contracts/attachment.tools.json
+      - run: pnpm test:companies
+        env:
+          DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+      - run: pnpm test:invoices
+        env:
+          DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+      - run: pnpm test:smtp
+        env:
+          DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+      - run: pnpm test:contacts
+        env:
+          DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+      - run: pnpm test:auth
+        env:
+          DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+      - run: cargo test --locked -p faktura-server --test sales --test delivery --test share --test invoice_delivery --test attachment -- --ignored --test-threads=1
+        env:
+          DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: |
+          target/debug/faktura-server > /tmp/faktura-api.log 2>&1 &
+          trap 'kill $! || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail http://127.0.0.1:3001/api/ready; then break; fi
+            sleep 1
+          done
+          pnpm test:e2e
+      - if: always()
+        run: cat /tmp/faktura-api.log || true

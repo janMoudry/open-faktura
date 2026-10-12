@@ -1,0 +1,1796 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura invoice calculation preview",
+    "version": "0.1.0",
+    "description": "Own versioned preview rules. No issue, persistence or tax eligibility validation."
+  },
+  "paths": {
+    "/api/companies/{company}/invoices/calculate": {
+      "post": {
+        "operationId": "calculateInvoice",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Faktura-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ],
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceTotals"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Profile inaccessible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid calculation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices": {
+      "get": {
+        "operationId": "listDrafts",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "updated_desc",
+                "issued_desc",
+                "issued_asc",
+                "customer_asc",
+                "customer_desc",
+                "number_desc",
+                "number_asc",
+                "due_asc",
+                "due_desc",
+                "amount_asc",
+                "amount_desc"
+              ]
+            }
+          },
+          {
+            "name": "customer_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "draft",
+                "issued",
+                "outstanding",
+                "overdue",
+                "paid",
+                "partial",
+                "overpaid"
+              ],
+              "default": "all"
+            }
+          },
+          {
+            "name": "date_field",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "issued_on",
+                "due_on"
+              ],
+              "default": "issued_on"
+            },
+            "description": "Inclusive bound; combined with other filters (AND)."
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Inclusive bound; combined with other filters (AND)."
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Inclusive bound; combined with other filters (AND)."
+          },
+          {
+            "name": "amount_min",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,17}(\\.\\d{1,2})?$"
+            },
+            "description": "Inclusive bound; combined with other filters (AND)."
+          },
+          {
+            "name": "amount_max",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,17}(\\.\\d{1,2})?$"
+            },
+            "description": "Inclusive bound; combined with other filters (AND)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createDraft",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Faktura-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDraft"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices/{id}": {
+      "get": {
+        "operationId": "getDraft",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateDraft",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Faktura-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDraft"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices/{id}/issue": {
+      "post": {
+        "operationId": "issueInvoice",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Faktura-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueInvoice"
+              }
+            }
+          }
+        },
+        "description": "Issue saved revision atomically. Same profile/key/actor/id/revision replays; changed input or an issued invoice conflicts. No delivery."
+      }
+    },
+    "/api/companies/{company}/invoices/{id}/pdf": {
+      "get": {
+        "operationId": "invoicePdf",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Immutable issued snapshot PDF; draft returns 409",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices/{id}/payments": {
+      "get": {
+        "operationId": "invoicePayments",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payments"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Ledger revision, request replay or lifecycle conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "registerPayment",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Faktura-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payments"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Ledger revision, request replay or lifecycle conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPayment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices/{id}/payments/{payment}/reverse": {
+      "post": {
+        "operationId": "reversePayment",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Faktura-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          },
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payments"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Ledger revision, request replay or lifecycle conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReversePayment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/overview": {
+      "get": {
+        "operationId": "companyOverview",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Read only"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Ledger revision, request replay or lifecycle conflict"
+          },
+          "422": {
+            "description": "Invalid draft"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InvoiceLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          }
+        }
+      },
+      "InvoiceCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLine"
+            },
+            "maxItems": 500
+          }
+        }
+      },
+      "InvoiceAmounts": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "gross"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceLineResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amounts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTaxSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tax_mode",
+          "vat_percent",
+          "amounts"
+        ],
+        "properties": {
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "lines",
+          "tax_summary",
+          "amounts",
+          "rounding",
+          "payable"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineResult"
+            }
+          },
+          "tax_summary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceTaxSummary"
+            }
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "payable": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "fields"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "PaymentSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bank_account",
+          "iban",
+          "variable_symbol",
+          "method"
+        ],
+        "properties": {
+          "bank_account": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          }
+        }
+      },
+      "DraftData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contact_id",
+          "supplier",
+          "customer",
+          "payment",
+          "calculation",
+          "issued_on",
+          "due_on",
+          "tax_on",
+          "language",
+          "order_number",
+          "note"
+        ],
+        "properties": {
+          "contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartySnapshot"
+              }
+            ],
+            "nullable": true
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSnapshot"
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/DraftCalculation"
+          },
+          "issued_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          }
+        }
+      },
+      "DraftCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DraftLine"
+            },
+            "maxItems": 500
+          }
+        }
+      },
+      "Draft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "company_id",
+          "revision",
+          "data",
+          "totals",
+          "number",
+          "issued_at",
+          "settlement"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          },
+          "totals": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              }
+            ],
+            "nullable": true
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "issued_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "settlement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Settlement"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "DraftPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Draft"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          }
+        }
+      },
+      "CreateDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "data"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        }
+      },
+      "UpdateDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "data"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        }
+      },
+      "IssueInvoice": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "Settlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paid",
+          "outstanding",
+          "overpayment",
+          "status",
+          "overdue",
+          "revision",
+          "today"
+        ],
+        "properties": {
+          "paid": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partial",
+              "paid",
+              "overpaid"
+            ]
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "PaymentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "paid_on",
+          "method",
+          "note"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amount",
+          "paid_on",
+          "method",
+          "note",
+          "actor_id",
+          "created_at",
+          "reversed_at",
+          "reason",
+          "reversed_by",
+          "replacement_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "paid_on": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "reversed_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "reversed_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "replacement_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Payments": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "summary",
+          "items"
+        ],
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/Settlement"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            }
+          }
+        }
+      },
+      "RegisterPayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "payment"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentInput"
+          }
+        }
+      },
+      "ReversePayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "reason",
+          "replacement"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "replacement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentInput"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "Overview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issued_count",
+          "draft_count",
+          "outstanding_count",
+          "overdue_count",
+          "outstanding",
+          "overdue",
+          "received",
+          "overpayment",
+          "currency",
+          "today"
+        ],
+        "properties": {
+          "issued_count": {
+            "type": "integer"
+          },
+          "draft_count": {
+            "type": "integer"
+          },
+          "outstanding_count": {
+            "type": "integer"
+          },
+          "overdue_count": {
+            "type": "integer"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overdue": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "received": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "today": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "faktura_session"
+      }
+    }
+  }
+}

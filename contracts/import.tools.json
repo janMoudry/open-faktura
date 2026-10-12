@@ -1,0 +1,827 @@
+[
+  {
+    "name": "imports_list",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "import_prepare",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "idoklad",
+            "fakturaonline",
+            "generic"
+          ]
+        },
+        "agenda": {
+          "type": "string"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "contact"
+                    ]
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "name",
+                      "registration_number",
+                      "vat_number",
+                      "billing_address",
+                      "delivery_addresses",
+                      "default_delivery_id",
+                      "email",
+                      "phone",
+                      "persons",
+                      "recipients",
+                      "maturity_days",
+                      "payment_method",
+                      "bank_account",
+                      "iban",
+                      "note"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 1
+                      },
+                      "registration_number": {
+                        "type": "string",
+                        "maxLength": 32
+                      },
+                      "vat_number": {
+                        "type": "string",
+                        "maxLength": 32
+                      },
+                      "billing_address": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "street",
+                          "city",
+                          "postal_code",
+                          "country"
+                        ],
+                        "properties": {
+                          "street": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "city": {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "maxLength": 30
+                          },
+                          "country": {
+                            "type": "string",
+                            "maxLength": 2
+                          }
+                        }
+                      },
+                      "delivery_addresses": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "id",
+                            "name",
+                            "address"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            "name": {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            "address": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "street",
+                                "city",
+                                "postal_code",
+                                "country"
+                              ],
+                              "properties": {
+                                "street": {
+                                  "type": "string",
+                                  "maxLength": 200
+                                },
+                                "city": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "postal_code": {
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "country": {
+                                  "type": "string",
+                                  "maxLength": 2
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "default_delivery_id": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "maxLength": 64
+                      },
+                      "email": {
+                        "type": "string",
+                        "maxLength": 254
+                      },
+                      "phone": {
+                        "type": "string",
+                        "maxLength": 50
+                      },
+                      "persons": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "name",
+                            "email",
+                            "phone"
+                          ],
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            "email": {
+                              "type": "string",
+                              "maxLength": 254
+                            },
+                            "phone": {
+                              "type": "string",
+                              "maxLength": 50
+                            }
+                          }
+                        }
+                      },
+                      "recipients": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 254
+                        }
+                      },
+                      "maturity_days": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "maximum": 365
+                      },
+                      "payment_method": {
+                        "type": "string",
+                        "enum": [
+                          "",
+                          "cash",
+                          "bank_transfer"
+                        ]
+                      },
+                      "bank_account": {
+                        "type": "string",
+                        "maxLength": 80
+                      },
+                      "iban": {
+                        "type": "string",
+                        "maxLength": 34
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 2000
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "kind",
+                  "key",
+                  "data"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "invoice"
+                    ]
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "number": {
+                    "type": "string"
+                  },
+                  "contact_key": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "contact_id",
+                      "supplier",
+                      "customer",
+                      "payment",
+                      "calculation",
+                      "issued_on",
+                      "due_on",
+                      "tax_on",
+                      "language",
+                      "order_number",
+                      "note"
+                    ],
+                    "properties": {
+                      "contact_id": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "supplier": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "registration_number",
+                          "vat_number",
+                          "email",
+                          "phone",
+                          "address"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "registration_number": {
+                            "type": "string"
+                          },
+                          "vat_number": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "phone": {
+                            "type": "string"
+                          },
+                          "address": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "street",
+                              "city",
+                              "postal_code",
+                              "country"
+                            ],
+                            "properties": {
+                              "street": {
+                                "type": "string"
+                              },
+                              "city": {
+                                "type": "string"
+                              },
+                              "postal_code": {
+                                "type": "string"
+                              },
+                              "country": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "customer": {
+                        "allOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "name",
+                              "registration_number",
+                              "vat_number",
+                              "email",
+                              "phone",
+                              "address"
+                            ],
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "registration_number": {
+                                "type": "string"
+                              },
+                              "vat_number": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "phone": {
+                                "type": "string"
+                              },
+                              "address": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "street",
+                                  "city",
+                                  "postal_code",
+                                  "country"
+                                ],
+                                "properties": {
+                                  "street": {
+                                    "type": "string"
+                                  },
+                                  "city": {
+                                    "type": "string"
+                                  },
+                                  "postal_code": {
+                                    "type": "string"
+                                  },
+                                  "country": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "type": [
+                          null,
+                          "null"
+                        ]
+                      },
+                      "payment": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "bank_account",
+                          "iban",
+                          "variable_symbol",
+                          "method"
+                        ],
+                        "properties": {
+                          "bank_account": {
+                            "type": "string"
+                          },
+                          "iban": {
+                            "type": "string"
+                          },
+                          "variable_symbol": {
+                            "type": "string"
+                          },
+                          "method": {
+                            "type": "string",
+                            "enum": [
+                              "cash",
+                              "bank_transfer"
+                            ]
+                          }
+                        }
+                      },
+                      "calculation": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "calculation_version",
+                          "currency",
+                          "tax_mode",
+                          "price_mode",
+                          "discount_percent",
+                          "rounding",
+                          "lines"
+                        ],
+                        "properties": {
+                          "calculation_version": {
+                            "type": "string",
+                            "enum": [
+                              "of-czk-v1",
+                              "import-v1"
+                            ]
+                          },
+                          "currency": {
+                            "type": "string",
+                            "enum": [
+                              "CZK"
+                            ]
+                          },
+                          "tax_mode": {
+                            "type": "string",
+                            "enum": [
+                              "non_payer",
+                              "vat_payer"
+                            ]
+                          },
+                          "price_mode": {
+                            "type": "string",
+                            "enum": [
+                              "net",
+                              "gross"
+                            ]
+                          },
+                          "discount_percent": {
+                            "type": "string"
+                          },
+                          "rounding": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "whole_czk"
+                            ]
+                          },
+                          "lines": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "id",
+                                "description",
+                                "unit",
+                                "quantity",
+                                "unit_price",
+                                "discount_percent",
+                                "vat_percent"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "maxLength": 2000
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "quantity": {
+                                  "type": "string",
+                                  "maxLength": 24
+                                },
+                                "unit_price": {
+                                  "type": "string",
+                                  "maxLength": 24
+                                },
+                                "discount_percent": {
+                                  "type": "string",
+                                  "maxLength": 24
+                                },
+                                "vat_percent": {
+                                  "type": "string",
+                                  "enum": [
+                                    "0",
+                                    "12",
+                                    "21"
+                                  ]
+                                }
+                              }
+                            },
+                            "maxItems": 500
+                          }
+                        }
+                      },
+                      "issued_on": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date"
+                      },
+                      "due_on": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date"
+                      },
+                      "tax_on": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date"
+                      },
+                      "language": {
+                        "type": "string",
+                        "enum": [
+                          "cs",
+                          "en"
+                        ]
+                      },
+                      "order_number": {
+                        "type": "string"
+                      },
+                      "note": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "totals": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "calculation_version",
+                      "currency",
+                      "lines",
+                      "tax_summary",
+                      "amounts",
+                      "rounding",
+                      "payable"
+                    ],
+                    "properties": {
+                      "calculation_version": {
+                        "type": "string",
+                        "enum": [
+                          "of-czk-v1",
+                          "import-v1"
+                        ]
+                      },
+                      "currency": {
+                        "type": "string",
+                        "enum": [
+                          "CZK"
+                        ]
+                      },
+                      "lines": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "id",
+                            "amounts"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "amounts": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "net",
+                                "vat",
+                                "gross"
+                              ],
+                              "properties": {
+                                "net": {
+                                  "type": "string"
+                                },
+                                "vat": {
+                                  "type": "string"
+                                },
+                                "gross": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "tax_summary": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "tax_mode",
+                            "vat_percent",
+                            "amounts"
+                          ],
+                          "properties": {
+                            "tax_mode": {
+                              "type": "string",
+                              "enum": [
+                                "non_payer",
+                                "vat_payer"
+                              ]
+                            },
+                            "vat_percent": {
+                              "type": "string",
+                              "enum": [
+                                "0",
+                                "12",
+                                "21"
+                              ]
+                            },
+                            "amounts": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "net",
+                                "vat",
+                                "gross"
+                              ],
+                              "properties": {
+                                "net": {
+                                  "type": "string"
+                                },
+                                "vat": {
+                                  "type": "string"
+                                },
+                                "gross": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "amounts": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "net",
+                          "vat",
+                          "gross"
+                        ],
+                        "properties": {
+                          "net": {
+                            "type": "string"
+                          },
+                          "vat": {
+                            "type": "string"
+                          },
+                          "gross": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "rounding": {
+                        "type": "string"
+                      },
+                      "payable": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "payments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "amount",
+                        "paid_on",
+                        "method",
+                        "note"
+                      ],
+                      "properties": {
+                        "amount": {
+                          "type": "string",
+                          "pattern": "^\\d+(\\.\\d{1,2})?$"
+                        },
+                        "paid_on": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "method": {
+                          "type": "string",
+                          "enum": [
+                            "cash",
+                            "bank_transfer"
+                          ]
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 500
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "kind",
+                  "key",
+                  "number",
+                  "contact_key",
+                  "data",
+                  "totals",
+                  "payments"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "source",
+        "agenda",
+        "records"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "import_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "import_apply",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "skip": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "skip"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

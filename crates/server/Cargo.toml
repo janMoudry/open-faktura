@@ -1,0 +1,26 @@
+[package]
+name = "faktura-server"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+faktura-domain = { path = "../domain" }
+faktura-application = { path = "../application" }
+faktura-infrastructure = { path = "../infrastructure" }
+axum.workspace = true
+tokio.workspace = true
+serde.workspace = true
+sqlx.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+dotenvy = "0.15"
+
+serde_json = "1"
+rmcp = { version = "=3.5.1", features = ["server", "client", "transport-io"] }
+
+base64 = "0.22"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
