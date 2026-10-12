@@ -1,65 +1,54 @@
 # Open Faktura
 
-Kompletně otevřená fakturační aplikace pro české podnikatele a firmy, kterou si každý může nainstalovat a provozovat na vlastním serveru.
+Fakturace pro české živnostníky a firmy s provozem na vlastním serveru. Doklady, kontakty i přílohy zůstávají ve vaší správě; k aplikaci přistupujete přes web, REST API nebo MCP pro práci s AI asistenty.
 
-Cílem je plná funkční alternativa iDokladu: fakturace, nabídky, zálohy, přijaté doklady, sklad, banka, pokladna, automatizace, daňové podklady a integrace. API a MCP budou součástí produktu od začátku.
+**Projekt je v aktivním vývoji.** Základní fakturace funguje, další účetní moduly a veřejná distribuce se připravují. Dostupný rozsah a omezení popisuje [přehled funkcí](FEATURES.md).
 
-## Stav projektu
+## Co už můžete používat
 
-Projekt má funkční základ monorepa: React/Tailwind web, Tauri desktop, Rust API a PostgreSQL. Produkt má účty, fakturační profily, adresář, návrhy a vystavení faktur s číslováním a PDF, ruční úhrady, základní přehled, ceník, šablony a cenové nabídky s převodem na fakturu. Faktury a nabídky podporují odesílání e-mailem s historií a vlastními přílohami; SMTP lze nastavit v UI. Nabídky mají veřejné odkazy. Rozhraní je v češtině a angličtině, moduly mají REST/MCP kontrakty. Import CSV/XLSX má mapování a náhled; předvolby iDokladu a FakturyOnline zatím nejsou ověřené zdrojové adaptéry. Produkční vstup je oddělený od vývojového sandboxu; katalog komponent je při `pnpm dev` dostupný na `/sandbox.html#/design-system` a návrh faktur na `/sandbox.html#/invoices`.
+- **Faktury:** návrhy, vystavení s číslováním, PDF a evidence ručních úhrad.
+- **Kontakty a ceník:** adresář obchodních partnerů a položky pro opakované použití.
+- **Nabídky a šablony:** příprava nabídky, PDF, veřejný odkaz a převod do návrhu faktury.
+- **Odesílání:** faktury a nabídky e-mailem přes vlastní SMTP, historie odeslání a přílohy.
+- **Vlastní agenda:** více fakturačních profilů, základní přehled a import CSV/XLSX s náhledem a mapováním sloupců.
+- **Integrace a jazyky:** REST API, lokální MCP a společné rozhraní v češtině a angličtině.
 
-Spuštění a kontroly: [Lokální vývoj](docs/DEVELOPMENT.md). Po instalaci závislostí a vytvoření `.env` spusť `node scripts/init-secrets.mjs`, `pnpm db:up` a `pnpm dev`; desktop používá `pnpm dev:desktop` se samostatně běžícím API.
+Zálohové a přijaté faktury, bankovní párování, sklad, pravidelná fakturace a daňové výstupy jsou součástí [plánu vývoje](docs/IMPLEMENTATION_PLAN.md).
 
-- [Soupis funkcí iDokladu, zdroje a návrh otevřené alternativy](FEATURES.md)
-- [Pravidla práce a lokální skills](AGENTS.md)
-- [Přijatý stack, struktura monorepa a desktopová distribuce](docs/architecture/DEVELOPMENT_CONVENTIONS.md)
-- [Implementační plán po dodávkách P00–P20](docs/IMPLEMENTATION_PLAN.md)
-- [Spuštění vlastní instalace, přihlášení a obnova správce](docs/INSTALLATION.md)
-- [Instalace, první správce a průvodce firmou](docs/specs/installation-onboarding.md)
-- [Průzkum stacku, škálování a rozšiřitelnosti](docs/architecture/STACK_RESEARCH.md)
-- [Konceptuální datový model](docs/DATA_MODEL.md)
-- [Evidence reverse-engineeringu](docs/research/EVIDENCE.md)
-- [Scénáře pro ověření reference](docs/research/SCENARIOS.md)
-- [Uložené návrhy faktur — P06](docs/specs/invoice-drafts.md)
-- [První specifikace vydaných faktur](docs/specs/issued-invoices.md)
+## Jak začít
 
-Podklady rozlišují kontrakty přečtené z oficiálního SDK, dosud neprovedené experimenty a vlastní návrh Open Faktury. Schéma databáze je verzované v `migrations/`. Rozsah ověřené shody a odchylky uvádějí jednotlivé specifikace; úplná shoda s iDokladem není dokončená. Screenshoty z lokálního průzkumu a vizuálních kontrol nejsou součástí veřejného repozitáře.
+| Chci… | Kde pokračovat |
+| --- | --- |
+| Provozovat aplikaci na vlastním serveru | [Instalace, první správce a zálohy](docs/INSTALLATION.md) |
+| Spustit projekt pro vývoj | [Lokální vývoj](docs/DEVELOPMENT.md) |
+| Zjistit dostupné funkce a omezení | [Přehled funkcí](FEATURES.md) |
+| Porozumět API, architektuře nebo přispět | [Rozcestník dokumentace](docs/README.md) |
 
-## Principy
+Serverová instalace používá Docker Compose a PostgreSQL. Desktopový klient v Tauri sdílí webové rozhraní a vyžaduje samostatně běžící backend. Samostatná instalace na počítač včetně databáze i podepsané veřejné instalátory se teprve připravují.
 
-- Celý produkt bude otevřený: frontend, backend, API, MCP, databázové migrace a vlastní konektory.
-- Všechny funkční moduly budou dostupné i při provozu na vlastním serveru.
-- Uživatel bude mít kontrolu nad daty, přílohami, zálohami a exporty.
-- Základní fakturace bude fungovat bez placené služby provozovatele projektu.
-- Web, API a MCP budou používat stejná pravidla, výpočty a oprávnění.
-- Případný placený hosting nabídne spravovaný provoz stejné otevřené aplikace.
+## Pro vývojáře
 
-## Plánovaný rozsah
+Frontend používá React a Tailwind, backend Rust a databázi PostgreSQL. Web, REST API a MCP sdílejí aplikační pravidla, výpočty a kontrolu oprávnění.
 
-- Vydané faktury, dobropisy, zálohy a jejich vyúčtování.
-- Cenové nabídky, šablony a pravidelná fakturace.
-- Přijaté faktury, účtenky a inbox s vytěžováním dokumentů.
-- Adresář, ARES a ověřování DIČ.
-- Ceník, sklad a skladové pohyby.
-- Úhrady, banka, párování plateb, pokladna a prodejky.
-- E-maily, upomínky a poděkování za úhradu.
-- Přehledy, daňové podklady a účetní exporty.
-- Více firem, uživatelé, oprávnění a audit změn.
-- Mobilní použití, API, integrační události a MCP.
-- Instalace přes Docker Compose, zálohování, obnova a aktualizace.
+Po instalaci [vývojových závislostí](docs/DEVELOPMENT.md#požadavky) spusťte z kořene repozitáře:
 
-## Postup vývoje
+```sh
+pnpm install --frozen-lockfile
+# Pouze pokud ještě nemáte vlastní .env:
+cp .env.example .env
+node scripts/init-secrets.mjs
+pnpm db:up
+pnpm dev
+```
 
-1. Doplnit veřejný soupis o pozorování aplikace, dokumentované API a exporty.
-2. Ke každé funkci popsat vstupy, výstupy, stavy, pravidla a hraniční případy.
-3. Připravit scénáře a testy pro ověření funkční shody.
-4. Implementovat vlastní aplikaci a vlastní uživatelské rozhraní.
-5. Postupně pokrýt celý cílový rozsah a připravit samostatnou instalaci.
+Web je dostupný na <http://127.0.0.1:5173>. První účet založíte podle [instalačního návodu](docs/INSTALLATION.md#první-přihlášení-a-firma). Vývojové nastavení není určené pro veřejný server.
+
+Před úpravami si přečtěte [vývojové konvence](docs/architecture/DEVELOPMENT_CONVENTIONS.md) a [pravidla přispívání a práce agentů](AGENTS.md). Příkazy pro kontrolu změn najdete v [návodu pro vývoj](docs/DEVELOPMENT.md#kontroly).
 
 ## Licence
 
-Cílem je kompletně open-source produkt. Konkrétní licence zatím nebyla vybrána a tento repozitář zatím licenci neobsahuje; rozhodnutí bude doplněno před zveřejněním implementace.
+Open Faktura je svobodný a open-source software pod **GNU Affero General Public License, verze 3** (`AGPL-3.0-only`). Můžete ji používat, upravovat, sdílet i prodávat při dodržení licence. Při distribuci platí povinnosti zpřístupnění odpovídajícího zdrojového kódu; u upravené verze provozované přes síť musí její uživatelé dostat nabídku tohoto kódu.
 
-## Referenční produkt
+Copyright (C) 2026 přispěvatelé Open Faktury. Software je poskytován bez záruky v rozsahu dovoleném právem. Úplné znění je v [LICENSE](LICENSE), praktické vysvětlení v [licencování](docs/LICENSING.md).
 
-iDoklad slouží jako reference funkčního rozsahu. Open Faktura je samostatný projekt bez spojení se společností Seyfor nebo produktem iDoklad.
+Licence použitých fontů a knihoven zůstávají zachované u příslušných součástí. Referenční zdroje a původ požadavků jsou dohledatelné ve [výzkumné dokumentaci](docs/README.md#výzkumné-podklady).

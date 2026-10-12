@@ -3,6 +3,7 @@ name = "faktura-application"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
 
 [dependencies]
 faktura-domain = { path = "../domain" }

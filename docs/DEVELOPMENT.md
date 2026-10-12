@@ -1,6 +1,6 @@
 # Lokální vývoj
 
-Kostra obsahuje společné React UI pro web/Tauri, Tailwind tokeny, Rust API a PostgreSQL. Fakturace, firemní agenda, MCP, PWA offline režim, worker a generování OpenAPI zatím nejsou implementované. API klient má zatím ručně udržovaný, runtime kontrolovaný health kontrakt.
+Monorepo obsahuje web/Tauri UI, Rust API a PostgreSQL. Aktuální implementované moduly a jejich omezení uvádí [přehled funkcí](../FEATURES.md). API klienti a MCP schémata se generují přes `pnpm generate:api`; lokální MCP a fakturační moduly jsou implementované, PWA/offline režim zatím ne.
 
 ## Požadavky
 
@@ -23,7 +23,7 @@ pnpm db:up
 pnpm dev
 ```
 
-Při existujícím `.env` ho nepřepisuj. Web běží na http://127.0.0.1:5173, API na http://127.0.0.1:3001. Server při startu ověří připojení a aplikuje migrace; nedostupná databáze ukončí start chybou. `GET /api/health` ověřuje živý proces, `GET /api/ready` dostupnost DB (503 při výpadku). Úvodní migrace zakládá pouze technická metadata, nikoli neověřené účetní entity.
+Při existujícím `.env` ho nepřepisuj. Web běží na http://127.0.0.1:5173, API na http://127.0.0.1:3001. Server při startu ověří připojení a aplikuje migrace; nedostupná databáze ukončí start chybou. `GET /api/health` ověřuje živý proces, `GET /api/ready` dostupnost DB (503 při výpadku). Migrace zahrnují účty, firemní agendu i implementované moduly dokladů.
 
 `pnpm db:down` zastaví lokální DB a zachová volume. Vývojové přihlašovací údaje jsou veřejné a porty jsou vázané na loopback; tato konfigurace není produkční nasazení. API má od P02 bootstrap správce a serverové relace; viz [instalace a přístup](INSTALLATION.md).
 
@@ -79,9 +79,11 @@ CI má macOS kontrolu celého workspace a debug app bundlu, Linux integrační t
 
 ## Organizace
 
-`apps/web/src/pages`, `components`, `hooks`, `services` jsou funkční části úvodní obrazovky. `utils`, `routes`, `types`, worker a další moduly přibudou s prvním použitím. Nevytváříme prázdné balíčky. Sdílené UI je v `packages/ui`, tokeny v `packages/design-tokens`, HTTP klient v `packages/api-client`. Rust má vrstvy domain/application/infrastructure/server, desktopový crate je v `apps/desktop/src-tauri`.
+`apps/web/src/pages`, `components`, `hooks`, `services` a `routes` obsahují produktové obrazovky, jejich stav a navigaci. Nevytváříme prázdné balíčky. Sdílené UI je v `packages/ui`, tokeny v `packages/design-tokens`, HTTP klient v `packages/api-client`. Rust má vrstvy domain/application/infrastructure/server, desktopový crate je v `apps/desktop/src-tauri`.
 
 Migrace jsou v `migrations`; změna schématu vyžaduje nové migrační soubory. Lockfiles obou workspace patří do Gitu. Konkrétní formátovací a kontrolní příkazy jsou centrálně v root package.json.
+
+OpenAPI kontrakty a MCP schémata jsou v `contracts/`, typovaný klient v `packages/api-client`. Po změně kontraktů spusťte `pnpm generate:api`. Databázové regresní sady jednotlivých modulů jsou uvedené v jejich [specifikacích](README.md#specifikace-modulů); vyžadují izolovaný testovací PostgreSQL s oprávněním CREATEDB. Nikdy je nespouštějte proti produkční databázi.
 
 ## Ověřeno při založení (10. 10. 2026)
 
@@ -90,7 +92,7 @@ Na macOS Apple Silicon prošel webový produkční build, `pnpm check`, Rust wor
 ## Produkt a vývojový sandbox (P01)
 
 `/` spouští produktový vstup. `/#/setup` a `/#/login` od P02 používají skutečný backend a DB.
-`/#/companies` a `/#/workspace` vyžadují platnou relaci; firemní agenda čeká na P03.
+Firemní profily a jejich agenda vyžadují platnou relaci a členství v dané firmě. Aktuální cesty registruje `apps/web/src/routes/ProductRoutes.tsx`.
 Health/readiness nejsou autentizace ani důkaz nově instalované aplikace.
 `/#/system` zobrazuje diagnostiku spojení.
 

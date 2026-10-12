@@ -1,6 +1,6 @@
 # Open Faktura — práce v repozitáři
 
-Cílem je plná otevřená alternativa českého iDokladu včetně self-hostingu, API a MCP. Rozsah je v [FEATURES.md](FEATURES.md). Projekt má funkční fakturaci, úhrady, kontakty, nabídky a související moduly; aktuální rozsah a zbývající práci uvádí implementační plán.
+Open Faktura je fakturační aplikace pro české podnikatele a firmy s vlastním provozem, API a MCP. Rozsah je v [FEATURES.md](FEATURES.md). Projekt má funkční fakturaci, úhrady, kontakty, nabídky a související moduly; aktuální rozsah a zbývající práci uvádí implementační plán.
 
 ## Postup
 
@@ -50,7 +50,7 @@ Změna kontaktu nebo ceníku nesmí zpětně měnit historický obsah vystavené
 - [Průzkumné scénáře](docs/research/SCENARIOS.md)
 - [Specifikace faktur](docs/specs/issued-invoices.md)
 
-Backend a doménové jádro budou v Rustu, databáze je PostgreSQL (rozhodnutí uživatele 10. 10. 2026). Frontend používá React a Tailwind. Desktopový runtime je Tauri (potvrzeno 10. 10. 2026). Použité knihovny a verze jsou v manifestech a lockfiles; licence projektu zatím není zvolena.
+Backend a doménové jádro budou v Rustu, databáze je PostgreSQL (rozhodnutí uživatele 10. 10. 2026). Frontend používá React a Tailwind. Desktopový runtime je Tauri (potvrzeno 10. 10. 2026). Použité knihovny a verze jsou v manifestech a lockfiles; projekt používá GNU AGPL v3 (`AGPL-3.0-only`), viz [LICENSE](LICENSE) a [docs/LICENSING.md](docs/LICENSING.md). Komerční použití a prodej jsou povolené za podmínek licence; nepřidávat zákaz prodeje.
 
 Lokalizace je součástí každé nové produktové funkce: čeština (`cs`) a angličtina
 (`en`), výchozí čeština. Texty včetně validací a přístupných názvů patří do

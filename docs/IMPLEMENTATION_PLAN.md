@@ -1,16 +1,18 @@
 # Implementační plán Open Faktury
 
-Aktualizováno 11. 10. 2026. Tento plán nahrazuje původních šest širokých etap.
-Rozsah zachovává [FEATURES.md](../FEATURES.md); pořadí je návrh dodávek, nikoli
+Aktualizováno 12. 10. 2026. Tento plán nahrazuje původních šest širokých etap.
+Rozsah shrnuje [FEATURES.md](../FEATURES.md); pořadí je návrh dodávek, nikoli
 vyřazení pozdějších funkcí. P00–P20 jsou stabilní ID pracovních balíků, jednotlivé
-požadavky mají vlastní ID (INV-001…, SETUP-001…, MIG-01). P01–P08 a L10N-01 jsou implementované (výpočty podle vlastních pravidel); P09 má obecný import, ale dosud neověřené adaptéry zdrojových služeb. P12-01 přidává ceník, P12-02/P12-03 šablony a nabídky s převodem do faktury. Zbývající rozsah má implementaci `not-started`. Existující kostra není hotový účetní produkt.
+požadavky mají vlastní ID (INV-001…, SETUP-001…, MIG-01). P01–P08 a L10N-01 jsou implementované (výpočty podle vlastních pravidel); P09 má obecný import, ale dosud neověřené adaptéry zdrojových služeb. P12-01 přidává ceník, P12-02/P12-03 šablony a nabídky s převodem do faktury. Navazující dodávky přidaly odesílání faktur a nabídek, veřejné odkazy nabídek, nastavení SMTP, vlastní přílohy. Stav každé dodávky je uveden níže; souhrn dostupných funkcí je v [přehledu](../FEATURES.md). Projekt zatím není kompletní účetní systém.
+
+Odkazy „FEATURES §…“ níže označují oddíly původního [referenčního soupisu](research/FEATURES_REFERENCE.md).
 
 ## Potvrzené rozšíření na všechny moduly (11. 10. 2026)
 
-Uživatel výslovně zahrnul **všechny dosud chybějící moduly iDokladu**.
+Uživatel výslovně zahrnul **celý plánovaný rozsah Open Faktury** z [přehledu funkcí](../FEATURES.md).
 P10–P20 jsou autorizovaný rozsah implementace, nikoli jen volitelný seznam.
 Monochromatický brand, CS/EN a skutečné profilově izolované API/DB zůstávají.
-„1:1“ ověřujeme po scénářích; vlastní pravidla a mezery mají explicitní stav.
+Referenční chování ověřujeme po scénářích; vlastní pravidla a mezery mají explicitní stav.
 
 Pořadí samostatně ověřitelných dodávek:
 
@@ -72,7 +74,7 @@ vydání. Časové odhady stanovit až po specifikaci balíku, ne podle počtu o
   Ostatní měny a daňové režimy postupně v P12/P19, v UI je do té doby nenabízet.
 - Specifikovat vlastní role (správce instalace oddělený od vlastníka firmy),
   relace, revize, chybové odpovědi, idempotenci a generování OpenAPI klienta.
-- Rozhodnout licence projektu před zveřejněním; bez automatického výběru za autora.
+- Licence zvolena 12. 10. 2026: [GNU AGPL v3](../LICENSE), `AGPL-3.0-only`, bez zákazu komerčního použití či prodeje. Při vydání zachovat licenční oznámení a zajistit odpovídající zdrojový kód podle [licenčních podmínek](LICENSING.md).
 - Získat anonymizované exportní vzorky iDokladu a Faktury online pro MIG-01.
 - Q-01 až Q-04 uzavírat pro P05–P08; vlastní odchylky výslovně evidovat.
 
@@ -411,7 +413,7 @@ P02 například (a) deployment/config, (b) bootstrap+auth, (c) recovery+restore 
 Nesmazat nejdřív celou UI kostru: P01 zachová ověřené komponenty a vyčlení demo,
 P06 připojuje produktový seznam/editor ke skutečným kontraktům.
 
-Nejbližší rozhodnutí: licence před zveřejněním, detail auth relací pro web/Tauri
+Licence je zvolena: GNU AGPL v3 (viz [licencování](LICENSING.md)). Historická rozhodnutí: detail auth relací pro web/Tauri
 před P02, první ověřené účetní scénáře před P05 a PDF renderer před P07.
 Konkrétní knihovny ověřit při implementaci proti tehdejším verzím; tento plán
 nepředstírá nový průzkum jejich aktuální bezpečnosti nebo dostupnosti.

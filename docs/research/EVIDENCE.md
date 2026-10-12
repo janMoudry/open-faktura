@@ -1,6 +1,6 @@
-# Evidence reverse-engineeringu
+# Evidence zdrojů a pozorování
 
-Průchod 10. 10. 2026. Není proveden živý API request ani průchod přihlášenou aplikací. Původní `FEATURES.md` zůstává soupisem s odkazy, nikoli potvrzením všech pravidel.
+Úvodní průchod 10. 10. 2026 vycházel ze statického čtení zdrojů, bez živého API requestu a přihlášené aplikace. Pozdější pozorování mají vlastní datum a omezení v jednotlivých záznamech. Původní [referenční soupis](FEATURES_REFERENCE.md) zachovává odkazy; není potvrzením všech pravidel.
 
 ## Typy důkazů
 

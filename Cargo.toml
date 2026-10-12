@@ -4,6 +4,7 @@ default-members = ["crates/server"]
 resolver = "2"
 
 [workspace.package]
+license = "AGPL-3.0-only"
 version = "0.1.0"
 edition = "2021"
 publish = false

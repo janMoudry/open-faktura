@@ -1,7 +1,6 @@
-# Firmy a nastavení — P03
+# Firmy a nastavení
 
-Implementováno 10. 10. 2026. Specifikace a přijatá omezení:
-[company-setup.md](specs/company-setup.md). Účetní moduly zatím nejsou implementované.
+Fakturační profil obsahuje údaje firmy, účetní nastavení a oprávnění k její agendě. Níže najdete postup práce s profily a technické podrobnosti pro integrace. Specifikace a přijatá omezení jsou v [company-setup.md](specs/company-setup.md), aktuální rozsah aplikace v [přehledu funkcí](../FEATURES.md).
 
 ## Uživatelská cesta
 

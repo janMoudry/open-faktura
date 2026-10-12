@@ -103,7 +103,7 @@ Font se distribuuje lokálně přes připnutý Fontsource balíček s rozšíře
 
 Ikony: **Lucide React**, explicitní importy v `packages/ui/src/components/atoms/Icon.tsx`. Nové významy přidávat do společné mapy; nekreslit vlastní SVG a nemíchat další knihovny. Základní velikost 16 px, tah 1.75, barva `currentColor`. Ikony doprovázející text jsou dekorativní; tlačítko bez textu musí mít vlastní přístupný název. [Dokumentace](https://lucide.dev/guide/react/), [licence ISC a MIT pro zděděné Feather ikony](https://lucide.dev/license).
 
-Úplné licence z nainstalovaných balíčků jsou v `apps/web/public/licenses/`; Vite je kopíruje do výsledného webového i desktopového frontend balíku. Tyto licence neurčují dosud nezvolenou licenci samotné Open Faktury.
+Úplné licence z nainstalovaných balíčků jsou v `apps/web/public/licenses/`; Vite je kopíruje do výsledného webového i desktopového frontend balíku. Tyto licence zůstávají samostatné; vlastní kód Open Faktury používá [GNU AGPL v3](../../LICENSE) (`AGPL-3.0-only`).
 
 ## Desktop a GitHub Releases
 

@@ -98,8 +98,7 @@ odejít bez vyřešení vlastnictví; detail v pozdější specifikaci správy �
 Upřesnit auth a úložiště relací web/Tauri, hashovací parametry, expirace/rotaci
 bootstrap secretu, obnovu správce, schéma rolí a přesná pravidla povinných údajů
 prvního účetního profilu. Jde o navazující technická rozhodnutí v P00/P02/P03,
-nikoli důvod čekat s oddělením sandboxu. Licence projektu zůstává rozhodnutím
-vlastníka před veřejným vydáním; průvodce nevyžaduje aktivaci u provozovatele projektu.
+nikoli důvod čekat s oddělením sandboxu. Projekt používá [GNU AGPL v3](../../LICENSE); průvodce nevyžaduje aktivaci u provozovatele projektu.
 
 ## Osobní použití a desktop
 

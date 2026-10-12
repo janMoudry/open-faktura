@@ -1,8 +1,13 @@
-# Instalace a přístup — P02
+# Instalace a provoz
 
-Implementace 10. 10. 2026. Obsahuje skutečné účty správce a přihlášení, nikoli ještě
-firemní agendu (P03) nebo veřejnou stabilní distribuci (P11). Nejde o shodu s
-přihlášením iDokladu; instalace je vlastní návrh Open Faktury.
+Návod pro vlastní server, první účet, odesílání dokladů a správu dat. Aplikace je v aktivním vývoji; veřejná stabilní distribuce ještě není připravená. Dostupné moduly a omezení uvádí [přehled funkcí](../FEATURES.md).
+
+- [Výběr způsobu použití](#který-způsob-použití-zvolit) a [vlastní server](#vlastní-server).
+- [První přihlášení a firma](#první-přihlášení-a-firma).
+- [Nastavení SMTP v aplikaci](#nastavení-smtp-v-aplikaci) a [konfigurace SMTP na serveru](#odesílání-faktur-a-cenových-nabídek-smtp).
+- [Veřejné odkazy nabídek](#veřejné-odkazy-na-nabídky) a [přílohy](#vlastní-přílohy-dokladů).
+- [Záloha a obnova](#záloha-a-obnova) a [obnova přístupu](#obnova-přístupu-bez-smtp).
+- [Technický kontrakt](#kontrakt-a-bezpečnostní-rozhodnutí) a [ověřování](#ověřování).
 
 ## Který způsob použití zvolit
 
@@ -16,30 +21,7 @@ Agentům při setupu pomáhá repo skill `installation-setup`.
 
 ## Vývoj
 
-Po `cp .env.example .env` (existující soubor nepřepisovat) spusťte:
-
-```sh
-node scripts/init-secrets.mjs
-pnpm db:up
-pnpm dev
-```
-
-Existující `.env` doplňte o `BOOTSTRAP_SECRET_FILE=.secrets/bootstrap` a
-`APP_ENV=development`. Generátor opakovaným spuštěním tajemství nemění. Soubory
-jsou soukromé, mimo Git. Lokální DB dále používá dev heslo z `.env.example`;
-produkční heslo z `.secrets/db_password` patří jen produkčnímu Compose.
-
-Na úvodu aplikace se stav načítá z backendu, nikoli z health checku. Pro první
-založení potřebujete instalační klíč ze souboru `.secrets/bootstrap` (otevřít
-lokálně, nevkládat do issue, logů ani URL), e-mail a heslo alespoň 12 znaků.
-Založení správce skončí potvrzením a přihlášením. Další pokus o bootstrap vrátí
-409. V této etapě ještě nelze založit firmu.
-
-Web používá stejný origin přes Vite proxy `/api → 127.0.0.1:3001`. Explicitní
-`VITE_API_URL` zůstává možná veřejná konfigurace; relace vyžadují credentialed
-CORS a kompatibilní cookie politiku. Tauri přihlašovací tok není touto etapou
-ověřen a vyžaduje návrh důvěryhodného originu/serveru v P11. Nepovolujte wildcard
-originy kvůli obejití této hranice.
+Pro lokální vývoj použijte [samostatný návod](DEVELOPMENT.md#web-a-api), který obsahuje závislosti, vytvoření `.env` a spuštění služeb. Vývojový Compose s veřejným heslem nepoužívejte pro veřejné nasazení.
 
 ## Vlastní server
 
@@ -71,9 +53,19 @@ po dokončení běžet bez bootstrap souboru (u Compose je pak nutné odebrat i 
 mount a proměnnou). Dev credentials z lokálního Compose se zde nepoužívají.
 
 Migrace jsou dopředné SQLx migrace s databázovým migračním zámkem; server je
-aplikuje před nasloucháním. Při chybě nepřejde do ready stavu. P02 přidává pouze
-auth tabulky, starší technická metadata ponechává. Před updatem vytvořte zálohu;
+aplikuje před nasloucháním. Při chybě nepřejde do ready stavu. Před updatem vytvořte zálohu;
 nekombinujte neslučitelné verze API nad jedním schématem.
+
+## První přihlášení a firma
+
+1. Otevřete web aplikace. U nové instalace zobrazí založení správce; výpadek backendu není nová instalace.
+2. Zadejte instalační klíč ze souboru `.secrets/bootstrap`, e-mail a heslo alespoň 12 znaků. Klíč čtěte pouze lokálně, nevkládejte jej do issue, logů ani URL.
+3. Po potvrzení založení účtu se přihlaste. Založení správce je jednorázové; další pokus vrátí konflikt a je potřeba použít přihlášení.
+4. Vytvořte fakturační profil a doplňte firemní údaje. Neúplný profil lze uložit a dokončit později; vystavení faktury vyžaduje úplné nastavení.
+
+Podrobný postup a podporovaná nastavení najdete v [návodu pro firmy](COMPANIES.md). Správce instalace nemá automatický přístup k firemním dokladům bez členství. SMTP ani import nejsou pro první ruční fakturu nutné.
+
+Desktop používá účet existující instalace. Nastavení adresy backendu a omezení Tauri jsou v [návodu pro desktop](DEVELOPMENT.md#desktop); nativní přihlášení není tímto serverovým návodem ověřené.
 
 ## Obnova přístupu bez SMTP
 
@@ -104,8 +96,8 @@ sh scripts/backup.sh backups/first
 Záloha na chvíli zastaví aplikaci (DB zůstává spuštěná), uloží DB dump,
 soubory a provozní konfiguraci/tajemství a aplikaci znovu spustí. Cíl musí být
 nový adresář. Výsledný adresář je citlivý; mimo server jej přenášejte šifrovaně.
-Nezapomeňte také chránit přístup k zálohovacímu úložišti. Aktuální P02 ještě
-neukládá uživatelské přílohy; files volume je připravené pro navazující modul.
+Nezapomeňte také chránit přístup k zálohovacímu úložišti. Doklady, úhrady,
+importní dávky a vlastní přílohy jsou v PostgreSQL; podrobnosti jsou v oddílech níže.
 
 Obnovujte do čistého Compose projektu/volume se stejnou verzí image, před
 spuštěním aplikace. Nastavte odpovídající `infra/production.env` a tajemství
@@ -150,7 +142,7 @@ musí upravit schéma a projít HTTP testy; schema není automaticky odvozené z
 - PostgreSQL limit: 10 pokusů na normalizovaný e-mail za 15 minut, 500 celkově,
   bootstrap 20; zahrnuje i úspěšné pokusy. Neznámý účet vrací stejnou chybu a
   provede hash. Při přetížení/omezení 429; ochranu proti objemovému DoS doplní proxy.
-- Správce instalace ještě nemá firemní role. Jejich izolaci implementuje P03.
+- Správce instalace a firemní členství jsou oddělené. Přístup k agendě kontrolují [firemní oprávnění](COMPANIES.md#oprávnění).
 
 Podklady k rozhodnutím (ověřeno 10. 10. 2026):
 [RustCrypto Argon2](https://docs.rs/argon2/0.5.3/argon2/),
