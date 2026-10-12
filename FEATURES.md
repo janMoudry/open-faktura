@@ -255,7 +255,8 @@ Zdroje: [DPH a hlášení](https://www.idoklad.cz/podpora/finance-dph), [Doklady
 - Změna přihlašovacího e-mailu a hesla.
 - Dvoufázové ověření přes autentizační aplikaci.
 - Osobní údaje uživatele.
-- Tmavý režim, jazyk aplikace a nastavení notifikací.
+- Tmavý režim a nastavení notifikací.
+- L10N-01: lokalizace rozhraní do češtiny (`cs`, výchozí) a angličtiny (`en`) od prvních produktových funkcí; přepínač i před přihlášením, zapamatování volby a formátování dat, čísel a částek podle locale. Jazyk dokladu se nastavuje nezávisle.
 - Počet desetinných míst.
 - Správa štítků.
 - Koš.
@@ -335,19 +336,28 @@ Další průzkum bude vycházet z pozorování aplikace, dokumentovaného API a 
 Následující body jsou návrhem pro Open Fakturu, nikoli tvrzením o funkcích iDokladu.
 
 - Otevřený frontend, backend, API, MCP, migrace databáze i všechny vlastní konektory.
-- Instalace přes Docker Compose a průvodce prvním spuštěním.
+- **SETUP-001 až SETUP-012: Instalace přes Docker Compose a průvodce prvním spuštěním.**
+- Oddělená konfigurace instalace, firmy a uživatele; jednorázové chráněné založení správce bez výchozího účtu a veřejné registrace.
+- Obnovitelný průvodce založením firmy: identita, účetní profil, bankovní údaje a číselná řada; následně prázdná agenda bez demo dat.
+- SMTP, import a externí integrace jsou volitelné; obnova přístupu je možná i bez SMTP.
+- Desktopový klient umožní připojení k vlastnímu serveru; aktuální instalátor sám neinstaluje backend ani PostgreSQL.
+- **PERSONAL-01 (plán):** osobní desktop „Používat na tomto počítači“ se spravovaným lokálním Rust/PostgreSQL runtime a bootstrapem bez ručního kopírování klíče; nejprve ověřit balení, přístup přes OS profil a životní cyklus dat.
+- [Specifikace instalace a onboardingu](docs/specs/installation-onboarding.md), [dodávky P00–P20 a podmínky dokončení](docs/IMPLEMENTATION_PLAN.md).
 - Dokumentovaný provoz na vlastním serveru.
 - Vlastní SMTP a příjem dokumentů do inboxu.
 - Kompletní export databáze, dokumentů a příloh.
 - Zálohování, obnova a bezpečné aktualizace.
-- Import z iDokladu s kontrolou počtů dokladů, částek a vazeb.
+- **MIG-01: Jednoduchá migrace z iDokladu, Faktury online (fakturaonline.cz) a dalších služeb.** Průvodce přenosem kontaktů a dokladů, později úhrad, vazeb a příloh podle dostupnosti zdrojových dat.
+- Předpřipravené importní adaptéry a obecný CSV/XLSX import s mapováním sloupců; podporu konkrétních exportů a API nejprve ověřit.
+- Náhled před zápisem, řešení duplicit a konfliktů, pokračování po přerušení a závěrečná kontrola počtů, částek podle měn a vazeb. Migrace sama nespouští odesílání ani automatizace.
+- [Rozsah, zařazení a akceptační scénáře migrace MIG-01](docs/IMPLEMENTATION_PLAN.md#mig-01--jednoduchý-přechod-z-jiné-fakturační-služby).
 - Nastavitelná oprávnění a audit změn.
 - Dokumentované API a události pro integrace.
 - Vytěžování dokumentů s volitelným poskytovatelem, případně lokálním modelem.
 - Základní fakturace fungující bez placené služby provozovatele projektu.
 - Případný spravovaný hosting stejné otevřené aplikace.
 
-Rozsah může vznikat postupně, ale všechny moduly budou součástí otevřené verze. Konkrétní licence a technologický stack zatím nebyly vybrány.
+Rozsah může vznikat postupně, ale všechny moduly budou součástí otevřené verze. Backend a doménové jádro Open Faktury budou v Rustu, databází bude PostgreSQL (rozhodnutí 10. 10. 2026). Frontend používá React a Tailwind s atomic designem; projekt bude monorepo s tradiční strukturou pages/components/utils a desktopovými instalátory v GitHub Releases. Desktopový runtime je Tauri (potvrzeno 10. 10. 2026). Konkrétní doplňkové knihovny a licence zatím nejsou uzavřené.
 
 ## 20. MCP
 
@@ -394,3 +404,10 @@ Ke každé funkci bude potřeba doplnit:
 - Referenční zdroj nebo záznam pozorování.
 
 Tím vznikne měřitelná definice toho, kdy Open Faktura pokrývá funkční rozsah referenčního produktu.
+
+### Implementace P03 (10. 10. 2026)
+
+Firmy, obnovitelný průvodce, základní nastavení a členství jsou implementované
+v CS/EN přes Rust/PostgreSQL. Revize, audit a historie profilu DPH; read-only
+MCP stdio se stejnými právy. [Rozsah a hranice](docs/COMPANIES.md).
+Pozvánky/správa členů, vystavování dokladů a vzdálené MCP OAuth navazují později.
