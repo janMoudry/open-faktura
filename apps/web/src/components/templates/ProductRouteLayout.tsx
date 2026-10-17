@@ -36,6 +36,8 @@ function AuthenticatedWorkspace({ session }: { session: SessionContext }) {
   const [error, setError] = useState<AppKey | "">("");
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const homeProfile =
+    pathname.match(/^\/companies\/([^/]+)(?:\/|$)/)?.[1] ?? activeProfile;
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -43,6 +45,9 @@ function AuthenticatedWorkspace({ session }: { session: SessionContext }) {
     <CompanyWorkspaceContext.Provider value={workspace}>
       <AppLayout
         workspace
+        homeTo={
+          homeProfile ? `/companies/${homeProfile}/overview` : "/workspace"
+        }
         email={session.user.email}
         name={session.user.name}
         onSmtp={

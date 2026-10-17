@@ -4,6 +4,31 @@ import { mkdir } from "node:fs/promises";
 import { mockRedesignWorkspace } from "./redesign-fixture";
 import type { InvoiceDraft } from "@open-faktura/api-client";
 
+test("brand logo and brand breadcrumb return to the active company overview", async ({
+  page,
+}, info) => {
+  await mockRedesignWorkspace(page);
+  await page.goto("/#/companies/design/invoices");
+  const logo = page.locator(".workspace-brand");
+  await expect(logo).toHaveAttribute("href", "#/companies/design/overview");
+  await logo.click();
+  await expect(page).toHaveURL(/#\/companies\/design\/overview$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.goto("/#/companies/design");
+  await expect(logo).toHaveAttribute("href", "#/companies/design/overview");
+  if (info.project.name === "mobile") {
+    await logo.click();
+    await expect(page).toHaveURL(/#\/companies\/design\/overview$/);
+    return;
+  }
+  const home = page
+    .locator(".workspace-breadcrumb")
+    .getByRole("link", { name: "Open Faktura", exact: true });
+  await expect(home).toHaveAttribute("href", "#/companies/design/overview");
+  await home.click();
+  await expect(page).toHaveURL(/#\/companies\/design\/overview$/);
+});
+
 for (const language of ["cs", "en"] as const) {
   test(`invoice maturity days stay synchronized and survive saving (${language})`, async ({
     page,

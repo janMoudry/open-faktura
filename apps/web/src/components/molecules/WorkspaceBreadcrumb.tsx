@@ -25,14 +25,14 @@ const pages: Record<string, AppKey> = {
   "expense-overview": "expenseOverview",
 };
 
-export function WorkspaceBreadcrumb() {
+export function WorkspaceBreadcrumb({ homeTo }: { homeTo: string }) {
   const { pathname } = useLocation();
   const { t } = useAppTranslation();
   const parts = pathname.split("/").filter(Boolean);
   const page = pages[parts[2]];
   return (
     <nav aria-label={t("breadcrumbLabel")} className="workspace-breadcrumb">
-      <Link to="/workspace">{t("brandName")}</Link>
+      <Link to={homeTo}>{t("brandName")}</Link>
       <span aria-hidden="true">/</span>
       <span aria-current="page">{t(page ?? "companySettingsIntro")}</span>
     </nav>

@@ -9,6 +9,7 @@ export function AppLayout({
   children,
   profileSwitcher,
   workspace = false,
+  homeTo = "/workspace",
   actions,
   email,
   name,
@@ -18,6 +19,7 @@ export function AppLayout({
   children: ReactNode;
   profileSwitcher?: ReactNode;
   workspace?: boolean;
+  homeTo?: string;
   actions?: ReactNode;
   email?: string;
   name?: string;
@@ -80,7 +82,7 @@ export function AppLayout({
           }
         >
           <Link
-            to="/workspace"
+            to={homeTo}
             aria-label={t("brandName")}
             className={
               workspace ? "workspace-brand" : "text-lg font-bold tracking-tight"
@@ -93,7 +95,7 @@ export function AppLayout({
               {profileSwitcher}
             </div>
           )}
-          {workspace && <WorkspaceBreadcrumb />}
+          {workspace && <WorkspaceBreadcrumb homeTo={homeTo} />}
           {!workspace && accountControls}
         </div>
       </header>
