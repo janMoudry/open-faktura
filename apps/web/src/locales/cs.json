@@ -271,6 +271,7 @@
   "draftMaturity": "Splatnost",
   "draftMaturityDays": "{{days}} dní",
   "draftMaturityCustom": "Vlastní datum",
+  "draftMaturityImmediate": "Ihned",
   "draftItems": "Položky faktury",
   "draftPriceMode": "Zadávání cen",
   "draftNetPrice": "Bez DPH",

@@ -271,6 +271,7 @@
   "draftMaturity": "Payment terms",
   "draftMaturityDays": "{{days}} days",
   "draftMaturityCustom": "Custom date",
+  "draftMaturityImmediate": "Immediately",
   "draftItems": "Invoice items",
   "draftPriceMode": "Price entry",
   "draftNetPrice": "Excluding VAT",

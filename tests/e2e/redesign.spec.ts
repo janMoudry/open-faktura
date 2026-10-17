@@ -78,7 +78,11 @@ for (const language of ["cs", "en"] as const) {
     });
     await expect(terms).toContainText(preset(14));
     await terms.click();
-    await expect(page.getByRole("option")).toHaveCount(6);
+    await expect(page.getByRole("option")).toHaveCount(7);
+    const immediate = language === "cs" ? "Ihned" : "Immediately";
+    await expect(
+      page.getByRole("option", { name: immediate, exact: true }),
+    ).toBeVisible();
     for (const days of [7, 14, 21, 30, 60])
       await expect(
         page.getByRole("option", { name: preset(days), exact: true }),
@@ -139,6 +143,33 @@ for (const language of ["cs", "en"] as const) {
     await expect(due.getByRole("spinbutton").nth(0)).toHaveText("07");
     await expect(due.getByRole("spinbutton").nth(1)).toHaveText("01");
     await expect(due.getByRole("spinbutton").nth(2)).toHaveText("2027");
+    await choose(immediate);
+    await expect(terms).toContainText(immediate);
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("31");
+    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("12");
+    await expect(due.getByRole("spinbutton").nth(2)).toHaveText("2026");
+    await issued.getByRole("spinbutton").nth(0).press("ArrowDown");
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("30");
+    await expect(terms).toContainText(immediate);
+    await page
+      .getByRole("button", {
+        name: language === "cs" ? "Uložit návrh" : "Save draft",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page
+        .getByRole("status")
+        .filter({
+          hasText:
+            language === "cs"
+              ? "Návrh faktury byl uložen."
+              : "Invoice draft saved.",
+        }),
+    ).toBeVisible();
+    expect(stored!.data.due_on).toBe(stored!.data.issued_on);
+    await page.reload();
+    await expect(terms).toContainText(immediate);
   });
 }
 

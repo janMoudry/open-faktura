@@ -20,7 +20,7 @@ export function InvoicePaymentDates({
 }) {
   const { t } = useAppTranslation();
   const [custom, setCustom] = useState(false);
-  const presets = [7, 14, 21, 30, 60];
+  const presets = [0, 7, 14, 21, 30, 60];
   const days =
     issuedOn && dueOn
       ? Math.round(
@@ -56,7 +56,10 @@ export function InvoicePaymentDates({
         options={[
           ...presets.map((days) => ({
             value: String(days),
-            label: t("draftMaturityDays", { days }),
+            label:
+              days === 0
+                ? t("draftMaturityImmediate")
+                : t("draftMaturityDays", { days }),
           })),
           { value: "custom", label: t("draftMaturityCustom") },
         ]}
