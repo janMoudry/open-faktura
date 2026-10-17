@@ -55,10 +55,16 @@ for (const language of ["cs", "en"] as const) {
     );
     await page.goto("/#/companies/design/invoices/draft");
     stored = await (await response).json();
-    const days = page.getByRole("spinbutton", {
-      name: language === "cs" ? "Splatnost (dny)" : "Payment due in (days)",
-      exact: true,
+    const terms = page.getByRole("button", {
+      name: language === "cs" ? /Splatnost$/ : /Payment terms$/,
     });
+    const custom = language === "cs" ? "Vlastní datum" : "Custom date";
+    const preset = (days: number) =>
+      `${days} ${language === "cs" ? "dní" : "days"}`;
+    const choose = async (name: string) => {
+      await terms.click();
+      await page.getByRole("option", { name, exact: true }).click();
+    };
     const issued = page.locator(".ui-selection").filter({
       has: page.getByText(
         language === "cs" ? "Datum vystavení" : "Issue date",
@@ -70,22 +76,30 @@ for (const language of ["cs", "en"] as const) {
         exact: true,
       }),
     });
-    await expect(days).toHaveValue("14");
-    await days.fill("30");
+    await expect(terms).toContainText(preset(14));
+    await terms.click();
+    await expect(page.getByRole("option")).toHaveCount(6);
+    for (const days of [7, 14, 21, 30, 60])
+      await expect(
+        page.getByRole("option", { name: preset(days), exact: true }),
+      ).toBeVisible();
+    await page.getByRole("option", { name: preset(30), exact: true }).click();
     // October → November also crosses the Prague daylight-saving transition.
     await expect(due.getByRole("spinbutton").nth(0)).toHaveText("15");
     await expect(due.getByRole("spinbutton").nth(1)).toHaveText("11");
     await issued.getByRole("spinbutton").nth(0).press("ArrowUp");
-    await expect(days).toHaveValue("30");
+    await expect(terms).toContainText(preset(30));
     await expect(due.getByRole("spinbutton").nth(0)).toHaveText("16");
     await due.getByRole("spinbutton").nth(0).fill("20");
-    await expect(days).toHaveValue("34");
-    await days.fill("0");
-    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("17");
-    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("10");
-    await days.fill("");
-    await expect(days).toHaveValue("");
-    await days.fill("30");
+    await expect(terms).toContainText(custom);
+    // Manual entry stays custom even when it happens to match a preset.
+    await due.getByRole("spinbutton").nth(0).fill("16");
+    await expect(terms).toContainText(custom);
+    await choose(preset(30));
+    await expect(terms).toContainText(preset(30));
+    await choose(custom);
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("16");
+    await choose(preset(30));
     await page
       .getByRole("button", {
         name: language === "cs" ? "Uložit návrh" : "Save draft",
@@ -103,7 +117,7 @@ for (const language of ["cs", "en"] as const) {
     expect(stored!.data.issued_on).toBe("2026-10-17");
     expect(stored!.data.due_on).toBe("2026-11-16");
     await page.reload();
-    await expect(days).toHaveValue("30");
+    await expect(terms).toContainText(preset(30));
     if (language === "cs" && info.project.name === "desktop")
       await page.screenshot({
         path: "docs/design/redesign-2026-10-17/invoice-maturity-days.png",
@@ -113,16 +127,16 @@ for (const language of ["cs", "en"] as const) {
     stored!.data.issued_on = "2028-02-28";
     stored!.data.due_on = "2028-03-13";
     await page.reload();
-    await expect(days).toHaveValue("14");
-    await days.fill("1");
-    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("29");
-    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("02");
+    await expect(terms).toContainText(preset(14));
+    await choose(preset(7));
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("06");
+    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("03");
     stored!.data.issued_on = "2026-12-31";
     stored!.data.due_on = "2027-01-14";
     await page.reload();
-    await expect(days).toHaveValue("14");
-    await days.fill("1");
-    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("01");
+    await expect(terms).toContainText(preset(14));
+    await choose(preset(7));
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("07");
     await expect(due.getByRole("spinbutton").nth(1)).toHaveText("01");
     await expect(due.getByRole("spinbutton").nth(2)).toHaveText("2027");
   });

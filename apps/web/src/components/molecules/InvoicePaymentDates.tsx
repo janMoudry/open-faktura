@@ -1,4 +1,5 @@
-import { DatePicker, Field } from "@open-faktura/ui";
+import { useState } from "react";
+import { DatePicker, Select } from "@open-faktura/ui";
 import { useAppTranslation } from "../../locales";
 import { addDays } from "../../utils/invoice";
 
@@ -18,6 +19,8 @@ export function InvoicePaymentDates({
   }) => void;
 }) {
   const { t } = useAppTranslation();
+  const [custom, setCustom] = useState(false);
+  const presets = [7, 14, 21, 30, 60];
   const days =
     issuedOn && dueOn
       ? Math.round(
@@ -41,27 +44,27 @@ export function InvoicePaymentDates({
           });
         }}
       />
-      <Field
-        label={t("maturityDays")}
+      <Select
+        label={t("draftMaturity")}
         hint={t("draftMaturityHint")}
-        type="number"
-        min={0}
-        step={1}
         disabled={disabled || !issuedOn}
-        value={days ?? ""}
-        onChange={(event) => {
-          if (!issuedOn) return;
-          if (event.target.value === "") {
-            onChange({ issued_on: issuedOn, due_on: null });
-            return;
-          }
-          const next = event.target.valueAsNumber;
-          const maximum = Math.floor(
-            (Date.parse("9999-12-31T12:00:00Z") -
-              Date.parse(`${issuedOn}T12:00:00Z`)) /
-              86400000,
-          );
-          if (!Number.isSafeInteger(next) || next < 0 || next > maximum) return;
+        value={
+          !custom && days !== null && presets.includes(days)
+            ? String(days)
+            : "custom"
+        }
+        options={[
+          ...presets.map((days) => ({
+            value: String(days),
+            label: t("draftMaturityDays", { days }),
+          })),
+          { value: "custom", label: t("draftMaturityCustom") },
+        ]}
+        onChange={(value) => {
+          setCustom(value === "custom");
+          if (!issuedOn || value === "custom") return;
+          const next = Number(value);
+          if (!presets.includes(next)) return;
           const due_on = addDays(issuedOn, next);
           if (due_on.length === 10) onChange({ issued_on: issuedOn, due_on });
         }}
@@ -70,9 +73,10 @@ export function InvoicePaymentDates({
         label={t("draftDue")}
         value={dueOn ?? ""}
         disabled={disabled}
-        onChange={(value) =>
-          onChange({ issued_on: issuedOn, due_on: value || null })
-        }
+        onChange={(value) => {
+          setCustom(true);
+          onChange({ issued_on: issuedOn, due_on: value || null });
+        }}
       />
     </>
   );

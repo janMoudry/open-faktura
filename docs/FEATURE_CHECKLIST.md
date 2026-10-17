@@ -8,7 +8,7 @@ Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s i
 
 - [x] Vlastní logo a rumělková vizuální identita, společné tokeny a komponenty.
 - [x] Responzivní shell, Přehled a seznam/editor faktur; CS/EN, světlý a tmavý režim.
-- [x] INV-DUE-DAYS-01: splatnost faktury počtem kalendářních dní i přímým datem, obousměrný přepočet a zachování odstupu při změně vystavení ([pravidla](specs/invoice-drafts.md#inv-due-days-01--zadání-splatnosti-ve-dnech)).
+- [x] INV-DUE-DAYS-01: splatnost faktury výběrem 7/14/21/30/60 dní nebo vlastním datem, zachování odstupu při změně vystavení ([pravidla](specs/invoice-drafts.md#inv-due-days-01--zadání-splatnosti-ve-dnech)).
 - [x] Přehled používá existující API; chybějící data nenahrazuje ukázkovými hodnotami.
 
 [Rozsah, snímky a limity ověření](design/redesign-2026-10-17/README.md)

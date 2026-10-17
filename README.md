@@ -14,7 +14,7 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Založení správce, přihlášení, nastavení účtu a více oddělených fakturačních profilů.
 - Adresář odběratelů s doplněním údajů z ARES.
 - Návrh faktury → vystavení a číslování → PDF s QR platbou → e-mail → ruční úhrada.
-- Splatnost faktury zadaná datem nebo počtem kalendářních dní od vystavení.
+- Splatnost faktury výběrem 7, 14, 21, 30 nebo 60 dní od vystavení, případně vlastním datem.
 - Ceník, opakovaně použitelné šablony a cenové nabídky s převodem na fakturu.
 - Veřejné odkazy na nabídky i faktury, odvolání odkazu a historie zobrazení.
 - Bankovní účty v CZK, import CSV s kontrolou duplicit a ruční párování úhrad.

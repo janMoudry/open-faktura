@@ -35,21 +35,25 @@ Automatické sloučení změn ani tiché přepsání nejsou součástí P06.
 
 Vlastní UX pravidlo Open Faktury podle požadavku uživatele, 17. 10. 2026;
 nejde o tvrzení shody s iDokladem. Editor nabízí současně datum splatnosti
-a počet kalendářních dní od vystavení. Obě pole upravují stejné `due_on`:
-změna dní dopočítá datum, ruční datum přepočítá zobrazené dny. Změna data
+a výběr předvoleb 7, 14, 21, 30 a 60 kalendářních dní od vystavení.
+Volba předvolby dopočítá `due_on`. Ruční změna data přepne výběr na
+„Vlastní datum“, i když datum odpovídá předvolbě. Volba „Vlastní datum“
+ponechá aktuální datum a umožní jeho ruční úpravu. Změna data
 vystavení při vyplněných obou datech zachová jejich odstup. Výběr kontaktu
 nebo šablony dál použije jejich stávající předvolbu.
 
-Nula znamená splatnost v den vystavení; zadávají se celá nezáporná čísla.
-Vymazání dní vymaže datum splatnosti, neúplný návrh lze nadále uložit.
-Bez data vystavení je vstup dní nedostupný, datum lze stále zadat přímo.
-Počet dní je odvozený v UI; API, databáze i PDF používají dosavadní datum,
-serverová pravidla vystavení se nemění. Po načtení návrhu se počet dní znovu
-odvodí z uložených dat. Počítají se kalendářní dny bez vlivu letního času.
+Splatnost v den vystavení i jakýkoli jiný odstup se zadá vlastním datem.
+Datum lze vymazat a neúplný návrh nadále uložit. Bez data vystavení je
+výběr předvoleb nedostupný, datum lze stále zadat přímo.
+Předvolba je odvozená v UI; API, databáze i PDF používají dosavadní datum,
+serverová pravidla vystavení se nemění. Po načtení návrhu se předvolba znovu
+odvodí z uložených dat; při jiném odstupu je vybrané vlastní datum.
+Volba režimu se zvlášť neukládá. Počítají se kalendářní dny bez vlivu letního času.
 
 Akceptační regrese v `tests/e2e/redesign.spec.ts` se syntetickým API:
-CS/EN, změny dní a obou dat, nula, vymazání, přechod měsíce/roku, přestupný
-den a přechod letního času, zápis existujícího `due_on` a obnovení stránky.
+CS/EN, nabídka pěti předvoleb a vlastní volby, změny obou dat a přepnutí na vlastní
+datum, přechod měsíce/roku, přestupný rok a přechod letního času,
+zápis existujícího `due_on` a obnovení stránky.
 Ověřeno v Chromiu a WebKitu i mobilním viewportu; tato UI regrese nenahrazuje
 databázové testy návrhů P06.
 
