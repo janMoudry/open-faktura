@@ -3,6 +3,42 @@ import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { mockRedesignWorkspace } from "./redesign-fixture";
 
+test("appearance saves the selected theme and restores it after reload", async ({
+  page,
+}) => {
+  await mockRedesignWorkspace(page, { language: "cs" });
+  let preference = { revision: 0, theme: "light" };
+  await page.route("**/api/auth/preferences", async (route) => {
+    if (route.request().method() === "POST") {
+      const input = route.request().postDataJSON();
+      expect(input.revision).toBe(preference.revision);
+      expect(route.request().headers()["x-faktura-request"]).toBe("1");
+      preference = { revision: preference.revision + 1, theme: input.theme };
+    }
+    await route.fulfill({ json: preference });
+  });
+  await page.goto("/#/companies/design/invoices");
+  await page
+    .getByRole("button", { name: "Uživatelské menu", exact: true })
+    .click();
+  await page.getByRole("button", { name: /Vzhled/ }).click();
+  await page.getByRole("option", { name: "Tmavý", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(preference).toEqual({ revision: 1, theme: "dark" });
+  await expect(page.locator(".account-popover").getByRole("alert")).toHaveCount(
+    0,
+  );
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page
+    .getByRole("button", { name: "Uživatelské menu", exact: true })
+    .click();
+  await page.getByRole("button", { name: /Vzhled/ }).click();
+  await page.getByRole("option", { name: "Světlý", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  expect(preference).toEqual({ revision: 2, theme: "light" });
+});
+
 for (const language of ["cs", "en"] as const) {
   test(`redesign: overview, register and editor retain accessible UI (${language})`, async ({
     page,

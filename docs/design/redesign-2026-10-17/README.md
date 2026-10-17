@@ -72,6 +72,23 @@ E2E_WEB_PORT=5174 DESIGN_CAPTURE=1 pnpm exec playwright test tests/e2e/redesign.
 Alternativní port odděluje náhled a testy od současně běžícího hlavního frontendového serveru.
 UI je připravené v oddělené pracovní kopii; pracovní rozpracování jiného agenta se nepřepisuje.
 
+### API náhledu na portu 5174
+
+Sdílené vývojové API důvěřuje standardnímu originu `http://127.0.0.1:5173`.
+Vite proxy proto pro náhled překládá pouze vlastní origin
+`http://127.0.0.1:5174` nebo `http://localhost:5174`, a pouze pokud přesně
+odpovídá příchozímu Host. Cizí, chybějící, `null` a neshodné origins se
+nepřekládají. Kontrola `X-Faktura-Request` i přihlášené relace zůstává na API.
+Toto pravidlo je jen ve vývojovém serveru; produkční build proxy neobsahuje.
+Při jiném portu nebo vlastním `CORS_ORIGINS` nastavte explicitní shodu na API.
+
+Před opravou vracel běžící API server pro zápis z 5174 stav 401, pro stejný
+požadavek z 5173 stav 204 (ověřeno odhlášením bez cookie, bez zásahu do relace).
+Po opravě proxy vrací pro vlastní origin 204, pro cizí, `null` a chybějící origin 401.
+Regrese mapování: `node --test tests/dev/api-proxy.test.mjs`.
+UI regrese se syntetickým API ověřuje změnu světlý → tmavý, obnovení stránky
+a následný návrat na světlý včetně revize a požadovaného hlavičkového markeru.
+
 ## Menu uživatelského účtu
 
 Příčinou neviditelného menu byl konflikt utility `top-full` na prvku s responzivním
