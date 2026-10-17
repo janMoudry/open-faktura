@@ -1,3 +1,4 @@
+import { RegisterExport } from "../components/organisms/RegisterExport";
 import { RegisterPagination } from "../components/molecules/RegisterPagination";
 import { InvoiceListFilters } from "../components/organisms/InvoiceListFilters";
 import { PaymentStatus } from "../components/molecules/PaymentStatus";
@@ -22,6 +23,7 @@ import {
   listDrafts,
   InvoiceCalculationFailure,
   type DraftPage,
+  type ExportRequest,
 } from "@open-faktura/api-client";
 import { useWorkspace } from "../hooks/useCompanyWorkspace";
 import { useAppTranslation, type AppKey } from "../locales";
@@ -165,6 +167,28 @@ export function InvoiceDraftListPage() {
             {t("navInvoices")}
           </Heading>
         </div>
+        <RegisterExport
+          key={companyId}
+          company={companyId}
+          onExpired={onExpired}
+          selection={{
+            kind: "invoices",
+            search: {
+              query,
+              sort: sort as Extract<
+                ExportRequest["selection"],
+                { kind: "invoices" }
+              >["search"]["sort"],
+              status,
+              customer_id: customer || undefined,
+              date_field,
+              date_from,
+              date_to,
+              amount_min,
+              amount_max,
+            },
+          }}
+        />
       </div>
       <div>
         <Button

@@ -14,6 +14,7 @@ fn id(s: &str) -> Result<i64> {
 fn column(k: &str) -> Result<&'static str> {
     match k {
         "invoice" => Ok("invoice_id"),
+        "received" => Ok("received_id"),
         "quote" => Ok("quote_id"),
         _ => Err(Error::NotFound),
     }
@@ -45,6 +46,8 @@ async fn document(
     write: bool,
 ) -> Result<()> {
     let query = match k {
+        "received" if write => "SELECT id FROM received_invoice WHERE company_id=$1 AND id=$2 AND NOT cancelled FOR SHARE",
+        "received" => "SELECT id FROM received_invoice WHERE company_id=$1 AND id=$2 FOR SHARE",
         "invoice" => "SELECT id FROM invoice_draft WHERE company_id=$1 AND id=$2 FOR SHARE",
         "quote" if write => "SELECT id FROM sales_document WHERE company_id=$1 AND id=$2 AND kind='quote' AND NOT archived FOR SHARE",
         "quote" => "SELECT id FROM sales_document WHERE company_id=$1 AND id=$2 AND kind='quote' FOR SHARE",

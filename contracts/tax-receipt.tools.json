@@ -1,0 +1,147 @@
+[
+  {
+    "name": "tax_receipt_list",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "page_size": {
+          "type": "integer",
+          "enum": [
+            10,
+            25,
+            50,
+            100
+          ]
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tax_receipt_issue",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "advance_id": {
+          "type": "string"
+        },
+        "payment_id": {
+          "type": "string"
+        },
+        "issued_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "cs",
+            "en"
+          ]
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "revision",
+        "advance_id",
+        "payment_id",
+        "issued_on",
+        "description",
+        "language"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tax_receipt_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tax_receipt_pdf",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tax_receipt_preview",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "advance_id": {
+          "type": "string"
+        },
+        "payment_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "advance_id",
+        "payment_id"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

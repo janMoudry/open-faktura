@@ -1,3 +1,4 @@
+import { advanceStatus } from "../utils/advance";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import {
@@ -54,7 +55,7 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
     size,
     attempt,
   ]);
-  const base = `/companies/${companyId}/${kind === "quote" ? "quotes" : "templates"}`;
+  const base = `/companies/${companyId}/${kind === "advance" ? "advances" : kind === "quote" ? "quotes" : "templates"}`;
   const change = (v: Record<string, string>) =>
     setParams({ ...Object.fromEntries(params), page: "1", ...v });
   useEffect(() => setInput(query), [query, companyId, kind]);
@@ -67,7 +68,7 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
       {
         kind,
         query,
-        status: kind === "quote" ? status : "all",
+        status: kind !== "template" ? status : "all",
         archived,
         page,
         page_size: size,
@@ -92,12 +93,18 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
   return (
     <div className="space-y-group">
       <Heading level={1} size="page">
-        {t(kind === "quote" ? "salesQuotes" : "salesTemplates")}
+        {t(
+          kind === "advance"
+            ? "navAdvances"
+            : kind === "quote"
+              ? "salesQuotes"
+              : "salesTemplates",
+        )}
       </Heading>
       <div className="workspace-panel register-sheet">
         <div className="invoice-list-tabs">
           <FilterTabs
-            label={t("salesStatus")}
+            label={t(kind === "advance" ? "advanceStatusLabel" : "salesStatus")}
             value={archived ? "archived" : "active"}
             options={[
               { value: "active", label: t("salesActive") },
@@ -129,13 +136,23 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
             </Button>
           </form>
           <div className="flex flex-wrap items-end gap-field">
-            {kind === "quote" && (
+            {kind !== "template" && (
               <Select
-                label={t("salesStatus")}
+                label={t(
+                  kind === "advance" ? "advanceStatusLabel" : "salesStatus",
+                )}
                 value={status}
                 options={[
                   { value: "all", label: t("salesAll") },
-                  ...Object.entries(salesStates).map(([value, label]) => ({
+                  ...Object.entries(
+                    kind === "advance"
+                      ? ({
+                          paid: "paymentPaid",
+                          outstanding: "paymentOutstanding",
+                          overdue: "paymentOverdue",
+                        } as const)
+                      : salesStates,
+                  ).map(([value, label]) => ({
                     value,
                     label: t(label),
                   })),
@@ -149,7 +166,13 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
                 to={`${base}/new`}
               >
                 <Icon name="plus" />
-                {t(kind === "quote" ? "salesNewQuote" : "salesNewTemplate")}
+                {t(
+                  kind === "advance"
+                    ? "advanceNew"
+                    : kind === "quote"
+                      ? "salesNewQuote"
+                      : "salesNewTemplate",
+                )}
               </Link>
             )}
           </div>
@@ -173,7 +196,11 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
                 tabIndex={0}
                 role="region"
                 aria-label={t(
-                  kind === "quote" ? "salesQuotes" : "salesTemplates",
+                  kind === "advance"
+                    ? "navAdvances"
+                    : kind === "quote"
+                      ? "salesQuotes"
+                      : "salesTemplates",
                 )}
               >
                 <Table className="contact-register-table min-w-invoice-register">
@@ -181,17 +208,31 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
                     <TableRow>
                       <TableHead>
                         {t(
-                          kind === "quote" ? "invoiceDocumentTab" : "salesName",
+                          kind === "template"
+                            ? "salesName"
+                            : "invoiceDocumentTab",
                         )}
                       </TableHead>
-                      {kind === "quote" && (
-                        <TableHead>{t("salesStatus")}</TableHead>
+                      {kind !== "template" && (
+                        <TableHead>
+                          {t(
+                            kind === "advance"
+                              ? "advanceStatusLabel"
+                              : "salesStatus",
+                          )}
+                        </TableHead>
                       )}
                       <TableHead>{t("draftCustomer")}</TableHead>
-                      {kind === "quote" && (
+                      {kind !== "template" && (
                         <>
                           <TableHead>{t("draftIssued")}</TableHead>
-                          <TableHead>{t("salesValidUntil")}</TableHead>
+                          <TableHead>
+                            {t(
+                              kind === "advance"
+                                ? "draftDue"
+                                : "salesValidUntil",
+                            )}
+                          </TableHead>
                         </>
                       )}
                       <TableHead className="text-right">
@@ -216,17 +257,26 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
                             </div>
                           )}
                         </TableCell>
-                        {kind === "quote" && (
+                        {kind !== "template" && (
                           <TableCell>
                             <Badge>
-                              {t(salesStates[d.data.status] ?? "salesCreated")}
+                              {t(
+                                kind === "advance"
+                                  ? d.invoice_id
+                                    ? d.data.status === "invoiced"
+                                      ? "settlementCompleted"
+                                      : "settlementReserved"
+                                    : advanceStatus(d)
+                                  : (salesStates[d.data.status] ??
+                                      "salesCreated"),
+                              )}
                             </Badge>
                           </TableCell>
                         )}
                         <TableCell>
                           {d.data.invoice.customer?.name || "—"}
                         </TableCell>
-                        {kind === "quote" && (
+                        {kind !== "template" && (
                           <>
                             <TableCell>
                               {d.data.invoice.issued_on

@@ -1,0 +1,1037 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Inbox",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/inbox": {
+      "get": {
+        "operationId": "inbox_list",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "inbox_upload",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxDocument"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InboxUpload"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/commands": {
+      "post": {
+        "operationId": "inbox_execute",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxDocument"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InboxCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/{id}/file": {
+      "get": {
+        "operationId": "inbox_download",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/{id}/extract": {
+      "get": {
+        "operationId": "inbox_extract",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/{id}/history": {
+      "get": {
+        "operationId": "inbox_history",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InboxAudit"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "paid_on",
+          "method",
+          "note"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "ReceivedLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "description",
+          "rate",
+          "net",
+          "vat"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "rate": {
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "stock": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": false,
+            "required": [
+              "catalog_id",
+              "quantity",
+              "unit"
+            ],
+            "properties": {
+              "catalog_id": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ReceivedData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "supplier_contact_id",
+          "supplier",
+          "external_number",
+          "variable_symbol",
+          "bank_account",
+          "issued_on",
+          "received_on",
+          "due_on",
+          "tax_on",
+          "currency",
+          "description",
+          "note",
+          "lines",
+          "rounding"
+        ],
+        "properties": {
+          "supplier_contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "external_number": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "bank_account": {
+            "type": "string"
+          },
+          "issued_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "received_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedLine"
+            }
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "receipt"
+            ],
+            "default": "invoice"
+          },
+          "receipt_method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "card"
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "ReceivedTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "total"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        }
+      },
+      "ReceivedPayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "paid_on",
+          "method",
+          "note",
+          "id",
+          "actor_id",
+          "created_at",
+          "reversed_at",
+          "reversed_by",
+          "reason"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer",
+              "card"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "id": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "reversed_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "reversed_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReceivedDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "company_id",
+          "number",
+          "revision",
+          "cancelled",
+          "data",
+          "totals",
+          "paid",
+          "remaining",
+          "payment_status",
+          "payments"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReceivedData"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ReceivedTotals"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "remaining": {
+            "type": "string"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partial",
+              "paid"
+            ]
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedPayment"
+            }
+          }
+        }
+      },
+      "ReceivedPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedDocument"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReceivedCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "data"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReceivedData"
+          }
+        }
+      },
+      "ReceivedCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "action"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "update",
+              "pay",
+              "reverse",
+              "cancel"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReceivedData"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentInput"
+          },
+          "payment_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "pay"
+                ]
+              }
+            },
+            "required": [
+              "payment"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "reverse"
+                ]
+              }
+            },
+            "required": [
+              "payment_id",
+              "reason"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "cancel"
+                ]
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          }
+        ]
+      },
+      "ExpenseEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "document_id",
+          "number",
+          "kind",
+          "supplier",
+          "description",
+          "payment"
+        ],
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "receipt"
+            ]
+          },
+          "supplier": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/ReceivedPayment"
+          }
+        }
+      },
+      "ExpensePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseEntry"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          }
+        }
+      },
+      "ExpenseOverview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "purchases",
+          "expenses",
+          "outstanding",
+          "overdue"
+        ],
+        "properties": {
+          "purchases": {
+            "type": "string"
+          },
+          "expenses": {
+            "type": "string"
+          },
+          "outstanding": {
+            "type": "string"
+          },
+          "overdue": {
+            "type": "string"
+          }
+        }
+      },
+      "InboxDocument": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "filename",
+          "media_type",
+          "size",
+          "sha256",
+          "archived",
+          "received_id",
+          "created_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "media_type": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "received_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "received_kind": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "InboxPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "total"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InboxDocument"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        }
+      },
+      "InboxUpload": {
+        "type": "object",
+        "required": [
+          "request_id",
+          "filename",
+          "base64"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "base64": {
+            "type": "string"
+          }
+        }
+      },
+      "InboxCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "request_id",
+              "id",
+              "revision",
+              "action",
+              "archived"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "archive"
+                ]
+              },
+              "archived": {
+                "type": "boolean"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "request_id",
+              "id",
+              "revision",
+              "action",
+              "data"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "convert"
+                ]
+              },
+              "data": {
+                "$ref": "#/components/schemas/ReceivedData"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "request_id",
+              "id",
+              "revision",
+              "action",
+              "received_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "attach"
+                ]
+              },
+              "received_id": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "InboxAudit": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "action",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "action": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

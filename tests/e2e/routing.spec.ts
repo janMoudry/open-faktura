@@ -97,3 +97,104 @@ test("workspace shell survives lazy loading, navigation, back and failed page da
     await page.unrouteAll({ behavior: "wait" });
   }
 });
+
+test("child routes retain profile data, navigation controls and expanded groups", async ({
+  page,
+}) => {
+  const settings = {
+    name: "Navigation fixture",
+    entity_type: "individual",
+    registration_number: "",
+    vat_number: "",
+    street: "",
+    city: "",
+    postal_code: "",
+    country: "CZ",
+    email: "",
+    phone: "",
+    tax_mode: "non_payer",
+    tax_effective_from: "",
+    currency: "CZK",
+    timezone: "Europe/Prague",
+    payment_method: "cash",
+    iban: "",
+    number_prefix: "FV",
+    maturity_days: 14,
+    number_year: 2026,
+    next_number: 1,
+  };
+  const profile = {
+    id: "1",
+    revision: 1,
+    step: 0,
+    completed: true,
+    role: "owner",
+    settings,
+    missing_fields: [],
+    number_preview: "FV2026000001",
+    can_issue: true,
+    tax_history: [],
+  };
+  let profileReads = 0;
+  await page.route("**/api/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === "/api/auth/setup")
+      return route.fulfill({ json: { setup_required: false } });
+    if (path === "/api/auth/session")
+      return route.fulfill({
+        json: {
+          id: "routing-user",
+          name: "Test",
+          email: "routing@example.test",
+          installation_admin: false,
+        },
+      });
+    if (path === "/api/companies" || path === "/api/companies/1") {
+      profileReads++;
+      return route.fulfill({
+        json: path === "/api/companies" ? [profile] : profile,
+      });
+    }
+    return route.fulfill({ status: 503, json: { code: "unavailable" } });
+  });
+  await page.goto("/#/companies/1/invoices");
+  const sidebar = page.locator(".workspace-sidebar");
+  const create = sidebar.locator('a[href$="/invoices/new"]');
+  await expect(create).toBeVisible();
+  const node = await create.elementHandle();
+  const initialProfileReads = profileReads;
+  const mobile = sidebar.locator(":scope > details");
+  if (await mobile.isVisible()) await mobile.locator("summary").first().click();
+  const sales = sidebar
+    .locator(".workspace-nav-group:visible")
+    .filter({ has: page.locator("summary", { hasText: "Prodej" }) });
+  const directory = sidebar
+    .locator(".workspace-nav-group:visible")
+    .filter({ has: page.locator("summary", { hasText: "Adresář" }) });
+  await directory.locator("summary").click();
+  await sidebar
+    .getByRole("link", { name: "Odběratelé", exact: true })
+    .filter({ visible: true })
+    .click();
+  await expect(page).toHaveURL(/\/contacts$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(sales).toHaveAttribute("open", "");
+  expect(
+    await create.evaluate((current, previous) => current === previous, node),
+  ).toBe(true);
+  expect(profileReads).toBe(initialProfileReads);
+  await sidebar
+    .getByRole("link", { name: "Faktury", exact: true })
+    .filter({ visible: true })
+    .click();
+  await expect(page).toHaveURL(/\/invoices$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(directory).toHaveAttribute("open", "");
+  expect(
+    await create.evaluate((current, previous) => current === previous, node),
+  ).toBe(true);
+  expect(profileReads).toBe(initialProfileReads);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/contacts$/);
+  expect(profileReads).toBe(initialProfileReads);
+});

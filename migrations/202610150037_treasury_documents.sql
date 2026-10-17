@@ -1,0 +1,10 @@
+ALTER TABLE bank_match ADD COLUMN advance_id bigint, ADD COLUMN credit_id bigint;
+ALTER TABLE cash_match ADD COLUMN advance_id bigint, ADD COLUMN credit_id bigint;
+ALTER TABLE bank_match DROP CONSTRAINT bank_match_check;
+ALTER TABLE cash_match DROP CONSTRAINT cash_match_check;
+ALTER TABLE bank_match ADD CHECK(num_nonnulls(invoice_id,received_id,advance_id,credit_id)=1), ADD FOREIGN KEY(company_id,advance_id) REFERENCES sales_document(company_id,id), ADD FOREIGN KEY(company_id,credit_id) REFERENCES credit_note(company_id,id);
+ALTER TABLE cash_match ADD CHECK(num_nonnulls(invoice_id,received_id,advance_id,credit_id)=1), ADD FOREIGN KEY(company_id,advance_id) REFERENCES sales_document(company_id,id), ADD FOREIGN KEY(company_id,credit_id) REFERENCES credit_note(company_id,id);
+CREATE UNIQUE INDEX bank_match_advance_payment ON bank_match(company_id,advance_id,payment_id) WHERE detached_at IS NULL AND advance_id IS NOT NULL;
+CREATE UNIQUE INDEX bank_match_credit_payment ON bank_match(company_id,credit_id,payment_id) WHERE detached_at IS NULL AND credit_id IS NOT NULL;
+CREATE UNIQUE INDEX cash_match_advance_payment ON cash_match(company_id,advance_id,payment_id) WHERE detached_at IS NULL AND advance_id IS NOT NULL;
+CREATE UNIQUE INDEX cash_match_credit_payment ON cash_match(company_id,credit_id,payment_id) WHERE detached_at IS NULL AND credit_id IS NOT NULL;

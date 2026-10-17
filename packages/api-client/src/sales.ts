@@ -2,7 +2,7 @@ import type { components } from "./sales.generated";
 export type SalesDocument = components["schemas"]["SalesDocument"];
 export type SalesData = components["schemas"]["SalesData"];
 export type SalesPage = components["schemas"]["SalesPage"];
-export type SalesKind = "template" | "quote";
+export type SalesKind = "template" | "quote" | "advance";
 export class SalesFailure extends Error {
   constructor(
     public status: number,
@@ -49,7 +49,7 @@ function document(v: unknown): SalesDocument {
     typeof d.id !== "string" ||
     typeof d.company_id !== "string" ||
     !Number.isSafeInteger(d.revision) ||
-    !["template", "quote"].includes(d.kind) ||
+    !["template", "quote", "advance"].includes(d.kind) ||
     typeof d.archived !== "boolean" ||
     !d.data ||
     typeof d.data.name !== "string" ||

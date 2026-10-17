@@ -14,3 +14,24 @@ pub mod payment;
 pub mod import;
 
 pub mod catalog;
+
+pub mod tax_receipt;
+
+pub mod advance_settlement;
+
+pub mod credit_note;
+
+pub mod recurring;
+
+pub mod received;
+
+pub mod banking;
+
+pub mod cash;
+
+pub mod amount_words;
+
+pub mod payment_qr;
+pub mod retail;
+
+pub mod stock_cost;

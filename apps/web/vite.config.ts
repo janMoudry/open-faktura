@@ -10,7 +10,7 @@ export default defineConfig({
       apply: "build",
       generateBundle() {
         const forbidden =
-          /(?:sandbox\.tsx|invoice-demo|DesignSystemPage|InvoicesPage|(?:Atom|Chart|Foundation|Selection)Gallery)/;
+          /(?:sandbox\.tsx|invoice-demo|DesignSystemPage|\/InvoicesPage\.tsx(?:$|\?)|(?:Atom|Chart|Foundation|Selection)Gallery)/;
         for (const id of this.getModuleIds()) {
           if (forbidden.test(id))
             this.error(`Development sandbox leaked into product: ${id}`);

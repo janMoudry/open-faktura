@@ -610,6 +610,16 @@
                           "12",
                           "21"
                         ]
+                      },
+                      "catalog_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       }
                     }
                   },
@@ -957,6 +967,16 @@
                           "0",
                           "12",
                           "21"
+                        ]
+                      },
+                      "catalog_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
                         ]
                       }
                     }

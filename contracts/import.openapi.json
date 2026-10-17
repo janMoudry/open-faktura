@@ -854,6 +854,10 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -1247,6 +1251,10 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

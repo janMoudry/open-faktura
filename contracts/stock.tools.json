@@ -1,0 +1,318 @@
+[
+  {
+    "name": "stock_cards",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "stock_movements",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "catalog_id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string",
+          "format": "date"
+        },
+        "to": {
+          "type": "string",
+          "format": "date"
+        },
+        "page": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "stock_execute",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "request_id": {},
+        "catalog_id": {},
+        "action": {},
+        "quantity": {},
+        "booked_on": {},
+        "reason": {},
+        "company_id": {},
+        "revision": {},
+        "movement_id": {}
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "catalog_id",
+            "action",
+            "quantity",
+            "booked_on",
+            "reason",
+            "company_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "catalog_id": {
+              "type": "string"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "open"
+              ]
+            },
+            "quantity": {
+              "type": "string"
+            },
+            "booked_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "catalog_id",
+            "action",
+            "quantity",
+            "booked_on",
+            "reason",
+            "company_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "catalog_id": {
+              "type": "string"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "move"
+              ]
+            },
+            "quantity": {
+              "type": "string"
+            },
+            "booked_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "catalog_id",
+            "action",
+            "quantity",
+            "revision",
+            "reason",
+            "company_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "catalog_id": {
+              "type": "string"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "count"
+              ]
+            },
+            "quantity": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "catalog_id",
+            "action",
+            "movement_id",
+            "reason",
+            "company_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "catalog_id": {
+              "type": "string"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "reverse"
+              ]
+            },
+            "movement_id": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "stock_report",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "as_of": {
+          "type": "string",
+          "format": "date"
+        },
+        "query": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "valuation": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "automatic"
+          ],
+          "default": "manual"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "stock_set_cost",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "catalog_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "effective_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "unit_cost": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "catalog_id",
+        "revision",
+        "effective_on",
+        "unit_cost",
+        "reason",
+        "request_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "stock_costs",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "catalog_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "catalog_id"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

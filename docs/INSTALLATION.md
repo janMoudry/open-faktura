@@ -291,3 +291,74 @@ nižší limit celé zprávy. Veřejné odkazy nabídek vlastní přílohy nevys
 Migrace 017 je aditivní, existující přílohy PDF/outbox nemění. Před použitím nové
 funkce aktualizovat všechny backendy/workery, jinak starý worker vlastní soubory
 nepřiloží. Přijaté soubory nejsou antivirově skenované ani vykonávané serverem.
+
+## Pravidelné faktury
+
+Plánovač P14-01 běží s API serverem. Pro automatizaci musí server a PostgreSQL běžet trvale; prohlížeč může být zavřený. Po výpadku doplní zmeškané termíny postupně. Nový vzor je pozastavený, aktivace samostatně potvrzuje volbu vystavení a případného odeslání. Pro PDF e-mail nastavte SMTP. Chyba generování zastaví vzor s viditelným stavem; po opravě obsahu/oprávnění/roku řady jej znovu aktivujte. Zařazení e-mailu při dočasné chybě zkouší znovu po 5 minutách, nejistý výsledek skutečného SMTP odeslání automaticky neopakuje. Pozastavení vzoru nemaže vytvořené doklady ani neruší již zařazené zprávy. Před upgradem zastavte staré API.
+
+### Automatické upomínky a poděkování
+
+Po konfiguraci SMTP otevřete nastavení fakturačního profilu → Upomínky a poděkování.
+Vlastník nastaví odstupy a limit a výslovně potvrdí odesílání. Upomínky zahrnou
+existující faktury po splatnosti. Poděkování sleduje jen nové ručně zapsané platby
+od zapnutí. Obě volby jsou standardně vypnuté. API server musí běžet; prohlížeč
+nemusí být otevřený. V detailu faktury lze automatizaci pozastavit. Historie
+rozlišuje běžný e-mail, upomínku a poděkování, včetně selhání. Změna úhrady či
+nastavení zastaví dosud nezahájené zprávy. Již předaný e-mail nelze odvolat.
+[Omezení a přesná pravidla](specs/invoice-communication.md).
+
+## Veřejné odkazy faktur
+
+P14-03 používá stejné `PUBLIC_WEB_URL` jako veřejné nabídky. Nastavte veřejně
+dostupnou HTTPS adresu webu, který dosáhne na API; localhost je jen pro vývoj.
+SMTP je nutné pouze pro odeslání odkazu e-mailem. Samotné vytvoření a kopírování
+funguje bez SMTP. Odkaz opravňuje držitele ke čtení PDF a stavu úhrady: nesdílejte
+jej v logu ani veřejném screenshotu. Odvolání zneplatní i již odeslaný odkaz,
+neodstraní stažené PDF. Před upgradem zastavte starý server; nový aplikuje
+migraci 024. Nastavení automatických e-mailů tento upgrade nemění.
+[Specifikace](specs/invoice-sharing.md).
+
+## Evidence přijatých faktur
+
+P15-01 nevyžaduje další službu. Před upgradem zastavte starý API proces;
+nový aplikuje migraci 025 včetně rozšíření vazeb příloh. Existující doklady,
+platby a přílohy zůstávají zachované. Originální soubory jsou v PostgreSQL
+stejně jako ostatní přílohy; zahrnuje je běžná DB záloha. Ruční úhrada pouze
+eviduje provedený výdaj, nepřipojuje banku a neposílá peníze. [Rozsah](specs/received-invoices.md).
+
+## Účtenky a výdajové přehledy
+
+Před nasazením P15-02 zastavte starý API proces; nový provede migraci 026.
+Starý server účtenky nerozlišuje, proto nesmí běžet souběžně. Upgrade zachová
+původní faktury, jejich číslování, opakování příkazů a přílohy. Není potřeba
+další služba. Účtenka eviduje zaplacený nákup; nenahrazuje bankovní import
+ani pokladní doklad. [Rozsah](specs/purchase-receipts.md).
+
+### Bankovní evidence — P16-01
+
+Před upgradem zastavte starý API proces. Nový provede migraci 027; starý proces
+by nechránil storno úhrad propojených s bankou. Další služba ani bankovní přístupové
+údaje nejsou potřeba. V aktivním profilu otevřete Finance a evidence → Banka,
+přidejte CZK účet a zvolte import CSV nebo nový pohyb. Náhled musí být bez chyb;
+duplicity se přeskočí. Potom otevřete pohyb a ručně vyberte doklad/úhradu.
+Vlastní [formát CSV a hranice](specs/banking.md) nejsou nativní bankovní konektor.
+Údaje i audit se zálohují společně s PostgreSQL. Žádné peníze se neposílají.
+
+## Vlastní bankovní napojení
+
+Po upgradu spusťte `node scripts/init-secrets.mjs` pro doplnění `bank-key`;
+původní klíče se nepřepisují. API používá `BANK_ENCRYPTION_KEY_FILE` (výchozí
+`.secrets/bank-key`), produkční Compose má vlastní secret. Klíč zahrňte do
+chráněné zálohy; necommitujte jej. Bez něj nelze uložit ani použít bankovní token.
+
+V Bance otevřete „Bankovní napojení“, vyberte účet a poskytovatele, uložte
+vlastní token, spusťte test a následně synchronizaci. Fio je vestavěné; jiné
+poskytovatele přidá správce přes `BANK_GATEWAYS_JSON` podle
+[specifikace gateway](specs/bank-connections.md). Ta popisuje i omezení formátů,
+intervalu, bezpečnost, obnovu přístupů a neověřené živé integrace.
+
+Automatickou synchronizaci zapněte explicitně u konkrétního účtu a zvolte
+interval. Worker běží s API, nepotřebuje cron. Po změně přístupů se vypne;
+při odebrání oprávnění aktérovi se pozastaví a vyžaduje nové zapnutí.
+Po delší odstávce se načte pouze posledních 30 dní, starší mezery doplňte
+importem výpisů. Automatika neposílá platby ani je automaticky nepáruje.

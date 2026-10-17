@@ -73,6 +73,9 @@ export function InvoiceLines({
               maxLength={2000}
               onChange={(e) => patch(index, { description: e.target.value })}
             />
+            {line.catalog_id && (
+              <p className="text-sm text-muted">{t("stockInvoiceLink")}</p>
+            )}
           </div>
           {(
             [

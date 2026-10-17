@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE statement SYSTEM "mmb-ib-struktura-vypisu-xml.dtd">
+<statement><header><stmt number="1" date="2026-10-01" trn-cnt="1"/><account number="19-2000145399" iban="CZ6508000000192000145399" currency="CZK"/></header><transactions><transaction id="synthetic-1" date-post="2026-10-01" date-eff="2026-10-01" amount="50.01" var-sym="000123" other-account-number="123/0100"><trn-messages type="debit"><trn-message position="1">Synthetic expense</trn-message></trn-messages></transaction></transactions></statement>

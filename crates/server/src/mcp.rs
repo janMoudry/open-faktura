@@ -82,6 +82,108 @@ fn tools() -> Vec<Tool> {
         )
         .with_annotations(ToolAnnotations::new().read_only(true)),
     ];
+    let communication: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/communication.tools.json"))
+            .expect("communication tools");
+    for schema in communication.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile invoice communication. Save can authorize automatic external email to customers. Preview is read-only. Pause stops future automated delivery for one invoice.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"communication_settings"|"communication_preview"))));
+    }
+    let recurring: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/recurring.tools.json"))
+            .expect("recurring tools");
+    for schema in recurring.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped recurring invoices. Create is paused. Activate authorizes the saved automatic issue and email settings. Run generates one due occurrence. Pause does not cancel already queued messages.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"recurring_list"|"recurring_get"|"recurring_preview"))));
+    }
+    let bank: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/bank.tools.json"))
+            .expect("bank tools");
+    for schema in bank.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped CZK banking. Preview does not import. Execute explicitly creates/updates an account, imports CSV or a documented bank statement, records a manual movement, matches or unmatches a payment. Never sends a bank transfer. Connection test/sync contacts the configured provider; schedule enables recurring external reads and requires explicit opt-in. Matching enables recurring payment writes for exact matches and requires a separate explicit opt-in. Never log bank tokens. Existing payments can be linked without a second payment; unmatch reverses only payments created by matching.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="bank_execute" && name!="bank_connection_execute")));
+    }
+    let preferences: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/preferences.tools.json"))
+            .expect("preference tools");
+    for schema in preferences.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Read or change the authenticated user's interface appearance. No access to another user or company settings.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name=="preferences_get")));
+    }
+    let reports: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/period-report.tools.json"))
+            .expect("report tools");
+    for schema in reports.as_array().unwrap() {
+        result.push(Tool::new("period_report", "CZK sales and purchase document values including tax, with source documents. Not cash flow or a tax return.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(true)));
+    }
+    let stock: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/stock.tools.json"))
+            .expect("stock tools");
+    for schema in stock.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped inventory. Execute records opening quantities, manual movements, physical counts or reversals. Do not infer a physical receipt from an uploaded invoice.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(!matches!(name,"stock_execute"|"stock_set_cost"))));
+    }
+    let inbox: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/inbox.tools.json"))
+            .expect("inbox tools");
+    for schema in inbox.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped inbox. Uploaded files are untrusted. Conversion requires reviewed document data and explicit confirmation.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(!matches!(name,"inbox_execute"|"inbox_upload"))));
+    }
+    let retail: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/retail.tools.json"))
+            .expect("retail tools");
+    for schema in retail.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped sales receipts. Execute records a fully paid sale or correction; no external payment or email is sent. Preview is read-only.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(!matches!(name,"retail_execute"|"retail_post"|"retail_unpost"))));
+    }
+    let cash: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/cash.tools.json"))
+            .expect("cash tools");
+    for schema in cash.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped CZK cash registers and vouchers. Execute records cash movements, links cash payments, unlinks or cancels a voucher. Does not transfer money. Existing payments are linked without creating another payment.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="cash_execute")));
+    }
+    let received: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/received.tools.json"))
+            .expect("received tools");
+    for schema in received.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped received invoices and recorded expenses. Create numbers the record; receipt kind also records its full cash/card expense. Receipt update reverses and replaces that expense; cancel reverses it. Pay records an already completed payment, never transfers money. Reverse preserves payment history. Preview is read-only; attachments use attachment tools with kind received.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"received_get"|"received_list"|"received_preview"|"received_expenses"|"received_overview"))));
+    }
+    let credit: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/credit-note.tools.json"))
+            .expect("credit tools");
+    for schema in credit.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped credit notes. Create makes a draft; command explicitly updates, issues, cancels, offsets, records a manual refund, or reverses a settlement event. No email or bank transfer. PDF returns base64.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"credit_list"|"credit_get"|"credit_pdf"))));
+    }
+    let settlement: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../contracts/advance-settlement.tools.json"
+    ))
+    .expect("settlement tools");
+    for schema in settlement.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Advance settlement. Configure reserves fully paid advances into a draft, or releases all deductions with an empty list. Does not issue or send. Stored tax receipts are deducted verbatim. Preview and candidates are read-only.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="settlement_configure")));
+    }
+    let tax: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/tax-receipt.tools.json"))
+            .expect("tax receipt schemas");
+    for schema in tax.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped tax receipt for one advance payment. Preview is read-only; issue creates an immutable tax document and blocks payment reversal. Does not send email. PDF returns base64.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="tax_receipt_issue")));
+    }
+    let advance: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/advance.tools.json"))
+            .expect("advance schemas");
+    for schema in advance.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped proforma PDF and manual receipt history. Register/reverse change payment records, not tax documents or final invoices. PDF returns base64.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name=="advance_pdf"||name=="advance_payments")));
+    }
+    let schema: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/export.tools.json"))
+            .expect("export schema");
+    result.push(Tool::new("register_export", "Read-only filtered invoices/contacts export. All matching rows (max 10000), selected columns, CSV/XLSX, CS/EN. Returns filename, media_type and base64. No records are changed.",schema[0]["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(true)));
     let schemas: serde_json::Value =
         serde_json::from_str(include_str!("../../../contracts/contact.tools.json"))
             .expect("generated contact schemas");
@@ -109,7 +211,7 @@ fn tools() -> Vec<Tool> {
     .expect("invoice delivery schemas");
     for schema in invoice_mail.as_array().unwrap() {
         let name = schema["name"].as_str().unwrap();
-        result.push(Tool::new(name.to_owned(),"Profile-scoped issued invoice email and history. invoice_send queues an actual email with PDF attachment; use only with explicit authorization for the recipient. Issuing and payment are not changed. PDF returns base64.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="invoice_send")));
+        result.push(Tool::new(name.to_owned(),"Profile-scoped issued invoice email and history. invoice_send queues an actual email with PDF attachment or selected public link; use only with explicit authorization for the recipient. Issuing and payment are not changed. PDF returns base64.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="invoice_send")));
     }
     let schemas: serde_json::Value =
         serde_json::from_str(include_str!("../../../contracts/catalog.tools.json"))
@@ -124,6 +226,13 @@ fn tools() -> Vec<Tool> {
     for schema in schemas.as_array().unwrap() {
         let name = schema["name"].as_str().unwrap();
         result.push(Tool::new(name.to_owned(),"Profile-scoped templates and quotations. sales_send queues an actual email with a PDF attachment or selected public share_id: use only with explicit authorization to send to the supplied recipient. sales_sharecreate grants anyone holding the returned URL read access to the current quotation until expiry or revocation. Conversion only saves a draft. PDF tools return base64.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name=="sales_list"||name=="sales_get"||name=="sales_pdf"||name=="sales_history"||name=="sales_deliverypdf"||name=="sales_sharelist"||name=="sales_shareviews")));
+    }
+    let invoice_shares: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/invoice-share.tools.json"))
+            .expect("invoice shares");
+    for schema in invoice_shares.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Profile-scoped issued invoice links. Creation grants anyone holding the URL access to the issued PDF and current settlement status until expiry or revocation. Does not email. View counts are technical events, not proof of reading.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"invoice_sharelist"|"invoice_shareviews"))));
     }
     let drafts: serde_json::Value =
         serde_json::from_str(include_str!("../../../contracts/draft.tools.json"))
@@ -182,7 +291,7 @@ impl ServerHandler for CompanyMcp {
         _: RequestContext<RoleServer>,
     ) -> Result<CallToolResponse, McpError> {
         let actor = self.actor().await?;
-        let args = request.arguments.unwrap_or_default();
+        let mut args = request.arguments.unwrap_or_default();
         let result = match request.name.as_ref() {
             "imports_list" | "import_get" | "import_prepare" | "import_apply" => {
                 import_tool(
@@ -260,6 +369,246 @@ impl ServerHandler for CompanyMcp {
                     _ => Err(CompanyError::Invalid(vec!["arguments".into()])),
                 }
             }
+            "communication_settings"
+            | "communication_save"
+            | "communication_preview"
+            | "communication_pause" => {
+                communication_tool(
+                    &faktura_infrastructure::communication::PgCommunication(
+                        self.delivery.pool.clone(),
+                    ),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "recurring_create" | "recurring_command" | "recurring_list" | "recurring_get"
+            | "recurring_preview" => {
+                recurring_tool(
+                    &faktura_infrastructure::recurring::PgRecurring(self.delivery.pool.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "preferences_get" | "preferences_set" => {
+                preferences_tool(
+                    &faktura_infrastructure::preferences::PgPreferences(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "period_report" => {
+                period_report_tool(
+                    &faktura_infrastructure::period_report::PgPeriodReport(self.store.0.clone()),
+                    &actor,
+                    args,
+                )
+                .await
+            }
+            "stock_report" | "stock_set_cost" | "stock_costs" => {
+                stock_report_tool(
+                    &faktura_infrastructure::stock_report::PgStockReport(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "stock_cards" | "stock_movements" | "stock_execute" => {
+                stock_tool(
+                    &faktura_infrastructure::stock::PgStock(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "inbox_list" | "inbox_upload" | "inbox_execute" | "inbox_download"
+            | "inbox_extract" | "inbox_history" => {
+                inbox_tool(
+                    &faktura_infrastructure::inbox::PgInbox(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "retail_list"
+            | "retail_get"
+            | "retail_history"
+            | "retail_preview"
+            | "retail_execute"
+            | "retail_pdf"
+            | "retail_postings"
+            | "retail_posting_preview"
+            | "retail_post"
+            | "retail_unpost" => {
+                retail_tool(
+                    &faktura_infrastructure::retail::PgRetail(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "cash_terminals" | "cash_tax_preview" | "cash_settings" | "cash_pdf"
+            | "cash_accounts" | "cash_movements" | "cash_get" | "cash_candidates"
+            | "cash_balance" | "cash_execute" => {
+                cash_tool(
+                    &faktura_infrastructure::cash::PgCash(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "bank_balance"
+            | "bank_accounts"
+            | "bank_movements"
+            | "bank_get"
+            | "bank_candidates"
+            | "bank_split_candidates"
+            | "bank_preview"
+            | "bank_statement_preview"
+            | "bank_batch_preview"
+            | "bank_suggestions"
+            | "bank_execute" => {
+                bank_tool(
+                    &faktura_infrastructure::banking::PgBank(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "bank_connection_status" | "bank_connection_execute" => {
+                async {
+                    use faktura_application::bank_connection::ConnectionStore;
+                    let c = args
+                        .remove("company_id")
+                        .and_then(|v| v.as_str().map(str::to_owned))
+                        .ok_or_else(|| CompanyError::Invalid(vec!["company_id".into()]))?;
+                    let store = faktura_infrastructure::bank_connection::PgConnection::new(
+                        self.store.0.clone(),
+                    );
+                    let result = if request.name == "bank_connection_status" {
+                        let account = args
+                            .remove("account_id")
+                            .and_then(|v| v.as_str().map(str::to_owned))
+                            .ok_or_else(|| CompanyError::Invalid(vec!["account_id".into()]))?;
+                        if !args.is_empty() {
+                            return Err(CompanyError::Invalid(vec!["arguments".into()]));
+                        }
+                        store.status(&actor, &c, &account).await?
+                    } else {
+                        let cmd = serde_json::from_value(serde_json::Value::Object(args))
+                            .map_err(|_| CompanyError::Invalid(vec!["arguments".into()]))?;
+                        store.execute(&actor, &c, cmd).await?
+                    };
+                    serde_json::to_value(result).map_err(|_| CompanyError::Unavailable)
+                }
+                .await
+            }
+            "received_expenses" | "received_overview" => {
+                use faktura_application::purchase_report::PurchaseReportStore;
+                let c = args
+                    .remove("company_id")
+                    .and_then(|v| v.as_str().map(str::to_owned))
+                    .ok_or_else(|| CompanyError::Invalid(vec!["company_id".into()]));
+                match c {
+                    Err(e) => Err(e),
+                    Ok(c) => {
+                        let store = faktura_infrastructure::purchase_report::PgPurchaseReport(
+                            self.store.0.clone(),
+                        );
+                        let value = serde_json::Value::Object(args);
+                        let invalid = |_| CompanyError::Invalid(vec!["arguments".into()]);
+                        if request.name == "received_expenses" {
+                            match serde_json::from_value(value).map_err(invalid) {
+                                Ok(q) => store.payments(&actor, &c, q).await.and_then(|v| {
+                                    serde_json::to_value(v).map_err(|_| CompanyError::Unavailable)
+                                }),
+                                Err(e) => Err(e),
+                            }
+                        } else {
+                            match serde_json::from_value(value).map_err(invalid) {
+                                Ok(q) => store.overview(&actor, &c, q).await.and_then(|v| {
+                                    serde_json::to_value(v).map_err(|_| CompanyError::Unavailable)
+                                }),
+                                Err(e) => Err(e),
+                            }
+                        }
+                    }
+                }
+            }
+            "received_create" | "received_command" | "received_list" | "received_get"
+            | "received_preview" => {
+                received_tool(
+                    &faktura_infrastructure::received::PgReceived(self.store.0.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "credit_create" | "credit_command" | "credit_list" | "credit_get" | "credit_pdf" => {
+                credit_tool(
+                    &faktura_infrastructure::credit_note::PgCredit(self.delivery.pool.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "settlement_configure" | "settlement_candidates" | "settlement_preview" => {
+                settlement_tool(
+                    &faktura_infrastructure::advance_settlement::PgSettlement(
+                        self.delivery.pool.clone(),
+                    ),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "tax_receipt_list"
+            | "tax_receipt_get"
+            | "tax_receipt_preview"
+            | "tax_receipt_issue"
+            | "tax_receipt_pdf" => {
+                tax_receipt_tool(
+                    &faktura_infrastructure::tax_receipt::PgTaxReceipt(self.delivery.pool.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "advance_pdf" | "advance_payments" | "advance_register" | "advance_reverse" => {
+                advance_tool(
+                    &faktura_infrastructure::advance::PgAdvance(self.delivery.pool.clone()),
+                    &actor,
+                    request.name.as_ref(),
+                    args,
+                )
+                .await
+            }
+            "register_export" => {
+                use base64::Engine;
+                let mut args = args;
+                let company = args
+                    .remove("company_id")
+                    .and_then(|v| v.as_str().map(str::to_owned));
+                match (company,serde_json::from_value(serde_json::Value::Object(args))) {
+                    (Some(c),Ok(input)) => faktura_application::export::run(&faktura_infrastructure::export::PgExport(self.delivery.pool.clone()),&actor,&c,input).await.map(|f|serde_json::json!({"filename":f.filename,"media_type":f.media_type,"base64":base64::engine::general_purpose::STANDARD.encode(f.bytes)})),
+                    _=>Err(CompanyError::Invalid(vec!["arguments".into()]))
+                }
+            }
             "attachment_list"
             | "attachment_upload"
             | "attachment_download"
@@ -304,6 +653,21 @@ impl ServerHandler for CompanyMcp {
             }
             "sales_pdf" | "sales_deliverypdf" | "sales_send" | "sales_history" => {
                 delivery_tool(&self.delivery, &actor, request.name.as_ref(), args).await
+            }
+            "invoice_sharecreate"
+            | "invoice_sharelist"
+            | "invoice_sharerevoke"
+            | "invoice_shareviews" => {
+                share_tool(
+                    &faktura_infrastructure::invoice_share::PgInvoiceShare {
+                        pool: self.shares.pool.clone(),
+                        base_url: self.shares.base_url.clone(),
+                    },
+                    &actor,
+                    &request.name.replace("invoice_", "sales_"),
+                    args,
+                )
+                .await
             }
             "sales_sharecreate" | "sales_sharelist" | "sales_sharerevoke" | "sales_shareviews" => {
                 share_tool(&self.shares, &actor, request.name.as_ref(), args).await
@@ -677,7 +1041,7 @@ async fn delivery_tool(
 }
 
 async fn share_tool(
-    s: &faktura_infrastructure::share::PgShare,
+    s: &dyn faktura_application::share::ShareStore,
     a: &str,
     name: &str,
     mut args: serde_json::Map<String, serde_json::Value>,
@@ -803,4 +1167,867 @@ async fn attachment_tool(
             )
         }
     }
+}
+
+async fn advance_tool(
+    store: &dyn faktura_application::advance::AdvanceStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> faktura_application::company::Result<serde_json::Value> {
+    use base64::Engine;
+    use faktura_application::advance;
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let d = args
+        .remove("id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    if name == "advance_pdf" || name == "advance_payments" {
+        if !args.is_empty() {
+            return Err(invalid());
+        }
+        return if name == "advance_pdf" {
+            Ok(
+                serde_json::json!({"base64":base64::engine::general_purpose::STANDARD.encode(store.pdf(actor,&c,&d).await?),"media_type":"application/pdf"}),
+            )
+        } else {
+            serde_json::to_value(store.payments(actor, &c, &d).await?)
+                .map_err(|_| CompanyError::Unavailable)
+        };
+    }
+    if name == "advance_register" {
+        advance::register(
+            store,
+            actor,
+            &c,
+            &d,
+            serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+        )
+        .await?;
+    } else {
+        let p = args
+            .remove("payment")
+            .and_then(|v| v.as_str().map(str::to_owned))
+            .ok_or_else(invalid)?;
+        advance::reverse(
+            store,
+            actor,
+            &c,
+            &d,
+            &p,
+            serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+        )
+        .await?;
+    }
+    Ok(serde_json::Value::Null)
+}
+
+async fn tax_receipt_tool(
+    store: &dyn faktura_application::tax_receipt::TaxReceiptStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> faktura_application::company::Result<serde_json::Value> {
+    use base64::Engine;
+    use faktura_application::tax_receipt;
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let take = |args: &mut serde_json::Map<String, serde_json::Value>, key: &str| {
+        args.remove(key)
+            .and_then(|v| v.as_str().map(str::to_owned))
+            .ok_or_else(invalid)
+    };
+    let c = take(&mut args, "company_id")?;
+    let result = match name {
+        "tax_receipt_issue" => serde_json::to_value(
+            tax_receipt::issue(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        "tax_receipt_list" => serde_json::to_value(
+            tax_receipt::list(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        "tax_receipt_preview" => {
+            let d = take(&mut args, "advance_id")?;
+            let p = take(&mut args, "payment_id")?;
+            if !args.is_empty() {
+                return Err(invalid());
+            }
+            serde_json::to_value(store.preview(actor, &c, &d, &p).await?)
+        }
+        _ => {
+            let id = take(&mut args, "id")?;
+            if !args.is_empty() {
+                return Err(invalid());
+            }
+            if name == "tax_receipt_pdf" {
+                return Ok(
+                    serde_json::json!({"media_type":"application/pdf","base64":base64::engine::general_purpose::STANDARD.encode(store.pdf(actor,&c,&id).await?)}),
+                );
+            }
+            serde_json::to_value(store.get(actor, &c, &id).await?)
+        }
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn settlement_tool(
+    store: &dyn faktura_application::advance_settlement::SettlementStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> faktura_application::company::Result<serde_json::Value> {
+    use faktura_application::advance_settlement;
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let result = match name {
+        "settlement_configure" => serde_json::to_value(
+            advance_settlement::configure(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        "settlement_candidates" => serde_json::to_value(
+            advance_settlement::candidates(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        _ => {
+            let id = args
+                .remove("id")
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .ok_or_else(invalid)?;
+            serde_json::to_value(
+                store
+                    .preview(
+                        actor,
+                        &c,
+                        &id,
+                        serde_json::from_value(serde_json::Value::Object(args))
+                            .map_err(|_| invalid())?,
+                    )
+                    .await?,
+            )
+        }
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn credit_tool(
+    store: &dyn faktura_application::credit_note::CreditStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> faktura_application::company::Result<serde_json::Value> {
+    use faktura_application::credit_note;
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let result = match name {
+        "credit_create" => serde_json::to_value(
+            credit_note::create(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        "credit_list" => serde_json::to_value(
+            credit_note::list(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        _ => {
+            let id = args
+                .remove("id")
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .ok_or_else(invalid)?;
+            if name == "credit_command" {
+                serde_json::to_value(
+                    credit_note::command(
+                        store,
+                        actor,
+                        &c,
+                        &id,
+                        serde_json::from_value(serde_json::Value::Object(args))
+                            .map_err(|_| invalid())?,
+                    )
+                    .await?,
+                )
+            } else if name == "credit_pdf" {
+                use base64::Engine;
+                Ok(
+                    serde_json::json!({"mime_type":"application/pdf","content_base64":base64::engine::general_purpose::STANDARD.encode(store.pdf(actor,&c,&id).await?)}),
+                )
+            } else {
+                serde_json::to_value(store.get(actor, &c, &id).await?)
+            }
+        }
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn recurring_tool(
+    store: &dyn faktura_application::recurring::RecurringStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> faktura_application::company::Result<serde_json::Value> {
+    use faktura_application::recurring;
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let result = match name {
+        "recurring_preview" => serde_json::to_value(
+            store
+                .preview(
+                    actor,
+                    &c,
+                    serde_json::from_value(serde_json::Value::Object(args))
+                        .map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "recurring_create" => serde_json::to_value(
+            recurring::create(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        "recurring_list" => serde_json::to_value(
+            recurring::list(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        _ => {
+            let id = args
+                .remove("id")
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .ok_or_else(invalid)?;
+            if name == "recurring_command" {
+                serde_json::to_value(
+                    recurring::command(
+                        store,
+                        actor,
+                        &c,
+                        &id,
+                        serde_json::from_value(serde_json::Value::Object(args))
+                            .map_err(|_| invalid())?,
+                    )
+                    .await?,
+                )
+            } else {
+                serde_json::to_value(store.get(actor, &c, &id).await?)
+            }
+        }
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn communication_tool(
+    store: &dyn faktura_application::communication::CommunicationStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let v = match name {
+        "communication_settings" if args.is_empty() => {
+            serde_json::to_value(store.settings(actor, &c).await?)
+        }
+        "communication_save" => serde_json::to_value(
+            store
+                .save(
+                    actor,
+                    &c,
+                    serde_json::from_value(serde_json::Value::Object(args))
+                        .map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "communication_preview" | "communication_pause" => {
+            let id = args
+                .remove("id")
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .ok_or_else(invalid)?;
+            if name == "communication_pause" {
+                serde_json::to_value(
+                    store
+                        .pause(
+                            actor,
+                            &c,
+                            &id,
+                            serde_json::from_value(serde_json::Value::Object(args))
+                                .map_err(|_| invalid())?,
+                        )
+                        .await?,
+                )
+            } else {
+                let purpose = args
+                    .remove("purpose")
+                    .and_then(|v| v.as_str().map(str::to_owned))
+                    .ok_or_else(invalid)?;
+                if !args.is_empty() {
+                    return Err(invalid());
+                }
+                serde_json::to_value(store.preview(actor, &c, &id, &purpose).await?)
+            }
+        }
+        _ => return Err(invalid()),
+    };
+    v.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn received_tool(
+    store: &dyn faktura_application::received::ReceivedStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    use faktura_application::received;
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let id = args
+        .remove("id")
+        .and_then(|v| v.as_str().map(str::to_owned));
+    let value = serde_json::Value::Object(args);
+    let result = match name {
+        "received_create" => serde_json::to_value(
+            received::create(
+                store,
+                actor,
+                &c,
+                serde_json::from_value(value).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        "received_command" => serde_json::to_value(
+            received::command(
+                store,
+                actor,
+                &c,
+                &id.ok_or_else(invalid)?,
+                serde_json::from_value(value).map_err(|_| invalid())?,
+            )
+            .await?,
+        ),
+        "received_get" => {
+            serde_json::to_value(store.get(actor, &c, &id.ok_or_else(invalid)?).await?)
+        }
+        "received_preview" => serde_json::to_value(
+            store
+                .preview(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        _ => serde_json::to_value(
+            store
+                .list(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn bank_tool(
+    store: &dyn faktura_application::banking::BankStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let company = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let id = args.get("id").and_then(|v| v.as_str().map(str::to_owned));
+    let value = serde_json::Value::Object(args);
+    let result = match name {
+        "bank_accounts" => serde_json::to_value(store.accounts(actor, &company).await?),
+        "bank_balance" => serde_json::to_value(
+            store
+                .balance(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "bank_movements" => serde_json::to_value(
+            store
+                .movements(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "bank_get" => {
+            serde_json::to_value(store.get(actor, &company, &id.ok_or_else(invalid)?).await?)
+        }
+        "bank_suggestions" => serde_json::to_value(
+            store
+                .suggestions(actor, &company, &id.ok_or_else(invalid)?)
+                .await?,
+        ),
+        "bank_split_candidates" => serde_json::to_value(
+            store
+                .split_candidates(
+                    actor,
+                    &company,
+                    &id.ok_or_else(invalid)?,
+                    value["query"].as_str().unwrap_or_default(),
+                )
+                .await?,
+        ),
+        "bank_candidates" => serde_json::to_value(
+            store
+                .candidates(
+                    actor,
+                    &company,
+                    &id.ok_or_else(invalid)?,
+                    value["query"].as_str().unwrap_or_default(),
+                )
+                .await?,
+        ),
+        "bank_batch_preview" => serde_json::to_value(
+            store
+                .batch_preview(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "bank_statement_preview" => serde_json::to_value(
+            store
+                .statement_preview(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "bank_preview" => serde_json::to_value(
+            store
+                .preview(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "bank_execute" => serde_json::to_value(
+            store
+                .execute(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        _ => return Err(invalid()),
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn cash_tool(
+    store: &dyn faktura_application::cash::CashStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let company = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let id = args.get("id").and_then(|v| v.as_str().map(str::to_owned));
+    let value = serde_json::Value::Object(args);
+    let result = match name {
+        "cash_settings" => serde_json::to_value(store.settings(actor, &company).await?),
+        "cash_tax_preview" => serde_json::to_value(
+            store
+                .tax_preview(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "cash_pdf" => {
+            use base64::Engine;
+            let bytes = store
+                .pdf(
+                    actor,
+                    &company,
+                    &id.ok_or_else(invalid)?,
+                    value["language"].as_str().ok_or_else(invalid)?,
+                )
+                .await?;
+            Ok(
+                serde_json::json!({"mime_type":"application/pdf","filename":"cash-voucher.pdf","content_base64":base64::engine::general_purpose::STANDARD.encode(bytes)}),
+            )
+        }
+        "cash_terminals" => serde_json::to_value(store.terminals(actor, &company).await?),
+        "cash_accounts" => serde_json::to_value(store.accounts(actor, &company).await?),
+        "cash_movements" => serde_json::to_value(
+            store
+                .movements(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "cash_get" => {
+            serde_json::to_value(store.get(actor, &company, &id.ok_or_else(invalid)?).await?)
+        }
+        "cash_candidates" => serde_json::to_value(
+            store
+                .candidates(
+                    actor,
+                    &company,
+                    &id.ok_or_else(invalid)?,
+                    value["query"].as_str().unwrap_or_default(),
+                )
+                .await?,
+        ),
+        "cash_balance" => serde_json::to_value(
+            store
+                .balance(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "cash_execute" => serde_json::to_value(
+            store
+                .execute(
+                    actor,
+                    &company,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        _ => return Err(invalid()),
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn retail_tool(
+    store: &faktura_infrastructure::retail::PgRetail,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    use faktura_application::retail::{PostingStore, RetailStore};
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default()
+        .to_owned();
+    let value = serde_json::Value::Object(args);
+    let result = match name {
+        "retail_postings" => serde_json::to_value(store.postings(actor, &c).await?),
+        "retail_posting_preview" => serde_json::to_value(
+            store
+                .posting_preview(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "retail_post" => serde_json::to_value(
+            store
+                .post(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "retail_unpost" => serde_json::to_value(
+            store
+                .unpost(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "retail_list" => serde_json::to_value(
+            store
+                .list(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "retail_get" => serde_json::to_value(store.get(actor, &c, &id).await?),
+        "retail_history" => serde_json::to_value(store.history(actor, &c, &id).await?),
+        "retail_preview" => serde_json::to_value(
+            store
+                .preview(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "retail_execute" => serde_json::to_value(
+            store
+                .execute(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "retail_pdf" => {
+            use base64::Engine;
+            return Ok(
+                serde_json::json!({"mime_type":"application/pdf","content_base64":base64::engine::general_purpose::STANDARD.encode(store.pdf(actor,&c,&id).await?)}),
+            );
+        }
+        _ => return Err(invalid()),
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn inbox_tool(
+    store: &dyn faktura_application::inbox::InboxStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let value = serde_json::Value::Object(args);
+    let result = match name {
+        "inbox_history" => serde_json::to_value(
+            store
+                .history(actor, &c, value["id"].as_str().ok_or_else(invalid)?)
+                .await?,
+        ),
+        "inbox_extract" => serde_json::to_value(
+            store
+                .extract(actor, &c, value["id"].as_str().ok_or_else(invalid)?)
+                .await?,
+        ),
+        "inbox_list" => serde_json::to_value(
+            store
+                .list(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "inbox_upload" => serde_json::to_value(
+            store
+                .upload(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "inbox_execute" => serde_json::to_value(
+            store
+                .execute(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "inbox_download" => {
+            use base64::Engine;
+            let (d, bytes) = store
+                .download(actor, &c, value["id"].as_str().ok_or_else(invalid)?)
+                .await?;
+            return Ok(
+                serde_json::json!({"metadata":d,"content_base64":base64::engine::general_purpose::STANDARD.encode(bytes)}),
+            );
+        }
+        _ => return Err(invalid()),
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn stock_tool(
+    store: &dyn faktura_application::stock::StockStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let value = serde_json::Value::Object(args);
+    let result = match name {
+        "stock_cards" => serde_json::to_value(store.cards(actor, &c).await?),
+        "stock_movements" => serde_json::to_value(
+            store
+                .movements(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "stock_execute" => serde_json::to_value(
+            store
+                .execute(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        _ => return Err(invalid()),
+    };
+    result.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn preferences_tool(
+    store: &dyn faktura_application::preferences::PreferenceStore,
+    actor: &str,
+    name: &str,
+    args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let value = if name == "preferences_get" {
+        store.get(actor).await?
+    } else {
+        store
+            .set(
+                actor,
+                serde_json::from_value(serde_json::Value::Object(args))
+                    .map_err(|_| CompanyError::Invalid(vec!["preferences".into()]))?,
+            )
+            .await?
+    };
+    serde_json::to_value(value).map_err(|_| CompanyError::Unavailable)
+}
+
+async fn period_report_tool(
+    store: &dyn faktura_application::period_report::PeriodReportStore,
+    actor: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let q = serde_json::from_value(serde_json::Value::Object(args)).map_err(|_| invalid())?;
+    serde_json::to_value(store.report(actor, &c, q).await?).map_err(|_| CompanyError::Unavailable)
+}
+
+async fn stock_report_tool(
+    store: &dyn faktura_application::stock_report::StockReportStore,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let value = serde_json::Value::Object(args);
+    let r = match name {
+        "stock_report" => serde_json::to_value(
+            store
+                .report(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "stock_set_cost" => serde_json::to_value(
+            store
+                .set_cost(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "stock_costs" => serde_json::to_value(
+            store
+                .costs(actor, &c, value["catalog_id"].as_str().ok_or_else(invalid)?)
+                .await?,
+        ),
+        _ => return Err(invalid()),
+    };
+    r.map_err(|_| CompanyError::Unavailable)
 }

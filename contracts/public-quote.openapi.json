@@ -464,6 +464,10 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

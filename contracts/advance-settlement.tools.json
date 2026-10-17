@@ -1,0 +1,219 @@
+[
+  {
+    "name": "settlement_candidates",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "settlement_configure",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "invoice_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "advances": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "id",
+              "revision"
+            ]
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "invoice_id",
+        "revision",
+        "advances"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "settlement_preview",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "calculation_version": {
+          "type": "string",
+          "enum": [
+            "of-czk-v1"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "CZK"
+          ]
+        },
+        "tax_mode": {
+          "type": "string",
+          "enum": [
+            "non_payer",
+            "vat_payer"
+          ]
+        },
+        "price_mode": {
+          "type": "string",
+          "enum": [
+            "net",
+            "gross"
+          ]
+        },
+        "discount_percent": {
+          "type": "string",
+          "maxLength": 24,
+          "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+        },
+        "rounding": {
+          "type": "string",
+          "enum": [
+            "none",
+            "whole_czk"
+          ]
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "description",
+              "unit",
+              "quantity",
+              "unit_price",
+              "discount_percent",
+              "vat_percent"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "unit": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "quantity": {
+                "type": "string",
+                "maxLength": 24,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+              },
+              "unit_price": {
+                "type": "string",
+                "maxLength": 24,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+              },
+              "discount_percent": {
+                "type": "string",
+                "maxLength": 24,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+              },
+              "vat_percent": {
+                "type": "string",
+                "enum": [
+                  "0",
+                  "12",
+                  "21"
+                ]
+              },
+              "catalog_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "maxItems": 500
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "calculation_version",
+        "currency",
+        "tax_mode",
+        "price_mode",
+        "discount_percent",
+        "rounding",
+        "lines"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

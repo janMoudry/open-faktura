@@ -1,3 +1,5 @@
+import { InvoiceCredits } from "./InvoiceCredits";
+import { AdvanceDeductions } from "./AdvanceDeductions";
 import { DocumentAttachments } from "./DocumentAttachments";
 import { DocumentDelivery } from "./DocumentDelivery";
 import { InvoiceSummary } from "./InvoiceSummary";
@@ -253,6 +255,12 @@ export function IssuedInvoice({
                   </Table>
                 </div>
               </section>
+              {invoice.advances && (
+                <AdvanceDeductions
+                  value={invoice.advances}
+                  company={invoice.company_id}
+                />
+              )}
               <InvoiceSummary calculation={d.calculation} totals={totals} />
             </div>
           ),
@@ -331,6 +339,21 @@ export function IssuedInvoice({
         >
           {tabs}
         </DocumentDelivery>
+      )}
+      {canCopy && !historical && (
+        <Link
+          className="ui-button ui-button-secondary ui-button-md"
+          to={`/companies/${invoice.company_id}/recurring/new?invoice=${invoice.id}`}
+        >
+          {t("recFromInvoice")}
+        </Link>
+      )}
+      {!historical && (
+        <InvoiceCredits
+          company={invoice.company_id}
+          invoice={invoice.id}
+          canCreate={canCopy}
+        />
       )}
     </div>
   );

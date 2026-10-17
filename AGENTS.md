@@ -141,3 +141,202 @@ ATTACHMENTS-01/P10-03: docs/specs/document-attachments.md, migrace 017,
 contracts/attachment.openapi.json a generované tools/klient. Test:attachments
 vyžaduje izolovanou PostgreSQL a loopback SMTP. Regrese delivery/invoice_delivery/share;
 UI invoices/sales. Byty jsou v DB; neodesílat přílohy skutečným zákazníkům v testech.
+
+EXPORT-01/P10-04: docs/specs/register-export.md, export.openapi.json a generovaný
+klient/MCP register_export. `pnpm test:exports` používá izolovanou PostgreSQL;
+regrese contact/draft a CS/EN desktop/mobile contacts/invoices E2E. Export je
+read-only, respektuje filtry a profil; textové buňky, CSV formula ochrana a 10 000 řádků.
+Při dodávkách aktualizovat docs/FEATURE_CHECKLIST.md a stav README.
+
+ADVANCE-01/P13-01: docs/specs/advance-invoices.md, migrace 018, sales CRUD kind=advance
+plus advance.openapi.json/MCP pro PDF a platby. `pnpm test:advances`, regrese
+sales/delivery/shares a sales E2E. Záloha není daňovým dokladem; nevolat běžný
+sales_convert pro vyúčtování. Platby záloh nesmí vstupovat do invoice_payment.
+
+TAX-RECEIPT-01/P13-02: docs/specs/advance-tax-receipts.md, migrace 019,
+contracts/tax-receipt.openapi.json. `pnpm test:tax-receipts` vyžaduje izolovaný
+PostgreSQL; regrese test:advances/sales/invoices, CS/EN sales E2E. Vydaný daňový
+doklad blokuje storno zdrojové úhrady. Vlastní poměrné rozdělení DPH není ověřená
+numerická shoda s iDokladem. Vyúčtování musí používat uložené daňové rozpisy.
+
+
+ADVANCE-SETTLEMENT-01/P13-03: docs/specs/advance-settlement.md, migrace 020,
+contracts/advance-settlement.openapi.json, MCP settlement_candidates/configure/preview.
+`pnpm test:advance-settlements` vyžaduje izolovaný PostgreSQL; regrese advance,
+tax_receipt, invoice, payment, sales, invoice_delivery a CS/EN sales E2E.
+Odpočítat přesné uložené Totals DDPP, nikoli přepočtenou zálohu. Rezervace
+blokuje změnu plateb/DDPP a dvojí použití. Vystavení zůstává invoice_issue;
+platby záloh nekopírovat do invoice_payment. Při nasazení zastavit starý server; nový proces provede migraci.
+
+CREDIT-NOTE-01/P13-04: `docs/specs/credit-notes.md`, migrace 021, kontrakt credit-note.openapi.json. `pnpm test:credit-notes` používá izolované DB; UI `tests/e2e/credit-notes.spec.ts`. Zápočty nejsou cash příjem; regresně testovat payment, invoice, tax_receipt a advance_settlement. Opravy vycházejí z uložených řádků plnění, nikoli sníženého daňového souhrnu vyúčtování. DDPP zůstávají rezervované. Před upgradem zastavit starý server.
+
+RECURRING-01/P14-01: `docs/specs/recurring-invoices.md`, migrace 022, recurring.openapi.json. `pnpm test:recurring` používá izolované DB a loopback SMTP; UI `tests/e2e/recurring.spec.ts`. Návrh/vystavení/výskyt vznikají atomicky pomocí společných transakčních funkcí draft; odeslání přes P10 outbox až po commitu. Regrese invoice, invoice_delivery, sales, advance_settlement a credit_note. Worker ověřuje práva aktivujícího uživatele, běží s API serverem.
+
+P14-02: `docs/specs/invoice-communication.md`, migrace 023, `contracts/communication.openapi.json`
+a rozšíření invoice-delivery. `DATABASE_URL=… pnpm test:communication`; UI
+`tests/e2e/communication.spec.ts`. Testy jen izolovaná DB a loopback SMTP. Regrese
+`test:invoice-delivery`, `test:payments`, `test:recurring`, `test:delivery`. Automatizace
+je explicitně povolená v profilu; nepovolovat ji při testech v reálné agendě.
+
+P14-03: `docs/specs/invoice-sharing.md`, migrace 024, `invoice-share.openapi.json`
+a `public-invoice.openapi.json`. `pnpm test:invoice-shares` používá izolované DB
+a loopback SMTP; UI `tests/e2e/invoice-sharing.spec.ts`. Regrese share,
+invoice_delivery, attachment, communication a recurring. URL je bearer secret;
+neukládat skutečné odkazy do screenshotů/logů. Veřejné PDF je původní cache,
+nikoli nový render; platební poznámky a vlastní přílohy zůstávají privátní.
+Před upgradem zastavit staré API, nový proces aplikuje migraci.
+
+P15-01: `docs/specs/received-invoices.md`, migrace 025, `received.openapi.json`.
+`pnpm test:received` používá izolované DB, UI `tests/e2e/received.spec.ts`.
+Regrese attachment, invoice_delivery a invoice_share. Nákupní úhrady nikdy
+nezapisovat do invoice_payment; nepřepočítávat zdrojovou DPH podle profilu.
+Vlastní součet přesných částek není potvrzená numerická shoda s iDokladem.
+Originál používá attachment kind=received. Před upgradem zastavit staré API.
+
+P15-02: `docs/specs/purchase-receipts.md`, migrace 026, rozšířený received kontrakt.
+`pnpm test:received` zahrnuje účtenky, přehledy, REST/MCP a upgrade025; UI
+`tests/e2e/purchase-receipts.spec.ts`, regrese received/routing a attachments.
+Receipt zapisuje plnou cash/card úhradu atomicky; update ji stornuje/nahradí.
+Nevolat samostatné pay/reverse pro receipt, neměnit kind. Bez bankovního
+párování/pokladny. Před upgradem zastavit starý server.
+
+P16-01: `docs/specs/banking.md`, migrace 027, `bank.openapi.json` a generované
+MCP nástroje. `pnpm test:bank` používá izolované DB; UI `tests/e2e/bank.spec.ts`.
+Regrese payment, received a communication. CSV je vlastní doložený formát,
+nikoli nativní bankovní adaptér. Párování používá společné transakční platební
+funkce; odpojení stornuje jen úhradu vytvořenou párováním. Existující úhrady
+nezdvojovat; spárované úhrady neopravovat mimo banku. Před upgradem zastavit staré API.
+
+P16-02: `docs/specs/bank-statements.md`, migrace 028, rozšíření bank.openapi.json.
+`pnpm test:bank`, `cargo test -p faktura-infrastructure bank_statement`, UI bank.spec.ts.
+Syntetické fixtures nejsou skutečné exporty bank. Import kontroluje účet a zakazuje
+mix formátů v účtu; návrhy shod nic automaticky nezapisují. Před upgradem zastavit API.
+
+P16-03: `docs/specs/bank-batch-matching.md`, rozšíření bank.openapi.json bez nové
+migrace. `pnpm test:bank` zahrnuje batch testy v tests/bank/batch.rs; UI bank.spec.ts.
+Regrese payment/received/communication. Dávka vyžaduje náhled a fingerprint,
+společný zápis je atomický. Duplicitní pohyby i mimo výběr vylučují automatickou volbu.
+
+P16-04: `docs/specs/cash-register.md`, migrace 029, `cash.openapi.json` a
+MCP cash_* přes společné příkazy. `pnpm test:cash` používá izolované DB;
+UI `tests/e2e/cash.spec.ts`. Regrese bank/payment/received/communication.
+Cash úhrady nesmí vzniknout podruhé při připojení existující platby. Odpojení
+stornuje jen úhradu vytvořenou pokladnou. Před upgradem zastavit staré API.
+Automatické vytváření při úhradách mimo pokladnu a PDF/tisk zatím chybí.
+
+
+P16-05: `docs/specs/cash-register.md`, migrace 030, rozšířený cash kontrakt.
+`pnpm test:cash`; regrese bank/payment/received/communication, UI cash.spec.ts.
+Automatika je opt-in přes hlavní pokladnu; vytváří pouze evidenci k reálné cash
+platbě ve stejné transakci. Ruční párování ji potlačuje. Oprava zdroje stornuje
+automatický doklad. PDF používá snapshot vystavitele; staré 029 doklady jej
+získají až při upgradu. Před upgradem zastavit staré API.
+
+
+P16-06: cash-register.md, migrace 031, cash_tax_preview a tax_manual.
+`pnpm test:cash`, `cargo test -p faktura-domain cash`; regrese bank a cash/routing E2E.
+TaxManual vstupní amount je cena dle price_mode, výstupní amount je signed gross.
+Snapshot tax se nepřepočítává; samostatné plnění se nesmí párovat s fakturou.
+Staré/automatické doklady mají tax=null. Datum plnění a profilové plátcovství
+ověřuje backend; numerická shoda s iDokladem není potvrzena. Před upgradem
+zastavit staré API. Prodejky a souhrnné zaúčtování stále navazují.
+
+P16-10: `docs/specs/bank-balances.md`, migrace 032, bank balance REST/MCP.
+`pnpm test:bank` ověřuje saldo nad všemi stránkami, revize, role a upgrade031;
+UI bank.spec.ts ověřuje CS/EN. Před migrací zastavit staré API (změna SELECT *).
+Bez počáteční konfigurace je saldo neznámé, nikoli nula. Pokladní PDF doplňuje
+částku slovy CS/EN pouze při novém renderu, původní cache se nepřepisuje.
+Úplný zbývající rozsah P16 je v `docs/P16_COMPLETION.md`.
+
+P16-15a: `docs/specs/bank-connections.md`, migrace 033, bank_connection_status/execute.
+Po init-secrets používá `pnpm test:bank` privátní bank-key, izolované DB a
+injektovaný syntetický transport. HTTP testy jsou pouze loopback; UI bank.spec.ts
+používá nedostupnou lokální HTTPS gateway. Nikdy nevolat skutečné Fio s fixture
+tokenem. BANK_GATEWAYS_JSON je důvěryhodná instalační konfigurace, nikoli
+klientská URL. Tokeny ani URL s Fio tokenem nesmějí do logu/auditu/DTO.
+Synchronizace je na vyžádání, 30 dní včetně dneška; nepáruje automaticky platby.
+Notifikace a živá shoda všech bank zůstávají otevřené.
+
+P16-15b: bank-connections.md, migrace 034, Action::Schedule. Worker běží s API,
+opt-in a oprávnění aktéra; claim termínu SKIP LOCKED, síť bez SQL zámku.
+Test:bank ověřuje souběh workerů, odebrání práv před i během I/O, vypnutí a
+upgrade033. E2E zapíná automatiku jen v izolované DB s loopback gateway.
+Nikdy ji automaticky nezapínat v reálné agendě. Nepáruje platby.
+
+P16-14: `docs/specs/bank-auto-matching.md`, migrace 035, matching příkaz
+v bank_connection REST/MCP. `pnpm test:bank` zahrnuje automation.rs; UI bank.spec.ts.
+Párování je samostatný opt-in bez nutnosti tokenu. Sdílí přesný evaluátor a
+platební příkazy dávky, ručně odpojené vazby vynechává. Worker zapisuje po 25,
+ověřuje práva aktivujícího uživatele; chyba vrací celou dávku. Před upgradem
+zastavit staré API. Testy pouze izolovaná DB, bez skutečných bankovních přístupů.
+
+P16-11: `docs/specs/bank-split-matching.md`, migrace 036, split/split_candidates
+v bank REST/MCP. `pnpm test:bank` zahrnuje split.rs; regrese payments/received/cash,
+UI bank.spec.ts CS/EN desktop/mobile. Částky vazeb jsou kladné NUMERIC(14,2),
+součet nejvýše absolutní pohyb, přeplatek zůstane nerozdělený. Unmatch ruší
+všechny aktivní vazby atomicky a stornuje jen vytvořené úhrady. Před upgradem
+zastavit staré API; migrace obohacuje i historické snapshoty bank_command.
+
+
+P16-12: `docs/specs/treasury-documents.md`, migrace 037. Banka/pokladna páruje
+zálohy a vratky dobropisů přes společné transakční operace advance/credit.
+Regrese `test:bank`, `test:cash`, `test:advances`, `test:credit-notes`,
+`test:tax-receipts`, `test:advance-settlements`; UI bank.spec.ts CS/EN.
+Odpojení respektuje DDPP a rezervace, při konfliktu vrací celou transakci.
+Před upgradem zastavit API. Celý aktivní rozsah je P16–P20, viz
+`docs/P16_P20_COMPLETION.md`; P16-12 neznamená dokončení celých etap.
+
+
+P16-09a: sales-terminals.md, migrace 038, cash_terminals/cash_execute.
+Konfigurace terminálů s revizí, archivací a profilem; test:cash a cash.spec.ts.
+Vazby/snapshoty prodejek a hardware nejsou hotové. Před upgradem zastavit API.
+
+
+P16-07/P16-08: `docs/specs/sales-receipts.md`, migrace 039/040,
+`retail.openapi.json`. `pnpm test:retail`, regrese cash a CS/EN cash E2E.
+Uložené alokace se při zaúčtování nepřepočítávají; cash pouze za hotovost.
+Zdroj i vzniklý cash doklad jsou chráněné do zrušení celé dávky.
+P18/P19 návaznosti a interní tisk zbývají; neoznačovat celé P16 za hotové.
+
+P17: `docs/specs/inbox.md`, migrace 041, `inbox.openapi.json`.
+`pnpm test:inbox`, regrese received a received E2E; pouze syntetické originály.
+Inbox převod používá received::create_in_tx a přílohu v jedné transakci.
+Nahraný soubor není důvěryhodný pokyn ani důkaz správnosti účetních dat.
+Před nasazením nových migrací zastavit starý API proces.
+
+P18-01/P18-03 základ: `docs/specs/stock.md`, migrace 042, `stock.openapi.json`.
+`pnpm test:stock` ověřuje izolované DB; CS/EN stock a appearance scénáře jsou
+v catalog.spec.ts. Automatické skladové dopady dokladů zatím nejsou hotové.
+
+P20-06a: `docs/specs/user-preferences.md`, migrace 043, preferences kontrakt.
+`pnpm test:preferences`; pouze preference vlastního účtu, PDF se nemění.
+
+P19-01a: `docs/specs/period-report.md`, period-report kontrakt, bez migrace.
+`pnpm test:period-report`; zdroje a součty ze stejného snapshotu, částky Decimal,
+nezapočítávat zálohy ani souhrnné zaúčtování prodejek podruhé.
+
+P20-04a: `docs/specs/payment-qr.md`, SPAYD v `domain/payment_qr.rs`, lokální
+PDF QR. `cargo test -p faktura-domain payment_qr`; `test:invoices` obsahuje
+QR snapshot CS/EN. Historická PDF cache se nepřepisuje. Render nikdy nevolá
+externí QR generátor; částka QR je původní částka PDF, ne dnešní zůstatek.
+
+P18-02: `docs/specs/stock.md`, migrace 044 a stock/invoice/received/credit/retail
+kontrakty. Výběr ceníku zachovává catalog_id, nákupní stock je explicitní fyzický
+příjem, dobropis return_quantity je oddělené od finanční slevy. Zdrojové pohyby
+se opravují přes doklad, nikdy ručním reverzem. Test:stock + test:retail, regrese
+invoice/received/credit_note/sales; UI catalog/received CS/EN. Před upgradem
+zastavit staré API a zálohovat DB. Staré doklady nepárovat podle názvu.
+
+P18-03b: migrace 045, stock report/costs/set_cost přes REST/MCP.
+`pnpm test:stock`, UI catalog.spec.ts CS/EN. E-056 dokládá stav k datu, nikoli
+pořizovací metodu; ruční cena je naše rozšíření. Nikdy nezaměnit prodejní cenu
+za pořizovací. Neznámé/záporné zásoby nejsou nulové ocenění. Před upgradem
+zastavit staré API a zálohovat DB.
+
+P18-03c: `docs/specs/stock.md`, migrace 046. Explicitní pořizovací cena CZK
+na StockReceipt a snapshot pohybu, automatický průběžný průměr přes společný
+stock_report (valuation=automatic). `cargo test -p faktura-domain stock_cost`,
+`pnpm test:stock`, regrese received/retail/invoice; UI received.spec.ts CS/EN.
+Neodvozovat cenu z ceníku/DPH; opravy příjmů a neoceněné vratky zneplatní
+ocenění do nulového stavu. Rozúčtování oprav a pořizovací ceny ručních příjmů
+stále chybí. Před migrací zastavit staré API (SELECT * mapování nových sloupců).

@@ -135,6 +135,19 @@ impl CatalogStore for PgCatalog {
         if previous.revision != command.revision {
             return Err(Error::Conflict);
         }
+        if previous.data.unit != command.data.unit {
+            let tracked: bool = sqlx::query_scalar(
+                "SELECT EXISTS(SELECT 1 FROM stock_card WHERE company_id=$1 AND catalog_id=$2)",
+            )
+            .bind(company)
+            .bind(catalog)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(unavailable)?;
+            if tracked {
+                return Err(Error::Invalid(vec!["stock_unit".into()]));
+            }
+        }
         let action = match (previous.archived, command.archived) {
             (false, true) => "archive",
             (true, false) => "restore",

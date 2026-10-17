@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic parser scenario, not a real export or a complete XSD conformance fixture. -->
+<Invoice xmlns="http://isdoc.cz/namespace/2013" version="6.0.2">
+<DocumentType>1</DocumentType><ID>SYNTHETIC-001</ID><IssueDate>2026-10-01</IssueDate><TaxPointDate>2026-10-01</TaxPointDate><VATApplicable>true</VATApplicable><LocalCurrencyCode>CZK</LocalCurrencyCode>
+<AccountingSupplierParty><Party><PartyIdentification><ID>12345678</ID></PartyIdentification><PartyName><Name>Synthetic &amp; Company</Name></PartyName><PostalAddress><StreetName>Test</StreetName><BuildingNumber>1</BuildingNumber><CityName>Praha</CityName><PostalZone>11000</PostalZone><Country><IdentificationCode>CZ</IdentificationCode></Country></PostalAddress><PartyTaxScheme><CompanyID>CZ12345678</CompanyID></PartyTaxScheme></Party></AccountingSupplierParty>
+<InvoiceLines><InvoiceLine><LineExtensionAmount>100.01</LineExtensionAmount><LineExtensionTaxAmount>21.02</LineExtensionTaxAmount><LineExtensionAmountTaxInclusive>121.03</LineExtensionAmountTaxInclusive><ClassifiedTaxCategory><Percent>21</Percent></ClassifiedTaxCategory><Item><Description>Synthetic service</Description></Item></InvoiceLine></InvoiceLines>
+<TaxTotal><TaxAmount>21.02</TaxAmount></TaxTotal>
+<LegalMonetaryTotal><TaxExclusiveAmount>100.01</TaxExclusiveAmount><TaxInclusiveAmount>121.03</TaxInclusiveAmount><AlreadyClaimedTaxExclusiveAmount>0</AlreadyClaimedTaxExclusiveAmount><AlreadyClaimedTaxInclusiveAmount>0</AlreadyClaimedTaxInclusiveAmount><PaidDepositsAmount>0</PaidDepositsAmount><PayableRoundingAmount>-0.03</PayableRoundingAmount><PayableAmount>121.00</PayableAmount></LegalMonetaryTotal>
+<PaymentMeans><Payment><PaidAmount>0</PaidAmount><Details><PaymentDueDate>2026-10-15</PaymentDueDate><VariableSymbol>000123</VariableSymbol></Details></Payment></PaymentMeans>
+</Invoice>

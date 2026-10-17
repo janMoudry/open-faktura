@@ -43,5 +43,10 @@ historii, PDF, přístupnost a ztrátu odpovědi následovanou retry bez druhé 
 
 V tomto kroku jeden explicitní příjemce, prostý text a historie u faktury.
 Více příjemců/kopie, veřejné odkazy faktur, hromadné odesílání, globální historie,
-uživatelské přílohy a konfigurační SMTP UI nejsou součástí tohoto kroku.
+uživatelské přílohy a konfigurační SMTP UI nejsou součástí tohoto původního kroku.
+
+Aktualizace 13. 10. 2026: navazující P10-02/03 již dodaly SMTP UI a vlastní
+přílohy. P14-03 přidává volitelné `share_id`: e-mail obsahuje veřejný odkaz
+místo PDF přílohy, přesné PDF zůstává v interní historii. Podrobnosti a omezení
+jsou ve [specifikaci sdílení](invoice-sharing.md).
 Žádný test neposílá do skutečné schránky. Referenční doručený e-mail nebyl ověřen.

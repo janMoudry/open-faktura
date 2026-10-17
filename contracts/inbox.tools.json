@@ -1,0 +1,438 @@
+[
+  {
+    "name": "inbox_list",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "archived": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_upload",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "base64": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "filename",
+        "base64"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_execute",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "request_id": {},
+        "id": {},
+        "revision": {},
+        "action": {},
+        "archived": {},
+        "company_id": {},
+        "data": {},
+        "received_id": {}
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "id",
+            "revision",
+            "action",
+            "archived",
+            "company_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "archive"
+              ]
+            },
+            "archived": {
+              "type": "boolean"
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "id",
+            "revision",
+            "action",
+            "data",
+            "company_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "convert"
+              ]
+            },
+            "data": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "supplier_contact_id",
+                "supplier",
+                "external_number",
+                "variable_symbol",
+                "bank_account",
+                "issued_on",
+                "received_on",
+                "due_on",
+                "tax_on",
+                "currency",
+                "description",
+                "note",
+                "lines",
+                "rounding"
+              ],
+              "properties": {
+                "supplier_contact_id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "supplier": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "name",
+                    "registration_number",
+                    "vat_number",
+                    "email",
+                    "phone",
+                    "address"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "registration_number": {
+                      "type": "string"
+                    },
+                    "vat_number": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "address": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "street",
+                        "city",
+                        "postal_code",
+                        "country"
+                      ],
+                      "properties": {
+                        "street": {
+                          "type": "string"
+                        },
+                        "city": {
+                          "type": "string"
+                        },
+                        "postal_code": {
+                          "type": "string"
+                        },
+                        "country": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "external_number": {
+                  "type": "string"
+                },
+                "variable_symbol": {
+                  "type": "string"
+                },
+                "bank_account": {
+                  "type": "string"
+                },
+                "issued_on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "received_on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "due_on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "tax_on": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "CZK"
+                  ]
+                },
+                "description": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": "string"
+                },
+                "lines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "description",
+                      "rate",
+                      "net",
+                      "vat"
+                    ],
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "rate": {
+                        "type": "string"
+                      },
+                      "net": {
+                        "type": "string"
+                      },
+                      "vat": {
+                        "type": "string"
+                      },
+                      "stock": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "catalog_id",
+                              "quantity",
+                              "unit"
+                            ],
+                            "properties": {
+                              "catalog_id": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "string"
+                              },
+                              "unit": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "rounding": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "invoice",
+                    "receipt"
+                  ],
+                  "default": "invoice"
+                },
+                "receipt_method": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "cash",
+                        "card"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "id",
+            "revision",
+            "action",
+            "received_id",
+            "company_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "attach"
+              ]
+            },
+            "received_id": {
+              "type": "string"
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "inbox_download",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_extract",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_history",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

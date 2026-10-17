@@ -59,6 +59,15 @@ Atoms jsou základní prvky, molecules jejich malé kompozice, organisms funkčn
 
 V Rustu domain nezávisí na HTTP ani SQLx, application používá domain a definuje potřebné porty, infrastructure je implementuje. Server a worker sestavují závislosti. HTTP i MCP musí zachovat stejné aplikační příkazy. Porty musí umožnit atomické uložení dokladu, auditu a outboxu.
 
+## Stabilita navigace
+
+Workspace drží sidebar mimo `Suspense` stránky. Celý sidebar neodebírá změny
+URL; aktivní odkazy a rozbalovací skupiny je řeší samostatně. Navigace mezi
+stránkami stejného profilu znovu nenačítá ani nemaže jeho data. Vstup do nastavení
+obnoví revizi profilu, aniž by během načítání nahrazoval navigační ovládání.
+Ručně rozbalené skupiny zůstávají otevřené. Regrese: `tests/e2e/routing.spec.ts`
+(desktop/mobil, lazy loading, chyba dat, návrat zpět a počet načtení profilu).
+
 ## Lokalizace
 
 Přijaté rozhodnutí: od začátku podporovat češtinu (`cs`, výchozí a fallback)

@@ -1,0 +1,35 @@
+[
+  {
+    "name": "preferences_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "preferences_set",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "revision",
+        "theme"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "system",
+            "light",
+            "dark"
+          ]
+        }
+      }
+    }
+  }
+]

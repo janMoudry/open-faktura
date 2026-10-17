@@ -1,0 +1,245 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Period report",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/reports/period": {
+      "get": {
+        "operationId": "period_report",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "value_mode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "gross",
+                "net"
+              ],
+              "default": "gross"
+            }
+          },
+          {
+            "name": "cumulative",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "compare_previous",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CZK document values, not cash flow",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodReport"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Invalid period"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ReportEntry": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "number",
+          "reported_on",
+          "amount",
+          "side"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "reported_on": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string"
+          }
+        }
+      },
+      "ReportMonth": {
+        "type": "object",
+        "required": [
+          "month",
+          "sales",
+          "purchases"
+        ],
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "sales": {
+            "type": "string"
+          },
+          "purchases": {
+            "type": "string"
+          }
+        }
+      },
+      "PeriodReport": {
+        "type": "object",
+        "required": [
+          "sales",
+          "purchases",
+          "currency",
+          "total",
+          "page",
+          "items",
+          "months",
+          "comparison"
+        ],
+        "properties": {
+          "sales": {
+            "type": "string"
+          },
+          "purchases": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportEntry"
+            }
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportMonth"
+            }
+          },
+          "comparison": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReportComparison"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "ReportComparison": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "sales",
+          "purchases",
+          "sales_difference",
+          "purchases_difference",
+          "months"
+        ],
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "sales": {
+            "type": "string"
+          },
+          "purchases": {
+            "type": "string"
+          },
+          "sales_difference": {
+            "type": "string"
+          },
+          "purchases_difference": {
+            "type": "string"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportMonth"
+            }
+          }
+        }
+      }
+    }
+  }
+}

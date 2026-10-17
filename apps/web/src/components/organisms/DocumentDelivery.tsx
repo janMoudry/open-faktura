@@ -1,6 +1,6 @@
 import { DocumentAttachments, saveAttachmentFile } from "./DocumentAttachments";
 import { moneyText } from "../../utils/invoice";
-import { QuoteShares } from "./QuoteShares";
+import { DocumentShares } from "./DocumentShares";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
@@ -11,14 +11,20 @@ import {
   Heading,
   Icon,
   Select,
+  Switch,
   TextareaField,
 } from "@open-faktura/ui";
 import {
+  previewCommunication,
+  pauseCommunication,
+  type CommunicationPreview,
+  type CommunicationPurpose,
   invoiceHistory,
   invoiceDeliveryPdf,
   sendInvoice,
   type InvoiceDraft,
   listQuoteShares,
+  listInvoiceShares,
   quoteHistory,
   quotePdf,
   sendQuote,
@@ -40,6 +46,7 @@ const failureReasons: Record<string, AppKey> = {
   interrupted: "mailFailureInterrupted",
   profile_unavailable: "mailFailureProfile",
   link_unavailable: "mailFailureLink",
+  communication_changed: "communicationChanged",
   message_invalid: "mailFailureInvalid",
 };
 const statuses: Record<Delivery["status"], AppKey> = {
@@ -85,6 +92,80 @@ export function DocumentDelivery({
     window.addEventListener("smtp-settings-changed", changed);
     return () => window.removeEventListener("smtp-settings-changed", changed);
   }, []);
+  const [communication, setCommunication] =
+    useState<CommunicationPreview | null>(null);
+  const [automationError, setAutomationError] = useState(false);
+  const [paused, setPaused] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!invoice) return;
+    const abort = new AbortController();
+    previewCommunication(
+      apiUrl,
+      doc.company_id,
+      doc.id,
+      "reminder",
+      abort.signal,
+    )
+      .then((v) => {
+        if (!abort.signal.aborted) {
+          setPaused(v.paused);
+          setAutomationError(!!v.automation_error);
+        }
+      })
+      .catch((e) => {
+        if (abort.signal.aborted) return;
+        if (e instanceof SalesFailure && e.status === 401) onExpired();
+        else setError("requestFailed");
+      });
+    return () => abort.abort();
+  }, [doc.company_id, doc.id, refresh, onExpired]);
+  async function openCommunication(purpose: CommunicationPurpose) {
+    setBusy(true);
+    setError("");
+    try {
+      const p = await previewCommunication(
+        apiUrl,
+        doc.company_id,
+        doc.id,
+        purpose,
+      );
+      setPaused(p.paused);
+      if (!p.eligible) {
+        setError(
+          purpose === "reminder"
+            ? "communicationReminderUnavailable"
+            : "communicationThanksUnavailable",
+        );
+        return;
+      }
+      setCommunication(p);
+      setRecipient(p.recipient);
+      setSubject(p.subject);
+      setBody(p.body);
+      setAttachmentIds([]);
+      attempt.current = null;
+      setShare(null);
+      setCompose(true);
+    } catch (e) {
+      if (e instanceof SalesFailure && e.status === 401) onExpired();
+      else setError("requestFailed");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function pause(value: boolean) {
+    setBusy(true);
+    setError("");
+    try {
+      const v = await pauseCommunication(apiUrl, doc.company_id, doc.id, value);
+      setPaused(v.paused);
+    } catch (e) {
+      if (e instanceof SalesFailure && e.status === 401) onExpired();
+      else setError("requestFailed");
+    } finally {
+      setBusy(false);
+    }
+  }
   const [compose, setCompose] = useState(false),
     [detail, setDetail] = useState<Delivery | null>(null),
     [busy, setBusy] = useState(false),
@@ -169,20 +250,23 @@ export function DocumentDelivery({
     );
   }
   function open(link?: ShareLink) {
+    setCommunication(null);
     setShare(link ?? null);
     setAvailable(link ? [link] : []);
-    if (quote)
-      void listQuoteShares(apiUrl, doc.company_id, doc.id)
-        .then((result) => {
-          const active = result.items.filter(
-            (v) =>
-              !v.revoked_at && new Date(v.expires_at).getTime() > Date.now(),
-          );
-          setAvailable(
-            link ? [link, ...active.filter((v) => v.id !== link.id)] : active,
-          );
-        })
-        .catch(() => {});
+    void (quote ? listQuoteShares : listInvoiceShares)(
+      apiUrl,
+      doc.company_id,
+      doc.id,
+    )
+      .then((result) => {
+        const active = result.items.filter(
+          (v) => !v.revoked_at && new Date(v.expires_at).getTime() > Date.now(),
+        );
+        setAvailable(
+          link ? [link, ...active.filter((v) => v.id !== link.id)] : active,
+        );
+      })
+      .catch(() => {});
     const strings = data.language === "en" ? en : cs;
     const values: Record<string, string> = {
       number: doc.number ?? "",
@@ -211,7 +295,9 @@ export function DocumentDelivery({
       attachment: fill(
         quote ? strings.quoteDefaultBody : strings.invoiceMailDefaultBody,
       ),
-      link: fill(strings.shareDefaultBody),
+      link: fill(
+        quote ? strings.shareDefaultBody : strings.invoiceShareDefaultBody,
+      ),
     };
     setBody(link ? defaults.current.link : defaults.current.attachment);
     attempt.current = null;
@@ -223,7 +309,13 @@ export function DocumentDelivery({
     setBusy(true);
     setError("");
     const values = {
-      revision: doc.revision,
+      revision: communication?.revision ?? doc.revision,
+      ...(communication
+        ? {
+            purpose: communication.purpose,
+            settlement_revision: communication.settlement_revision,
+          }
+        : {}),
       attachment_ids: attachmentIds,
       recipient,
       subject,
@@ -254,7 +346,9 @@ export function DocumentDelivery({
       else
         setError(
           e instanceof SalesFailure && e.status === 409
-            ? "salesConflict"
+            ? communication
+              ? "communicationChanged"
+              : "salesConflict"
             : quote
               ? "quoteMailError"
               : "invoiceMailError",
@@ -314,6 +408,35 @@ export function DocumentDelivery({
           </Button>
         )}
       </div>
+      {invoice && automationError && (
+        <Alert tone="warning">{t("communicationAutomationError")}</Alert>
+      )}
+      {invoice && canSend && (
+        <div className="flex flex-wrap items-center gap-control">
+          <Button
+            variant="secondary"
+            disabled={busy || !history?.configured}
+            onClick={() => void openCommunication("reminder")}
+          >
+            {t("communicationReminder")}
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={busy || !history?.configured}
+            onClick={() => void openCommunication("thanks")}
+          >
+            {t("communicationThanks")}
+          </Button>
+          {paused !== null && (
+            <Switch
+              label={t("communicationPause")}
+              checked={paused}
+              disabled={busy}
+              onChange={(e) => void pause(e.target.checked)}
+            />
+          )}
+        </div>
+      )}
       {history && !history.configured && canSend && (
         <Alert>{t("quoteSmtpMissing")}</Alert>
       )}
@@ -328,9 +451,10 @@ export function DocumentDelivery({
         </Alert>
       )}
       {children}
-      {quote && (
-        <QuoteShares
-          document={quote}
+      {(quote || invoice) && (
+        <DocumentShares
+          kind={quote ? "quote" : "invoice"}
+          document={quote ?? invoice!}
           canWrite={canSend}
           onSend={history?.configured ? (link) => open(link) : undefined}
         />
@@ -374,6 +498,15 @@ export function DocumentDelivery({
                     </Badge>
                   </div>
                   <p className="break-words font-medium">{item.subject}</p>
+                  {item.purpose !== "document" && (
+                    <Badge>
+                      {t(
+                        item.purpose === "reminder"
+                          ? "communicationReminderType"
+                          : "communicationThanksType",
+                      )}
+                    </Badge>
+                  )}
                   <p className="break-all text-muted">{item.recipient}</p>
                   <Button variant="secondary" onClick={() => setDetail(item)}>
                     {t("quoteMailDetail")}
@@ -410,7 +543,18 @@ export function DocumentDelivery({
                         {date(item.created_at)}
                       </td>
                       <td className="px-field py-field">{item.recipient}</td>
-                      <td className="px-field py-field">{item.subject}</td>
+                      <td className="px-field py-field">
+                        <p>{item.subject}</p>
+                        {item.purpose !== "document" && (
+                          <Badge>
+                            {t(
+                              item.purpose === "reminder"
+                                ? "communicationReminderType"
+                                : "communicationThanksType",
+                            )}
+                          </Badge>
+                        )}
+                      </td>
                       <td className="px-field py-field">
                         <Badge
                           tone={
@@ -461,9 +605,15 @@ export function DocumentDelivery({
         onClose={() => {
           if (!busy) setCompose(false);
         }}
-        title={`${t(quote ? "quoteMailTitle" : "invoiceMailTitle")} · ${doc.number}`}
+        title={`${t(communication ? (communication.purpose === "reminder" ? "communicationReminder" : "communicationThanks") : quote ? "quoteMailTitle" : "invoiceMailTitle")} · ${doc.number}`}
         description={t(
-          share ? "shareMailHint" : quote ? "quoteMailHint" : "invoiceMailHint",
+          share
+            ? quote
+              ? "shareMailHint"
+              : "invoiceShareMailHint"
+            : quote
+              ? "quoteMailHint"
+              : "invoiceMailHint",
         )}
       >
         <form
@@ -473,7 +623,7 @@ export function DocumentDelivery({
             void send();
           }}
         >
-          {quote && (
+          {!communication && (
             <>
               {" "}
               <Select

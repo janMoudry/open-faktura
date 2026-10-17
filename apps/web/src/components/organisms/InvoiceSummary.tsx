@@ -11,7 +11,7 @@ export function InvoiceSummary({
   totalLabel,
 }: {
   calculation: DraftData["calculation"];
-  totals: InvoiceTotals | null;
+  totals: Omit<InvoiceTotals, "calculation_version"> | null;
   loading?: boolean;
   failed?: boolean;
   totalLabel?: string;

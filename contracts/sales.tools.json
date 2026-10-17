@@ -11,7 +11,8 @@
           "type": "string",
           "enum": [
             "template",
-            "quote"
+            "quote",
+            "advance"
           ]
         },
         "query": {
@@ -25,7 +26,10 @@
             "sent",
             "ordered",
             "invoiced",
-            "rejected"
+            "rejected",
+            "paid",
+            "outstanding",
+            "overdue"
           ]
         },
         "archived": {
@@ -60,7 +64,8 @@
           "type": "string",
           "enum": [
             "template",
-            "quote"
+            "quote",
+            "advance"
           ]
         },
         "data": {
@@ -353,6 +358,16 @@
                               "0",
                               "12",
                               "21"
+                            ]
+                          },
+                          "catalog_id": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
                             ]
                           }
                         }
@@ -753,6 +768,16 @@
                               "0",
                               "12",
                               "21"
+                            ]
+                          },
+                          "catalog_id": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
                             ]
                           }
                         }

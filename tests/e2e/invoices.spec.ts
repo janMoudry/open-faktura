@@ -1035,6 +1035,42 @@ for (const english of [false, true])
         fullPage: true,
         animations: "disabled",
       });
+      await page.goto(`/#/companies/${alpha.id}/invoices?status=paid`);
+      await page.getByRole("button", { name: "Export", exact: true }).click();
+      const exportDialog = page.getByRole("dialog");
+      await expect(exportDialog).toBeVisible();
+      await exportDialog.screenshot({
+        path: `docs/design/export-invoices-${english ? "en" : "cs"}-${info.project.name}.png`,
+        animations: "disabled",
+      });
+      const exportDownload = page.waitForEvent("download");
+      await exportDialog
+        .getByRole("button", {
+          name: text("Stáhnout export", "Download export"),
+        })
+        .click();
+      expect((await exportDownload).suggestedFilename()).toBe(
+        "open-faktura-invoices.xlsx",
+      );
+      await expect(exportDialog).toHaveCount(0);
+      await page.getByRole("button", { name: "Export", exact: true }).click();
+      await exportDialog.getByRole("button", { name: /Formát|Format/ }).click();
+      await page
+        .getByRole("option", { name: "CSV (.csv)", exact: true })
+        .click();
+      const csvResponse = page.waitForResponse(
+        (r) => r.url().endsWith("/exports") && r.request().method() === "POST",
+      );
+      const csvDownload = page.waitForEvent("download");
+      await exportDialog
+        .getByRole("button", {
+          name: text("Stáhnout export", "Download export"),
+        })
+        .click();
+      expect((await csvDownload).suggestedFilename()).toBe(
+        "open-faktura-invoices.csv",
+      );
+      expect((await csvResponse).ok()).toBe(true);
       await page.goto(`/#/companies/${alpha.id}/overview`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
         text("Přehled", "Overview"),

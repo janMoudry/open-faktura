@@ -595,6 +595,41 @@ for (const english of [false, true])
 
       await expect(page.getByRole("table")).toBeVisible();
 
+      await page.getByRole("button", { name: "Export", exact: true }).click();
+      const exportDialog = page.getByRole("dialog");
+      await expect(exportDialog).toBeVisible();
+      await exportDialog.screenshot({
+        path: `docs/design/export-contacts-${english ? "en" : "cs"}-${info.project.name}.png`,
+        animations: "disabled",
+      });
+      const exportDownload = page.waitForEvent("download");
+      await exportDialog
+        .getByRole("button", {
+          name: text("Stáhnout export", "Download export"),
+        })
+        .click();
+      expect((await exportDownload).suggestedFilename()).toBe(
+        "open-faktura-contacts.xlsx",
+      );
+      await expect(exportDialog).toHaveCount(0);
+      await page.getByRole("button", { name: "Export", exact: true }).click();
+      await exportDialog.getByRole("button", { name: /Formát|Format/ }).click();
+      await page
+        .getByRole("option", { name: "CSV (.csv)", exact: true })
+        .click();
+      const csvResponse = page.waitForResponse(
+        (r) => r.url().endsWith("/exports") && r.request().method() === "POST",
+      );
+      const csvDownload = page.waitForEvent("download");
+      await exportDialog
+        .getByRole("button", {
+          name: text("Stáhnout export", "Download export"),
+        })
+        .click();
+      expect((await csvDownload).suggestedFilename()).toBe(
+        "open-faktura-contacts.csv",
+      );
+      expect((await csvResponse).ok()).toBe(true);
       await page.getByRole("table").screenshot({
         path: `docs/design/contacts-table-${english ? "en" : "cs"}-${info.project.name}.png`,
         animations: "disabled",

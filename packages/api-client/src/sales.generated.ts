@@ -161,6 +161,7 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     InvoiceCalculation: {
       /** @enum {string} */
@@ -254,6 +255,7 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     DraftCalculation: {
       /** @enum {string} */
@@ -278,6 +280,7 @@ export interface components {
       number: string | null;
       issued_at: string | null;
       settlement: components["schemas"]["Settlement"] | null;
+      advances: components["schemas"]["AdvanceSettlement"] | null;
     };
     DraftPage: {
       items: components["schemas"]["Draft"][];
@@ -372,13 +375,14 @@ export interface components {
       id: string;
       company_id: string;
       /** @enum {string} */
-      kind: "template" | "quote";
+      kind: "template" | "quote" | "advance";
       revision: number;
       archived: boolean;
       number: string | null;
       invoice_id: string | null;
       data: components["schemas"]["SalesData"];
       totals: components["schemas"]["InvoiceTotals"] | null;
+      advance_paid: string | null;
     };
     SalesPage: {
       items: components["schemas"]["SalesDocument"][];
@@ -390,7 +394,7 @@ export interface components {
       /** Format: uuid */
       request_id: string;
       /** @enum {string} */
-      kind: "template" | "quote";
+      kind: "template" | "quote" | "advance";
       data: components["schemas"]["SalesData"];
     };
     UpdateSales: {
@@ -435,6 +439,8 @@ export interface components {
       finished_at: string | null;
       share_id: string | null;
       attachments: components["schemas"]["Attachment"][];
+      /** @enum {string} */
+      purpose: "document" | "reminder" | "thanks";
     };
     DeliveryHistory: {
       configured: boolean;
@@ -492,6 +498,30 @@ export interface components {
       created_at: string;
       size: number;
     };
+    AdvanceTaxDeduction: {
+      id: string;
+      number: string;
+      totals: components["schemas"]["InvoiceTotals"];
+    };
+    AdvanceSource: {
+      id: string;
+      number: string;
+      paid: string;
+      payment_ids: string[];
+      tax_receipts: components["schemas"]["AdvanceTaxDeduction"][];
+    };
+    AdvanceSettlement: {
+      version: string;
+      sources: components["schemas"]["AdvanceSource"][];
+      credited: string;
+      rounding_adjustment: string;
+      customer: components["schemas"]["PartySnapshot"];
+      supplier: components["schemas"]["PartySnapshot"];
+      /** @enum {string} */
+      tax_mode: "non_payer" | "vat_payer";
+      /** Format: date */
+      minimum_date: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -504,10 +534,18 @@ export interface operations {
   salesList: {
     parameters: {
       query?: {
-        kind?: "template" | "quote";
+        kind?: "template" | "quote" | "advance";
         query?: string;
         status?:
-          "all" | "created" | "sent" | "ordered" | "invoiced" | "rejected";
+          | "all"
+          | "created"
+          | "sent"
+          | "ordered"
+          | "invoiced"
+          | "rejected"
+          | "paid"
+          | "outstanding"
+          | "overdue";
         archived?: boolean;
         page?: number;
         page_size?: number;

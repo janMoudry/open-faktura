@@ -1,9 +1,12 @@
+> Aktivní dodávka od 15. 10. 2026: **celé P16–P20**. Stav zbývajících celků:
+> [kontrolní seznam P16–P20](P16_P20_COMPLETION.md).
+
 # Implementační plán Open Faktury
 
 Aktualizováno 12. 10. 2026. Tento plán nahrazuje původních šest širokých etap.
 Rozsah shrnuje [FEATURES.md](../FEATURES.md); pořadí je návrh dodávek, nikoli
 vyřazení pozdějších funkcí. P00–P20 jsou stabilní ID pracovních balíků, jednotlivé
-požadavky mají vlastní ID (INV-001…, SETUP-001…, MIG-01). P01–P08 a L10N-01 jsou implementované (výpočty podle vlastních pravidel); P09 má obecný import, ale dosud neověřené adaptéry zdrojových služeb. P12-01 přidává ceník, P12-02/P12-03 šablony a nabídky s převodem do faktury. Navazující dodávky přidaly odesílání faktur a nabídek, veřejné odkazy nabídek, nastavení SMTP, vlastní přílohy. Stav každé dodávky je uveden níže; souhrn dostupných funkcí je v [přehledu](../FEATURES.md). Projekt zatím není kompletní účetní systém.
+požadavky mají vlastní ID (INV-001…, SETUP-001…, MIG-01). P01–P08 a L10N-01 jsou implementované (výpočty podle vlastních pravidel); P09 má obecný import, ale dosud neověřené adaptéry zdrojových služeb. P12-01 přidává ceník, P12-02/P12-03 šablony a nabídky s převodem do faktury. Navazující dodávky přidaly odesílání faktur a nabídek, veřejné odkazy nabídek, nastavení SMTP, vlastní přílohy a export seznamů CSV/XLSX. Stav každé dodávky je uveden níže; souhrn dostupných funkcí je v [přehledu](../FEATURES.md). Projekt zatím není kompletní účetní systém.
 
 Odkazy „FEATURES §…“ níže označují oddíly původního [referenčního soupisu](research/FEATURES_REFERENCE.md).
 
@@ -19,7 +22,7 @@ Pořadí samostatně ověřitelných dodávek:
 1. P12-01 ceník → výběr do faktury (implementace `tested`, CAT-001–004,
    [specifikace](specs/catalog.md), reference E-024).
 2. P12-02 šablony a P12-03 nabídky → převod do faktury (`tested` v popsaném rozsahu); dále P12-04 měny/kurzy.
-3. P13-01 zálohy → P13-02 daňové doklady k platbě → P13-03 vyúčtování/dobropisy.
+3. P13-01 zálohy → P13-02 daňové doklady k platbě → P13-03 vyúčtování → P13-04 dobropisy.
 4. P10 soubory/SMTP/outbox → P14 opakování, upomínky, sdílení a historie odeslání.
 5. P15 přijaté faktury a účtenky → závazky/úhrady; dodavatelská role adresáře.
 6. P16 bankovní/pokladní evidence → import a párování → prodejky.
@@ -408,15 +411,42 @@ podporu legislativy jiné země. Konvence: [lokalizace](architecture/DEVELOPMENT
 
 ## Nejbližší implementační zadání
 
-Po dokončených P01/P02/P03/P04/L10N-01 pokračovat P05; průběžně uzavírat P00. Každý balík lze dělit do samostatných PR:
-P02 například (a) deployment/config, (b) bootstrap+auth, (c) recovery+restore test.
-Nesmazat nejdřív celou UI kostru: P01 zachová ověřené komponenty a vyčlení demo,
-P06 připojuje produktový seznam/editor ke skutečným kontraktům.
+P16-01 je implementováno: profilové CZK účty, evidence pohybů, dokumentovaný CSV formát s náhledem a deduplikací, ruční párování a odpojení úhrad. [Specifikace](specs/banking.md). P16-02 má adaptéry podle veřejných kontraktů a návrhy shod s potvrzením. Ověření anonymizovaných originálních výpisů zůstává otevřené; [hranice](specs/bank-statements.md). Dodavatelská role adresáře a rozšíření nákupního editoru zůstávají otevřené v P15. Rozšíření pravidelných záloh, proměnných a více příjemců zůstává výslovně otevřené.
 
-Licence je zvolena: GNU AGPL v3 (viz [licencování](LICENSING.md)). Historická rozhodnutí: detail auth relací pro web/Tauri
-před P02, první ověřené účetní scénáře před P05 a PDF renderer před P07.
-Konkrétní knihovny ověřit při implementaci proti tehdejším verzím; tento plán
-nepředstírá nový průzkum jejich aktuální bezpečnosti nebo dostupnosti.
+## P15-02 — účtenky a přehled výdajů (13. 10. 2026)
+
+Účtenka má vlastní UC řadu, volitelného dodavatele, hotově/kartou a přílohy.
+Plná úhrada vzniká atomicky, oprava stornuje a nahradí původní výdaj,
+zrušení zachová historii. Společný seznam úhrad má období/metodu/text/stav
+a stránkování. Přehled v CZK odděluje nákupy podle vystavení, výdaje podle
+zaplacení a aktuální závazky/po splatnosti za všechna období.
+Migrace 026, společný backend REST/MCP, CS/EN a profilová izolace.
+[Specifikace](specs/purchase-receipts.md), E-040; výpočty ze zdrojových částek.
+Bankovní/pokladní párování, daňové výstupy a cizí měny nejsou součástí.
+
+## P15-01 — přijaté faktury (13. 10. 2026)
+
+Evidence běžných CZK závazků, interní řada PF oddělená od čísla dodavatele,
+snapshot a volitelný kontakt, data a přesné částky z originálu. Sdílené přílohy,
+vyhledávání/filtry a ruční platby/storna se zůstatkem. Zrušení uchovává historii;
+revize, UUID a transakce chrání souběh. Výdajové platby nemění příjmy P08.
+Migrace 025, REST/MCP a CS/EN, navigace Náklady → Přijaté faktury.
+[Specifikace a odchylky](specs/received-invoices.md), reference E-039.
+Účtenky, ceník/množství/jednotkové ceny, přeplatky, daňové výstupy, cizí měny
+a tisk/e-mail rekapitulace zůstávají navazující prací.
+
+## P14-03 — veřejné faktury (13. 10. 2026)
+
+Vytvoření/zkopírování odkazu, expirace, odvolání, technická historie zobrazení,
+ruční odeslání odkazu místo PDF přílohy. Anonymní stránka zobrazuje původní PDF
+a aktuální stav úhrady, bez interních platebních poznámek a vlastních příloh.
+Migrace 024, společné příkazy sdílení, REST/MCP a CS/EN. Automatizované e-maily
+nadále přikládají PDF. [Specifikace](specs/invoice-sharing.md), reference E-038
+(veřejná dokumentace; expirace/tokeny a konkrétní UI jsou naše rozhodnutí).
+
+Průběžně zbývá ověřit skutečné exportní možnosti FakturyOnline a iDokladu pro
+P09, uzavřít otevřené účetní otázky a distribuční a provozní podmínky veřejné bety podle zvolené AGPL v3.
+[Checklist](FEATURE_CHECKLIST.md) rozlišuje dokončené funkce od těchto mezer.
 
 ## MIG-01 — Jednoduchý přechod z jiné fakturační služby
 
@@ -615,3 +645,216 @@ Migrace 017; soubory jsou v PostgreSQL, zálohované spolu s DB. Důkaz E-030,
 specifikace specs/document-attachments.md. Tím je dokončen požadovaný souborový
 rozsah P10; základní CSV/XLSX exporty seznamů a kontaktů z širšího plánu P10
 zůstávají samostatnou navazující částí, nejsou označené jako hotové.
+
+## P10-04 — export seznamů (12. 10. 2026)
+
+Implementace `tested` v uvedeném rozsahu; [ověření](design/register-export-validation.md).
+EXPORT-01: faktury a odběratelé do CSV/XLSX, výběr sloupců, aplikované filtry a
+řazení, všechny stránky do limitu 10 000 řádků. CS/EN, profilová oprávnění,
+společný REST/MCP příkaz; bez migrace. Specifikace [register-export.md](specs/register-export.md),
+reference E-031 s uvedenými odchylkami. Nejde o úplnou zálohu, účetní export ani
+ověřený importní adaptér FakturyOnline. Následuje P13-01 — zálohové faktury.
+Průběžný přehled všech modulů: [checklist funkcí](FEATURE_CHECKLIST.md).
+
+## P13-01 — zálohové faktury (12. 10. 2026)
+
+ADVANCE-01: samostatný seznam/editor/detail, vlastní řada ZF, PDF CS/EN,
+částečné/plné ruční úhrady a storna, profilová oprávnění, REST/MCP, migrace 018.
+[Specifikace a odchylky](specs/advance-invoices.md), reference E-032.
+[Výsledky ověření](design/advance-validation.md).
+Původní rozsah P13-01 nezahrnoval daňový doklad k platbě (doplněný níže v P13-02) ani vyúčtování;
+Vyúčtovat je disabled a API konverzi zálohy odmítá. E-mail a přílohy záloh
+nejsou automaticky dostupné přes adaptéry nabídek/faktur.
+
+
+## P13-02 — daňové doklady k přijaté platbě (12. 10. 2026)
+
+TAX-RECEIPT-01: náhled a vystavení z konkrétní úhrady, vlastní řada DDPP,
+neměnný snapshot/PDF, seznam a detail CS/EN, REST/MCP a migrace 019.
+Blokace storna po vystavení, transakce/retry, role a izolace profilu.
+[Specifikace a odchylky](specs/advance-tax-receipts.md), reference E-033.
+[Výsledky ověření](design/tax-receipt-validation.md).
+E-mail, automatizace a opravy dokladů zůstávají v checklistu. Další krok
+P13-03: vyúčtování s odpočtem uložených daňových rozpisů.
+
+
+## P13-03 — vyúčtování záloh (12. 10. 2026)
+
+ADVANCE-SETTLEMENT-01 připravuje upravitelnou fakturu z jedné nebo více plně
+uhrazených záloh stejného odběratele. Uložené daňové rozpisy DDPP se odečítají
+beze změny, peněžní odpočet vychází z přijatých plateb. Rezervace brání dvojímu
+použití a změnám zdrojových úhrad; návrh lze uvolnit, vystavenou vazbu nikoli.
+Finální faktura používá standardní číslování, PDF, doručení a úhrady doplatku.
+CS/EN editor, detail, výběr více záloh a propojení dokladů zachovávají náš brand.
+
+Migrace 020, REST/MCP kontrakt a testy: [specifikace](specs/advance-settlement.md).
+Důkaz E-034 vychází z veřejné nápovědy; přesná numerická a vizuální shoda není
+potvrzená. Vlastní pravidla: max. 20 záloh, CZK, přesně zaplacené zálohy,
+žádné záporné vyúčtování. Dobropisy, přeplatky, částečné vyúčtování a historické
+sazby zůstávají otevřené, dodávka je neoznačuje za hotové.
+
+
+## P13-04 — dobropisy (12. 10. 2026)
+
+Implementováno vytvoření z vydané faktury, důvod a částečné opravy řádků,
+číslování DB, uložené CS/EN PDF, zápočet, evidence vratek a storno událostí.
+Oprava vyúčtované zálohy vychází z uložených částek plnění a zachovává DDPP.
+Migrace 021, společné REST/MCP příkazy, revize/idempotence a profilová oprávnění.
+Monochromatický seznam, editor/detail a vazba z původní faktury v CS/EN.
+[Specifikace a hranice](specs/credit-notes.md), reference E-035 (veřejná nápověda,
+ne nové živé pozorování); numerická shoda s iDokladem není potvrzená.
+E-mail/přílohy, přímé opravy DDPP, vrubopisy a cizí měny zůstávají rozšířením.
+
+
+## P14-01 — pravidelné faktury (12. 10. 2026)
+
+Implementované běžné CZK faktury: vzor nově/z faktury, den/týden/měsíc/rok,
+interval, konec měsíce, ukončení datem/počtem, náhled 12 termínů, uložené pásmo.
+Pauza/aktivace, atomické generování a volitelné vystavení, samostatné zařazení
+PDF e-mailu, historie a bezpečné doplnění po výpadku. Backendový worker běží
+s API serverem; zavřený prohlížeč mu nevadí. CS/EN, monochromatické sdílené UI.
+Migrace 022, recurring REST/MCP kontrakt a PostgreSQL/Playwright scénáře.
+[Specifikace a limity](specs/recurring-invoices.md), reference E-036.
+Přesná shoda s živou aplikací iDoklad není doložená; pravidelné zálohy,
+více příjemců, textové proměnné a více číselných řad jsou následná rozšíření.
+
+
+## P14-02 — upomínky a poděkování (13. 10. 2026)
+
+Ruční náhled/příjemce/text, odeslání s PDF a rozlišená historie. Automatizace
+je standardně vypnutá, povoluje ji vlastník profilu; první odstup, interval,
+částkový limit a maximálně 10 upomínek. Poděkování po nové úplné ruční úhradě,
+jedno automatické na fakturu. Pauza konkrétní faktury, revizní ochrana,
+trvalé idempotentní úlohy a opětovná kontrola před SMTP. Migrace 023,
+REST/MCP, CS/EN a sdílené monochromatické UI.
+[Specifikace a odchylky](specs/invoice-communication.md), E-037. Bankovní
+párování, více příjemců, pravidla kontaktu a veřejné odkazy nejsou vydávány
+za hotovou funkční shodu s iDokladem.
+
+## P16-01 — banka (13. 10. 2026)
+
+Migrace 027, společné REST/MCP příkazy a CS/EN UI. Jeden pohyb → jedna úhrada; nová platba či propojení existující. Odpojení nově vytvořenou úhradu stornuje, původní zachová. Veřejná dokumentace E-041, interní transakční model a CSV jsou vlastní návrh. Není potvrzena shoda přihlášené bankovní obrazovky ani nativních bankovních exportů. Navazující hranice jsou ve specifikaci.
+
+## P16-02 — výpisy a návrhy shod (13. 10. 2026)
+
+Migrace 028, camt.053 / Fio JSON / MONETA XML / RB ABO, společný atomický import,
+profilová izolace a návrhy podle VS a částky. UI vyžaduje potvrzení. E-042
+dokládá veřejné formáty, nikoli skutečné exportní varianty. Implementace
+adaptérů a technické testy nenahrazují chybějící anonymizované originály; toto
+ověření zůstává otevřené. [Specifikace](specs/bank-statements.md).
+
+## P16-03 — hromadné potvrzení bankovních shod (14. 10. 2026)
+
+Implementováno: náhled nespárovaných pohybů aktuální stránky/filtrů (max. 25),
+přesné jednoznačné shody, důvody přeskočení, kontrola konkurenčních pohybů i mimo
+výběr, revize náhledu, atomické potvrzení a idempotentní audit přes společné
+příkazy. REST/MCP, CS/EN. Bez nové migrace; využívá bank_command/bank_match.
+[Specifikace](specs/bank-batch-matching.md), veřejná dokumentace a odchylky E-043.
+Nejde o trvale běžící automatické párování bankovních notifikací.
+
+Další samostatná část P16-04: pokladní evidence (příjmové/výdajové doklady a vazby
+na hotovostní úhrady); pravidla nejprve doložit referencí. Ověření reálných exportů
+P16-02, notifikace/PSD2, přeplatky a dělení pohybů nadále zůstávají otevřené.
+
+## P16-04 — pokladní evidence (14. 10. 2026)
+
+Implementováno: profilové CZK pokladny s počátečním stavem a datem, archivace,
+PP/VP roční číslování, ruční příjmy/výdaje, neměnné doklady se stornem a důvodem,
+saldo za období přes všechny stránky. Párování používá společné platební
+příkazy; existující hotovostní úhrady včetně účtenek nepřidává podruhé.
+Odpojení stornuje jen vlastní úhradu. REST/MCP, CS/EN, migrace 029.
+[Specifikace](specs/cash-register.md), reference E-044.
+
+P16-05 naváže tiskem/PDF a automatickými pokladními doklady při hotovostních
+úhradách mimo pokladnu. Samostatně zbývají prodejky, daňové položky pokladních
+dokladů a další dříve evidované limity banky. Úplná shoda s iDokladem není hotová.
+
+
+## P16-05 — automatické pokladní doklady a PDF (14. 10. 2026)
+
+Implementováno: volba hlavní pokladny v profilu (implicitně vypnuto), atomické
+PP/VP při hotovostních úhradách vydaných/přijatých faktur a účtenek, storno
+a nahrazení při opravách zdroje. Ruční párování nevytváří duplicitní doklady.
+PDF, stažení a náhled tisku v CS/EN používají uloženého vystavitele a cache
+podle revize/jazyka. REST/MCP sdílí operace a oprávnění. Migrace 030.
+[Specifikace](specs/cash-register.md), [ověření](design/cash-validation.md), E-045.
+
+Zbývají prodejky, DPH samostatných plnění, automatika záloh/dobropisů,
+částka slovy, konfigurovatelné sestavy a cizí měny. Starší úhrady se zpětně
+nepřevádějí. Historické doklady 029 zachytí vystavitele až při migraci.
+
+
+## P16-06 — samostatné pokladní plnění s DPH (14. 10. 2026)
+
+Jedna položka s cenou net/gross, sazbou 0/12/21, datem plnění a serverovým
+náhledem. Kalkulátor of-czk-v1; uložený rozpis je neměnný, součást detailu
+a PDF v CS/EN. Samostatné plnění nelze spárovat jako další úhradu faktury.
+Číslování, audit a storno používají společné cash příkazy, REST/MCP; filtr
+tax a označení S DPH. Migrace 031. [Rozsah](specs/cash-register.md), E-046.
+
+Následující P16-07: prodejky (prodej na místě, položky, hotovost/karta,
+nepovinný odběratel, PDF) a explicitní oddělení od následného souhrnného
+zaúčtování hotovosti do pokladny a karet do interních dokladů. Automatické
+zaúčtování jako obyčejná invoice_payment by neodpovídalo referenci. Zbývají
+členění DPH, daňové výkazy, terminály, sklad a další již uvedené mezery.
+
+## P16-10 a dílčí P16-16 (14. 10. 2026)
+
+Bankovní počáteční stavy a saldo za období jsou implementované: přesné součty
+nad všemi pohyby, revize a důvod změny, REST/MCP a CS/EN UI. Migrace 032
+neodhaduje historický počátek; bez nastavení vrací neznámý stav.
+[Specifikace](specs/bank-balances.md). Pokladní PDF nově uvádí částku slovy
+v češtině a angličtině; existující uložené PDF se nemění.
+
+Ověření: 15 bankovních a 15 pokladních DB testů, REST/MCP shoda, upgrade
+031→032, 4 bankovní E2E scénáře (CS/EN × desktop/mobile), kontrola projektu.
+Celá P16 zůstává otevřená podle [úplného rozpisu](P16_COMPLETION.md).
+
+## P16-15 — vlastní konfigurace bankovního napojení (14. 10. 2026)
+
+Rozhodnutí uživatele: připojení si nastavuje každý uživatel/provozovatel sám,
+se svými přístupy. Návrh má pokrýt více bank, nikoli pouze Air Bank; konkrétní
+API/poskytovatel/notifikace se nabízí podle implementovaného adaptéru.
+Součástí je průvodce CS/EN, test spojení, diagnostika synchronizace a odpojení.
+Osobní poskytovatel ani schránka zadavatele nejsou podmínkou vývoje.
+[Úplná akceptace a hranice ověření](P16_COMPLETION.md#vlastní-bankovní-napojení-p16-15).
+Implementace zůstává otevřená; nejde o potvrzení podpory všech bank.
+
+### P16-15a — dodané nastavení a synchronizace (14. 10. 2026)
+
+Implementováno přes backend/DB: vlastní přístupy, revize, AES-GCM, audit bez
+tokenů, test spojení bez importu, ruční synchronizace s deduplikací a stavem,
+odpojení bez smazání pohybů. Web CS/EN používá společný REST/MCP port.
+Přímý adaptér Fio a vlastní HTTPS gateway podle dokumentovaného kontraktu.
+Nejde o automaticky fungující připojení všech bank ani o implementaci
+e-mailových notifikací; žádné živé přístupy nebyly testované.
+Migrace 033, specifikace [bank-connections.md](specs/bank-connections.md),
+DB testy `tests/bank/connection.rs`, transportní testy a bankovní CS/EN E2E.
+
+### P16-15b — automatická synchronizace (14. 10. 2026)
+
+Opt-in po účtech: 15 minut, hodina, 6 hodin, den. Worker API používá společný
+příkaz synchronizace a respektuje práva aktéra aktivace i jejich odebrání
+během síťového požadavku. Stav obsahuje příští termín a chybu plánovače.
+Migrace 034 ponechává automatiku všude vypnutou. CS/EN a REST/MCP, bez
+automatického párování. [Pravidla](specs/bank-connections.md#p16-15b--volitelná-automatická-synchronizace).
+
+### P16-14 — průběžné automatické párování (14. 10. 2026)
+
+Dodáno samostatné opt-in nastavení účtu, aktivující uživatel, worker nad
+společným evaluátorem přesných shod, audit a stav poslední dávky v CS/EN.
+Migrace 035; výchozí stav vypnutý. Dávka maximálně 25 pohybů, transakční
+ávrat celé dávky, kurzor přes všechny stránky a kontrola konkurujících pohybů.
+Ručně odpojené pohyby automatika znovu nepáruje. Ztráta oprávnění automatiku
+vypne. Pravidla jsou vlastní konzervativní návrh, nikoli potvrzená úplná
+shoda s iDokladem. [Specifikace](specs/bank-auto-matching.md).
+
+### P16-11 — rozdělení bankovního pohybu (14. 10. 2026)
+
+Dodána atomická dávka 1–25 přiřazení, přesné částky a nerozdělený přeplatek,
+navazující doplnění a společné odpojení. Stornují se jen úhrady vytvořené
+párováním, dříve existující platby/účtenky zůstávají. Migrace 036, společný
+REST/MCP příkaz split a split_candidates, CS/EN detail i filtr částečných
+pohybů. Automatické párování částečné pohyby neřeší. Vlastní rozšíření dle
+E-049, nikoli doložená shoda více vazeb iDokladu.
+[Specifikace](specs/bank-split-matching.md), testy bank/split.rs a bank.spec.ts.

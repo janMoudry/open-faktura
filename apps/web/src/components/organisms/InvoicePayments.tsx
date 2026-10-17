@@ -69,13 +69,19 @@ export function InvoicePayments({
     }
     setError(
       e instanceof InvoiceCalculationFailure
-        ? e.status === 409
-          ? "paymentConflict"
-          : e.status === 422
-            ? "paymentInvalid"
-            : e.status === 403
-              ? "companyForbidden"
-              : "requestFailed"
+        ? e.fields.includes("cash_automatic_date")
+          ? "cashAutomaticDate"
+          : e.fields.includes("cash_link")
+            ? "cashLinkedPayment"
+            : e.fields.includes("bank_link")
+              ? "bankLinkedPayment"
+              : e.status === 409
+                ? "paymentConflict"
+                : e.status === 422
+                  ? "paymentInvalid"
+                  : e.status === 403
+                    ? "companyForbidden"
+                    : "requestFailed"
         : "requestFailed",
     );
   };

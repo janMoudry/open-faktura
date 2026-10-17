@@ -65,6 +65,28 @@
           "items": {
             "type": "string"
           }
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "reminder",
+            "thanks"
+          ]
+        },
+        "settlement_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "share_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "Existing active invoice link. Server appends the URL; PDF remains in private history, not the email attachment."
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [

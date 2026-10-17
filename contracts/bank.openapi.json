@@ -1,0 +1,2131 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura banking",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/companies/{company}/bank/accounts": {
+      "get": {
+        "operationId": "bank_accounts",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankAccount"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/movements": {
+      "get": {
+        "operationId": "bank_movements",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "income",
+                "expense"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "matched",
+                "unmatched",
+                "partial"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/movements/{id}": {
+      "get": {
+        "operationId": "bank_get",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankMovement"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/movements/{id}/candidates": {
+      "get": {
+        "operationId": "bank_candidates",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankCandidate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/preview": {
+      "post": {
+        "operationId": "bank_preview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankFile"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/commands": {
+      "post": {
+        "operationId": "bank_execute",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankReply"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/statement-preview": {
+      "post": {
+        "operationId": "bank_statement_preview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankStatement"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/movements/{id}/suggestions": {
+      "get": {
+        "operationId": "bank_suggestions",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankCandidate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/batch-preview": {
+      "post": {
+        "operationId": "bank_batch_preview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankBatchPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankBatchInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/balance": {
+      "get": {
+        "operationId": "bank_balance",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankBalance"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/connection": {
+      "get": {
+        "operationId": "bank_connection_status",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connection status; credentials are never returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankConnectionStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "bank_connection_execute",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankConnectionCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connection status; credentials are never returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankConnectionStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/movements/{id}/split-candidates": {
+      "get": {
+        "operationId": "bank_split_candidates",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankCandidate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BankAccountData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "iban",
+          "currency"
+        ]
+      },
+      "BankAccount": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BankAccountData"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "data",
+          "archived"
+        ]
+      },
+      "BankMovementData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "external_id": {
+            "type": "string"
+          },
+          "booked_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "counterparty": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "external_id",
+          "booked_on",
+          "amount",
+          "currency",
+          "variable_symbol",
+          "counterparty",
+          "description"
+        ]
+      },
+      "BankMatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "target_kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "received",
+              "advance",
+              "credit"
+            ]
+          },
+          "document_kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "receipt",
+              "advance",
+              "credit"
+            ]
+          },
+          "document_id": {
+            "type": "string"
+          },
+          "document_number": {
+            "type": "string"
+          },
+          "payment_id": {
+            "type": "string"
+          },
+          "created_payment": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "detached_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "detached_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          }
+        },
+        "required": [
+          "id",
+          "target_kind",
+          "document_kind",
+          "document_id",
+          "document_number",
+          "payment_id",
+          "created_payment",
+          "created_at",
+          "actor_id",
+          "detached_at",
+          "detached_by",
+          "reason",
+          "amount"
+        ]
+      },
+      "BankMovement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "account_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "manual"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BankMovementData"
+          },
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankMatch"
+            }
+          },
+          "allocated": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "remaining": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "number",
+          "revision",
+          "source",
+          "data",
+          "matches",
+          "allocated",
+          "remaining"
+        ]
+      },
+      "BankPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankMovement"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page"
+        ]
+      },
+      "BankPreviewRow": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "row": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BankMovementData"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "duplicate",
+              "invalid",
+              "conflict"
+            ]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "row",
+          "data",
+          "status",
+          "fields"
+        ]
+      },
+      "BankPreview": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankPreviewRow"
+            }
+          },
+          "new_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "duplicate_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "rows",
+          "new_count",
+          "duplicate_count",
+          "valid"
+        ]
+      },
+      "BankCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target_kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "received",
+              "advance",
+              "credit"
+            ]
+          },
+          "document_kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "receipt",
+              "advance",
+              "credit"
+            ]
+          },
+          "document_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partner": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "payment_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "outstanding": {
+            "type": "string"
+          },
+          "available": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          }
+        },
+        "required": [
+          "target_kind",
+          "document_kind",
+          "document_id",
+          "number",
+          "partner",
+          "revision",
+          "payment_id",
+          "outstanding",
+          "available"
+        ]
+      },
+      "BankFile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "csv": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "csv"
+        ]
+      },
+      "BankCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "account"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "nullable": true
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64",
+                "nullable": true
+              },
+              "data": {
+                "$ref": "#/components/schemas/BankAccountData"
+              },
+              "archived": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "id",
+              "revision",
+              "data",
+              "archived"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "import"
+                ]
+              },
+              "account_id": {
+                "type": "string"
+              },
+              "csv": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "account_id",
+              "csv"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "manual"
+                ]
+              },
+              "account_id": {
+                "type": "string"
+              },
+              "data": {
+                "$ref": "#/components/schemas/BankMovementData"
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "account_id",
+              "data"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "match"
+                ]
+              },
+              "movement_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "target_kind": {
+                "type": "string",
+                "enum": [
+                  "invoice",
+                  "received",
+                  "advance",
+                  "credit"
+                ]
+              },
+              "document_id": {
+                "type": "string"
+              },
+              "target_revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "payment_id": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "movement_id",
+              "revision",
+              "target_kind",
+              "document_id",
+              "target_revision",
+              "payment_id"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "unmatch"
+                ]
+              },
+              "movement_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "movement_id",
+              "revision",
+              "reason"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "camt053",
+                  "fio_json",
+                  "moneta_xml",
+                  "rb_abo"
+                ]
+              },
+              "filename": {
+                "type": "string"
+              },
+              "content_base64": {
+                "type": "string"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "statement"
+                ]
+              }
+            },
+            "required": [
+              "account_id",
+              "format",
+              "filename",
+              "content_base64",
+              "request_id",
+              "action"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "movement_ids",
+              "fingerprint",
+              "request_id"
+            ],
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": [
+                  "batch_match"
+                ]
+              },
+              "movement_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "maxItems": 25,
+                "uniqueItems": true
+              },
+              "fingerprint": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer"
+              },
+              "opening_on": {
+                "type": "string",
+                "format": "date"
+              },
+              "opening_balance": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "opening"
+                ]
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "account_id",
+              "revision",
+              "opening_on",
+              "opening_balance",
+              "reason",
+              "action",
+              "request_id"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "split"
+                ]
+              },
+              "movement_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "allocations": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 25,
+                "items": {
+                  "$ref": "#/components/schemas/BankAllocation"
+                }
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "movement_id",
+              "revision",
+              "allocations"
+            ]
+          }
+        ]
+      },
+      "BankReply": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "account"
+                ]
+              },
+              "value": {
+                "$ref": "#/components/schemas/BankAccount"
+              }
+            },
+            "required": [
+              "kind",
+              "value"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "movement"
+                ]
+              },
+              "value": {
+                "$ref": "#/components/schemas/BankMovement"
+              }
+            },
+            "required": [
+              "kind",
+              "value"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "import"
+                ]
+              },
+              "value": {
+                "$ref": "#/components/schemas/BankPreview"
+              }
+            },
+            "required": [
+              "kind",
+              "value"
+            ]
+          },
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "value"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "batch"
+                ]
+              },
+              "value": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BankMovement"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "BankStatement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "camt053",
+              "fio_json",
+              "moneta_xml",
+              "rb_abo"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "content_base64": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "format",
+          "filename",
+          "content_base64"
+        ]
+      },
+      "BankBatchInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "movement_ids"
+        ],
+        "properties": {
+          "movement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 25,
+            "uniqueItems": true
+          }
+        }
+      },
+      "BankBatchItem": {
+        "type": "object",
+        "required": [
+          "movement",
+          "candidate",
+          "status"
+        ],
+        "properties": {
+          "movement": {
+            "$ref": "#/components/schemas/BankMovement"
+          },
+          "candidate": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BankCandidate"
+              }
+            ],
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "matched",
+              "archived",
+              "no_symbol",
+              "no_match",
+              "ambiguous",
+              "partial",
+              "competing_movement",
+              "shared_target",
+              "too_many"
+            ]
+          }
+        }
+      },
+      "BankBatchPreview": {
+        "type": "object",
+        "required": [
+          "items",
+          "ready_count",
+          "fingerprint"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankBatchItem"
+            }
+          },
+          "ready_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "BankBalance": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "opening_on": {
+            "type": "string",
+            "nullable": true
+          },
+          "opening_balance": {
+            "type": "string",
+            "nullable": true
+          },
+          "opening": {
+            "type": "string",
+            "nullable": true
+          },
+          "closing": {
+            "type": "string",
+            "nullable": true
+          },
+          "income": {
+            "type": "string"
+          },
+          "expense": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "opening_on",
+          "opening_balance",
+          "opening",
+          "closing",
+          "income",
+          "expense",
+          "count"
+        ]
+      },
+      "BankConnectionProvider": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "BankConnectionRun": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "save",
+              "disconnect",
+              "test",
+              "sync",
+              "schedule",
+              "matching"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "success",
+              "failed"
+            ]
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "finished_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "error_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "imported": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "duplicates": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "kind",
+          "status",
+          "started_at",
+          "finished_at",
+          "error_code",
+          "imported",
+          "duplicates"
+        ]
+      },
+      "BankConnectionStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "busy": {
+            "type": "boolean"
+          },
+          "last_run": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BankConnectionRun"
+              }
+            ],
+            "nullable": true
+          },
+          "last_sync_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankConnectionProvider"
+            }
+          },
+          "schedule_enabled": {
+            "type": "boolean"
+          },
+          "interval_minutes": {
+            "type": "integer",
+            "enum": [
+              15,
+              60,
+              360,
+              1440
+            ]
+          },
+          "next_run_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "schedule_error": {
+            "type": "string",
+            "nullable": true
+          },
+          "matching_enabled": {
+            "type": "boolean"
+          },
+          "matching_next_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "matching_error": {
+            "type": "string",
+            "nullable": true
+          },
+          "matching_last": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BankMatchingRun"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "revision",
+          "provider",
+          "configured",
+          "busy",
+          "last_run",
+          "last_sync_at",
+          "providers",
+          "schedule_enabled",
+          "interval_minutes",
+          "next_run_at",
+          "schedule_error",
+          "matching_enabled",
+          "matching_next_at",
+          "matching_error",
+          "matching_last"
+        ]
+      },
+      "BankConnectionCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "save"
+                ]
+              },
+              "provider": {
+                "type": "string"
+              },
+              "secret": {
+                "type": "string",
+                "nullable": true,
+                "writeOnly": true,
+                "maxLength": 2048
+              }
+            },
+            "required": [
+              "account_id",
+              "revision",
+              "request_id",
+              "action",
+              "provider"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "disconnect"
+                ]
+              }
+            },
+            "required": [
+              "account_id",
+              "revision",
+              "request_id",
+              "action"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "test"
+                ]
+              }
+            },
+            "required": [
+              "account_id",
+              "revision",
+              "request_id",
+              "action"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "sync"
+                ]
+              }
+            },
+            "required": [
+              "account_id",
+              "revision",
+              "request_id",
+              "action"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "schedule"
+                ]
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "interval_minutes": {
+                "type": "integer",
+                "enum": [
+                  15,
+                  60,
+                  360,
+                  1440
+                ]
+              }
+            },
+            "required": [
+              "account_id",
+              "revision",
+              "request_id",
+              "action",
+              "enabled",
+              "interval_minutes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "matching"
+                ]
+              },
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "account_id",
+              "revision",
+              "request_id",
+              "action",
+              "enabled"
+            ]
+          }
+        ]
+      },
+      "BankMatchingRun": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "checked": {
+            "type": "integer"
+          },
+          "matched": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "at",
+          "checked",
+          "matched"
+        ]
+      },
+      "BankAllocation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target_kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "received",
+              "advance",
+              "credit"
+            ]
+          },
+          "document_id": {
+            "type": "string"
+          },
+          "target_revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "payment_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_kind",
+          "document_id",
+          "target_revision",
+          "payment_id",
+          "amount"
+        ]
+      }
+    }
+  }
+}

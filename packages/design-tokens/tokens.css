@@ -69,3 +69,31 @@
   --font-display: "Manrope Variable", "Segoe UI", sans-serif;
   --radius-panel: 1rem;
 }
+
+:root {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-chart-primary: #ededed;
+  --color-chart-secondary: #aaaaaa;
+  --color-canvas: #171717;
+  --color-surface: #222222;
+  --color-foreground: #eeeeee;
+  --color-muted: #b5b5b5;
+  --color-primary: #eeeeee;
+  --color-primary-soft: #393939;
+  --color-border: #484848;
+  --color-control-border: #868686;
+  --color-disabled: #353535;
+  --color-primary-hover: #ffffff;
+  --color-focus: #ededed;
+  --color-sidebar: #202020;
+  --color-success: #8dd5b5;
+  --color-success-soft: #173c2f;
+  --color-danger: #ffaba1;
+  --color-danger-soft: #492824;
+  --color-danger-hover: #ffc5bf;
+  --color-warning: #e9c77b;
+  --color-warning-soft: #41361f;
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02">
+<BkToCstmrStmt><Stmt><Id>SYNTHETIC-2026-10</Id>
+<Acct><Id><IBAN>CZ6508000000192000145399</IBAN></Id><Ccy>CZK</Ccy></Acct>
+<Ntry><Amt Ccy="CZK">100.01</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-10-01</Dt></BookgDt><AcctSvcrRef>synthetic-bank-1</AcctSvcrRef>
+<NtryDtls><TxDtls><Refs><AcctSvcrRef>synthetic-bank-1</AcctSvcrRef><EndToEndId>/VS000123/SS0/KS0308</EndToEndId></Refs><RltdPties><Dbtr><Nm>Test &amp; Syn</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Test payment</Ustrd></RmtInf></TxDtls></NtryDtls></Ntry>
+<Ntry><Amt Ccy="CZK">25.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-10-02</Dt></BookgDt><AcctSvcrRef>synthetic-bank-2</AcctSvcrRef><AddtlNtryInf>Fee</AddtlNtryInf></Ntry>
+</Stmt></BkToCstmrStmt></Document>

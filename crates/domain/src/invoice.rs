@@ -25,6 +25,8 @@ pub enum Rounding {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Line {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
     pub id: String,
     pub description: String,
     pub unit: String,
@@ -404,6 +406,7 @@ mod tests {
             discount_percent: "0".into(),
             rounding: Rounding::None,
             lines: vec![Line {
+                catalog_id: None,
                 id: "a".into(),
                 description: "".into(),
                 unit: "ks".into(),
@@ -458,6 +461,7 @@ mod tests {
         i = input("1", "0.01", "21");
         i.lines = (0..500)
             .map(|n| Line {
+                catalog_id: None,
                 id: n.to_string(),
                 ..i.lines[0].clone()
             })
@@ -469,6 +473,7 @@ mod tests {
         i.lines.reverse();
         assert_eq!(calculate(&i).unwrap().amounts, t.amounts);
         i.lines.push(Line {
+            catalog_id: None,
             id: "overflow".into(),
             ..i.lines[0].clone()
         });
@@ -480,6 +485,7 @@ mod tests {
         i.lines[0].id = "max".into();
         assert!(calculate(&i).is_ok());
         i.lines.push(Line {
+            catalog_id: None,
             id: "zero".into(),
             vat_percent: "0".into(),
             ..i.lines[0].clone()

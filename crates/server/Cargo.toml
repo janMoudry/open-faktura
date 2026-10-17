@@ -24,4 +24,9 @@ rmcp = { version = "=3.5.1", features = ["server", "client", "transport-io"] }
 base64 = "0.22"
 
 [dev-dependencies]
+async-trait = "0.1"
 tower = { version = "0.5", features = ["util"] }
+csv = "=1.4.0"
+calamine = "=0.36.1"
+rust_decimal = { version = "1", default-features = false, features = ["std"] }
+uuid = { version = "1", features = ["v4"] }

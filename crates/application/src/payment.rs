@@ -12,7 +12,7 @@ pub struct Settlement {
     pub revision: i64,
     pub today: String,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Payment {
     pub id: String,
     pub amount: String,

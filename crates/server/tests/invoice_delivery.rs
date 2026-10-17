@@ -68,6 +68,9 @@ use faktura_infrastructure::{
 use std::sync::Arc;
 fn command(revision: i64, key: &str) -> SendInvoice {
     SendInvoice {
+        share_id: None,
+        purpose: None,
+        settlement_revision: None,
         attachment_ids: vec![],
         request_id: key.into(),
         revision,
@@ -496,6 +499,17 @@ async fn upgrade_preserves_invoice_and_pdf(pool: PgPool) {
         .await
         .unwrap();
     all.run(&pool).await.unwrap();
+    // The upgrade appends a view column. Production restarts its pool after migration;
+    // discard prepared SELECT * plans here as well before reading the upgraded view.
+    let mut connections = Vec::new();
+    for _ in 0..pool.size() {
+        let mut connection = pool.acquire().await.unwrap();
+        sqlx::Connection::clear_cached_statements(&mut *connection)
+            .await
+            .unwrap();
+        connections.push(connection);
+    }
+    drop(connections);
     assert_eq!(
         draft::pdf(&PgDraft(pool.clone()), &a, &c, &d.id)
             .await

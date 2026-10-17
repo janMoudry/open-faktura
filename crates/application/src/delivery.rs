@@ -4,6 +4,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SendQuote {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purpose: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub settlement_revision: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub automation_revision: Option<i64>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub attachment_ids: Vec<String>,
     pub request_id: String,
@@ -16,6 +22,7 @@ pub struct SendQuote {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Delivery {
+    pub purpose: String,
     #[serde(default)]
     pub attachments: Vec<crate::attachment::Attachment>,
     pub id: String,
@@ -78,6 +85,16 @@ pub async fn send(
     cmd.recipient = cmd.recipient.trim().into();
     cmd.subject = cmd.subject.trim().into();
     let mut errors = Vec::new();
+    if cmd
+        .purpose
+        .as_ref()
+        .is_some_and(|v| !matches!(v.as_str(), "reminder" | "thanks"))
+        || (cmd.purpose.is_some() != cmd.settlement_revision.is_some())
+        || cmd.settlement_revision.is_some_and(|v| v < 0)
+        || (cmd.automation_revision.is_some() && cmd.purpose.is_none())
+    {
+        errors.push("purpose".into());
+    }
     if uuid::Uuid::parse_str(&cmd.request_id).is_err() {
         errors.push("request_id".into());
     }

@@ -1,4 +1,10 @@
-import { memo, type ComponentProps } from "react";
+import {
+  memo,
+  useEffect,
+  useState,
+  type ReactNode,
+  type ComponentProps,
+} from "react";
 import {
   Link,
   NavLink,
@@ -16,9 +22,22 @@ export const ProductSidebar = memo(function ProductSidebar({
   canCreate?: boolean;
 }) {
   const { t } = useAppTranslation();
-  const { pathname } = useLocation();
   const destinations: Partial<Record<AppKey, string>> = selected
     ? {
+        receiptsTitle: `/companies/${selected}/receipts`,
+        expensePayments: `/companies/${selected}/expense-payments`,
+        expenseOverview: `/companies/${selected}/expense-overview`,
+        navReports: `/companies/${selected}/reports`,
+        catalogStock: `/companies/${selected}/stock`,
+        inboxTitle: `/companies/${selected}/inbox`,
+        retailTitle: `/companies/${selected}/retail`,
+        navCash: `/companies/${selected}/cash`,
+        navBank: `/companies/${selected}/bank`,
+        receivedTitle: `/companies/${selected}/received-invoices`,
+        navRecurring: `/companies/${selected}/recurring`,
+        navCreditNotes: `/companies/${selected}/credit-notes`,
+        taxReceipts: `/companies/${selected}/tax-receipts`,
+        navAdvances: `/companies/${selected}/advances`,
         navQuotes: `/companies/${selected}/quotes`,
         salesTemplates: `/companies/${selected}/templates`,
         navInvoices: `/companies/${selected}/invoices`,
@@ -42,17 +61,10 @@ export const ProductSidebar = memo(function ProductSidebar({
     </button>
   );
   const group = (label: AppKey, icon: IconName, items: AppKey[]) => (
-    <details
-      className="workspace-nav-group"
-      open={items.some((item) => {
-        const path = destinations[item];
-        return (
-          path &&
-          (item === "companySettingsIntro"
-            ? pathname === path
-            : pathname.startsWith(path))
-        );
-      })}
+    <NavigationGroup
+      paths={items.flatMap((item) =>
+        destinations[item] ? [destinations[item]!] : [],
+      )}
     >
       <summary className="workspace-nav-item">
         <Icon name={icon} />
@@ -77,7 +89,7 @@ export const ProductSidebar = memo(function ProductSidebar({
           ),
         )}
       </div>
-    </details>
+    </NavigationGroup>
   );
   const navigation = (
     <nav aria-label={t("navMain")} className="space-y-inline">
@@ -97,13 +109,21 @@ export const ProductSidebar = memo(function ProductSidebar({
       {group("navDirectory", "contacts", ["navContacts", "navMailHistory"])}
       {group("navSales", "invoice", [
         "navInvoices",
+        "retailTitle",
         "navQuotes",
         "salesTemplates",
         "navAdvances",
+        "taxReceipts",
         "navRecurring",
         "navCreditNotes",
       ])}
-      {unavailable("navExpenses", "expenses")}
+      {group("navExpenses", "expenses", [
+        "inboxTitle",
+        "receivedTitle",
+        "receiptsTitle",
+        "expensePayments",
+        "expenseOverview",
+      ])}
       {group("navCatalog", "catalog", ["catalogList", "catalogStock"])}
       {group("navBusiness", "wallet", ["navBank", "navCash", "navReports"])}
       {group("navSettings", "settings", ["companySettingsIntro", "navTeam"])}
@@ -143,3 +163,32 @@ export const ProductSidebar = memo(function ProductSidebar({
     </aside>
   );
 });
+
+// Only route-aware leaves subscribe to location. The shell stays memoized.
+function NavigationGroup({
+  paths,
+  children,
+}: {
+  paths: string[];
+  children: ReactNode;
+}) {
+  const { pathname } = useLocation();
+  const active = paths.some(
+    (path) =>
+      pathname === path ||
+      (path.split("/").length > 3 && pathname.startsWith(path + "/")),
+  );
+  const [open, setOpen] = useState(active);
+  useEffect(() => {
+    if (active) setOpen(true);
+  }, [active]);
+  return (
+    <details
+      className="workspace-nav-group"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      {children}
+    </details>
+  );
+}

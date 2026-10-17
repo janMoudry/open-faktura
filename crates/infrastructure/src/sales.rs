@@ -11,10 +11,10 @@ fn id(s: &str) -> Result<i64> {
     s.parse().map_err(|_| Error::NotFound)
 }
 fn kind(k: &Kind) -> &'static str {
-    if *k == Kind::Quote {
-        "quote"
-    } else {
-        "template"
+    match k {
+        Kind::Quote => "quote",
+        Kind::Template => "template",
+        Kind::Advance => "advance",
     }
 }
 pub(crate) fn map(r: sqlx::postgres::PgRow) -> Result<Document> {
@@ -29,16 +29,33 @@ pub(crate) fn map(r: sqlx::postgres::PgRow) -> Result<Document> {
     Ok(Document {
         id: r.get::<i64, _>("id").to_string(),
         company_id: r.get::<i64, _>("company_id").to_string(),
-        kind: if r.get::<String, _>("kind") == "quote" {
-            Kind::Quote
+        kind: match r.get::<String, _>("kind").as_str() {
+            "quote" => Kind::Quote,
+            "advance" => Kind::Advance,
+            _ => Kind::Template,
+        },
+        advance_paid: if r.get::<String, _>("kind") == "advance" {
+            Some(
+                r.get::<rust_decimal::Decimal, _>("advance_paid")
+                    .to_string(),
+            )
         } else {
-            Kind::Template
+            None
         },
         revision: r.get("revision"),
         archived: r.get("archived"),
         number: r.get("number"),
         invoice_id: r.get::<Option<i64>, _>("invoice_id").map(|v| v.to_string()),
-        totals: faktura_domain::invoice::calculate(&data.invoice.calculation).ok(),
+        totals: if r.get::<String, _>("kind") == "advance" {
+            r.try_get::<Option<serde_json::Value>, _>("advance_totals")
+                .ok()
+                .flatten()
+                .map(serde_json::from_value)
+                .transpose()
+                .map_err(err)?
+        } else {
+            faktura_domain::invoice::calculate(&data.invoice.calculation).ok()
+        },
         data,
     })
 }
@@ -57,7 +74,7 @@ impl SalesStore for PgSales {
     async fn list(&self, a: &str, c: &str, s: Search) -> Result<Page> {
         let mut tx = self.0.begin().await.map_err(err)?;
         let (_, c) = authorize(&mut tx, a, c, false).await?;
-        let predicate="s.company_id=$1 AND s.kind=$2 AND s.archived=$3 AND strpos(lower(concat_ws(' ',s.number,s.data->>'name',s.data->'invoice'->'customer'->>'name')),lower($4))>0 AND ($5='all' OR CASE WHEN i.number IS NOT NULL THEN 'invoiced' ELSE s.data->>'status' END=$5)";
+        let predicate="s.company_id=$1 AND s.kind=$2 AND s.archived=$3 AND strpos(lower(concat_ws(' ',s.number,s.data->>'name',s.data->'invoice'->'customer'->>'name')),lower($4))>0 AND ($5='all' OR ($2='advance' AND (($5='paid' AND s.advance_paid >= (s.advance_totals->>'payable')::numeric) OR ($5='outstanding' AND s.advance_paid < (s.advance_totals->>'payable')::numeric) OR ($5='overdue' AND s.advance_paid < (s.advance_totals->>'payable')::numeric AND (s.data#>>'{invoice,due_on}')::date < (now() AT TIME ZONE 'Europe/Prague')::date))) OR CASE WHEN i.number IS NOT NULL THEN 'invoiced' ELSE s.data->>'status' END=$5)";
         let total:i64=sqlx::query_scalar(&format!("SELECT count(*) FROM sales_document s LEFT JOIN invoice_draft i ON i.company_id=s.company_id AND i.id=s.invoice_id WHERE {predicate}" )).bind(c).bind(kind(&s.kind)).bind(s.archived).bind(&s.query).bind(&s.status).fetch_one(&mut *tx).await.map_err(err)?;
         let items = sqlx::query(&format!(
             "{SELECT} WHERE {predicate} ORDER BY s.updated_at DESC,s.id DESC LIMIT $6 OFFSET $7"
@@ -126,7 +143,8 @@ impl SalesStore for PgSales {
             return map(r);
         }
         check_contact(&mut tx, c, cmd.data.invoice.contact_id.as_deref()).await?;
-        let number = if cmd.kind == Kind::Quote {
+        crate::stock_documents::validate_links(&mut tx, c, &cmd.data.invoice.calculation).await?;
+        let number = if cmd.kind != Kind::Template {
             let year = cmd
                 .data
                 .invoice
@@ -134,12 +152,27 @@ impl SalesStore for PgSales {
                 .ok_or_else(|| Error::Invalid(vec!["issued_on".into()]))?
                 .format("%Y")
                 .to_string();
-            let n:i64=sqlx::query_scalar("INSERT INTO quote_sequence(company_id,year,next_value) VALUES($1,$2::text::integer,2) ON CONFLICT(company_id,year) DO UPDATE SET next_value=quote_sequence.next_value+1 RETURNING next_value-1").bind(c).bind(&year).fetch_one(&mut *tx).await.map_err(err)?;
-            Some(format!("CN{year}{n:04}"))
+            let table = if cmd.kind == Kind::Advance {
+                "advance_sequence"
+            } else {
+                "quote_sequence"
+            };
+            let n:i64=sqlx::query_scalar(&format!("INSERT INTO {table}(company_id,year,next_value) VALUES($1,$2::text::integer,2) ON CONFLICT(company_id,year) DO UPDATE SET next_value={table}.next_value+1 RETURNING next_value-1")).bind(c).bind(&year).fetch_one(&mut *tx).await.map_err(err)?;
+            Some(format!(
+                "{}{year}{n:04}",
+                if cmd.kind == Kind::Advance {
+                    "ZF"
+                } else {
+                    "CN"
+                }
+            ))
         } else {
             None
         };
-        let v=map(sqlx::query("INSERT INTO sales_document(company_id,kind,creator_id,request_id,initial_data,data,number) VALUES($1,$2,$3,$4::text::uuid,$5,$5,$6) RETURNING *").bind(c).bind(kind(&cmd.kind)).bind(a).bind(&cmd.request_id).bind(data).bind(number).fetch_one(&mut *tx).await.map_err(err)?)?;
+        let mut v=map(sqlx::query("INSERT INTO sales_document(company_id,kind,creator_id,request_id,initial_data,data,number) VALUES($1,$2,$3,$4::text::uuid,$5,$5,$6) RETURNING *").bind(c).bind(kind(&cmd.kind)).bind(a).bind(&cmd.request_id).bind(data).bind(number).fetch_one(&mut *tx).await.map_err(err)?)?;
+        if v.kind == Kind::Advance {
+            persist_advance(&mut tx, &mut v).await?;
+        }
         audit(&mut tx, a, &v, "create").await?;
         tx.commit().await.map_err(err)?;
         Ok(v)
@@ -163,8 +196,23 @@ impl SalesStore for PgSales {
         {
             return Err(Error::Conflict);
         }
+        if old.kind == Kind::Advance
+            && old
+                .advance_paid
+                .as_deref()
+                .unwrap_or("0")
+                .parse::<rust_decimal::Decimal>()
+                .map_err(err)?
+                > rust_decimal::Decimal::ZERO
+        {
+            return Err(Error::Conflict);
+        }
         check_contact(&mut tx, c, cmd.data.invoice.contact_id.as_deref()).await?;
-        let v=map(sqlx::query("UPDATE sales_document SET data=$3,archived=$4,revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2 RETURNING *").bind(c).bind(id(d)?).bind(serde_json::to_value(cmd.data).map_err(err)?).bind(cmd.archived).fetch_one(&mut *tx).await.map_err(err)?)?;
+        crate::stock_documents::validate_links(&mut tx, c, &cmd.data.invoice.calculation).await?;
+        let mut v=map(sqlx::query("UPDATE sales_document SET data=$3,archived=$4,revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2 RETURNING *").bind(c).bind(id(d)?).bind(serde_json::to_value(cmd.data).map_err(err)?).bind(cmd.archived).fetch_one(&mut *tx).await.map_err(err)?)?;
+        if v.kind == Kind::Advance {
+            persist_advance(&mut tx, &mut v).await?;
+        }
         audit(&mut tx, a, &v, "update").await?;
         tx.commit().await.map_err(err)?;
         Ok(v)
@@ -192,6 +240,11 @@ impl SalesStore for PgSales {
         .await
         .map_err(err)?
         .ok_or(Error::NotFound)?)?;
+        if old.kind == Kind::Advance {
+            return Err(Error::Invalid(vec![
+                "advance_settlement_not_available".into()
+            ]));
+        }
         let command = serde_json::to_value(&cmd).map_err(err)?;
         if let Some(r) = sqlx::query(
             "SELECT * FROM sales_conversion WHERE company_id=$1 AND request_id=$2::text::uuid",
@@ -257,6 +310,7 @@ impl SalesStore for PgSales {
             return Err(Error::Invalid(errors));
         }
         check_contact(&mut tx, c, data.contact_id.as_deref()).await?;
+        crate::stock_documents::validate_links(&mut tx, c, &data.calculation).await?;
         let totals = faktura_domain::invoice::calculate(&data.calculation).ok();
         let json = serde_json::to_value(&data).map_err(err)?;
         let row=sqlx::query("INSERT INTO invoice_draft(company_id,creator_id,request_id,initial_data,data,totals,contact_id) VALUES($1,$2,$3::text::uuid,$4,$4,$5,$6) RETURNING *").bind(c).bind(a).bind(uuid::Uuid::new_v4().to_string()).bind(json).bind(serde_json::to_value(totals).map_err(err)?).bind(data.contact_id.as_deref().map(id).transpose()?).fetch_one(&mut *tx).await.map_err(err)?;
@@ -272,4 +326,35 @@ impl SalesStore for PgSales {
         tx.commit().await.map_err(err)?;
         Ok(invoice)
     }
+}
+
+async fn persist_advance(tx: &mut Transaction<'_, Postgres>, v: &mut Document) -> Result<()> {
+    v.totals = Some(
+        faktura_domain::invoice::calculate(&v.data.invoice.calculation).map_err(Error::Invalid)?,
+    );
+    if v.data.invoice.payment.variable_symbol.is_empty() {
+        v.data.invoice.payment.variable_symbol = v
+            .number
+            .as_deref()
+            .unwrap_or("")
+            .trim_start_matches("ZF")
+            .into();
+    }
+    let doc = faktura_application::draft::Draft {
+        advances: None,
+        id: v.id.clone(),
+        company_id: v.company_id.clone(),
+        revision: v.revision,
+        data: v.data.invoice.clone(),
+        totals: v.totals.clone(),
+        number: v.number.clone(),
+        settlement: None,
+        issued_at: None,
+    };
+    let pdf = tokio::task::spawn_blocking(move || crate::invoice_pdf::render_advance(&doc))
+        .await
+        .map_err(err)?
+        .map_err(err)?;
+    sqlx::query("UPDATE sales_document SET data=$3,advance_totals=$4,advance_pdf=$5 WHERE company_id=$1 AND id=$2").bind(id(&v.company_id)?).bind(id(&v.id)?).bind(serde_json::to_value(&v.data).map_err(err)?).bind(serde_json::to_value(&v.totals).map_err(err)?).bind(pdf).execute(&mut **tx).await.map_err(err)?;
+    Ok(())
 }

@@ -372,3 +372,376 @@ Neověřeno živým uploadem v referenční agendě; text „MB“ nedokládá p
 bajtů. Naše adaptace ATTACHMENTS-01: 2 MiB/soubor a 256 MiB/profil, explicitní
 výběr do e-mailu, neměnná historie, soubory v PostgreSQL se scoped autorizací.
 Tato architektura, quota a pravidla historického odstranění jsou náš návrh.
+
+## E-031 — export seznamů CSV/XLSX (12. 10. 2026)
+
+Typ: veřejná oficiální nápověda, ne autentický soubor ani přihlášený experiment.
+Zdroje: https://www.idoklad.cz/podpora/faktury-vydane,
+https://www.idoklad.cz/podpora/adresar-kontakty,
+https://www.idoklad.cz/podpora/ovladani-aplikace,
+https://www.idoklad.cz/blog/novinky-srpen-2020.
+Nápověda potvrzuje export seznamu faktur a kontaktů do XLSX/CSV a volbu sloupců.
+Příspěvek z roku 2020 popisuje předvýběr viditelných sloupců; aktuální živé UI
+nebylo v tomto kroku ověřeno. Filtry pro export jsou výslovně popsané u ceníku:
+https://www.idoklad.cz/podpora/seznam-polozek-ceniku.
+EXPORT-01 přebírá volbu formátu/sloupců a dle zadání aplikované filtry faktur/kontaktů.
+Vlastní odchylky: všechny sloupce předvybrané, 10 000 řádků, textové buňky a bezpečné CSV.
+Přesná shoda schématu a formátování není ověřena. Nevypovídá o exportech FakturyOnline.
+
+## E-032 — zálohové faktury (12. 10. 2026)
+
+Veřejná oficiální nápověda https://www.idoklad.cz/podpora/zalohove-faktury
+(uvádí aktualizaci 22. 4. 2024), https://www.idoklad.cz/podpora/prodej a
+https://www.idoklad.cz/podpora/danove-doklady-k-platbe.
+Doloženo: samostatná proforma agenda, nejde o daňový doklad, seznam má pohledy
+všechny/uhrazené/neuhrazené/po splatnosti. Vyúčtování a daňové doklady jsou
+navazující operace. Nápověda popisuje omezení editace po navázání daňového dokladu.
+Nejde o živý experiment; účetní/numerická shoda nebyla ověřena. Naše číslování ZF,
+blokace editace při jakékoli kladné úhradě, archiv a transakční pravidla jsou
+vlastní rozhodnutí ADVANCE-01. Reference neslouží jako tvrzení o interní DB.
+
+## E-033 — daňové doklady k přijaté platbě (12. 10. 2026)
+
+Veřejná nápověda https://www.idoklad.cz/podpora/danove-doklady-k-platbe,
+uvádí aktualizaci 18. 12. 2022, přečtena 12. 10. 2026. Popisuje samostatný
+seznam, výběr dosud nezpracované platby, vystavení z řádku úhrady, změnu popisu
+a data před uložením a export PDF/tisk. Popisuje také e-mail a automatizaci,
+které TAX-RECEIPT-01 zatím nepřebírá. Neproběhl experiment v živé testovací agendě.
+Nápověda neuvádí algoritmus rozdělení částečné platby mezi sazby ani přesné
+serverové chování při přeplatku, souběhu a stornu. Naše of-tax-receipt-v1,
+řada DDPP, immutable snapshot a blokace storna jsou vlastní pravidla popsaná
+v docs/specs/advance-tax-receipts.md; numerická a vizuální shoda není potvrzená.
+Právní lhůty z článku nejsou v této implementaci automaticky vyhodnocované.
+
+## E-034 — vyúčtování záloh (12. 10. 2026)
+
+Oficiální nápověda https://www.idoklad.cz/podpora/zalohove-faktury,
+aktualizace stránky 22. 4. 2024, přečteno 12. 10. 2026. Sekce vyúčtování:
+plná úhrada před přípravou, upravitelná konečná faktura s položkami a odpočty,
+automatické zahrnutí DDPP, více nevyúčtovaných záloh stejného odběratele a měny.
+Přidat odpočet lze i při tvorbě faktury. Stránka popisuje speciální chování při
+historické změně sazeb, které aktuální CZK model 0/12/21 % nepřebírá.
+Bez živého experimentu; rezervace už při návrhu, striktní odmítnutí přeplatku,
+identita stran, normalizace rozdílných cen a pravidla souběhu jsou naše rozhodnutí.
+Přesný odpočet uložených DDPP je výslovný požadavek uživatele a je popsaný v
+specifikaci advance-settlement.md. Nepředstírá se numerická ani 1:1 vizuální shoda.
+
+## E-035 — dobropisy (12. 10. 2026)
+
+Veřejná oficiální nápověda https://www.idoklad.cz/podpora/dobropisy,
+aktualizace 18. 12. 2022, přečteno 12. 10. 2026. Doložené: tvorba z běžné
+faktury, editovatelný koncept, důvod opravy, dílčí oprava ceny/položek,
+samostatný seznam a zápočet proti zdrojové faktuře pouze při dostatečném
+neuhrazeném zůstatku. Neprokazuje databázi, číslování, přesnost výpočtu ani
+konkurenci. Není proveden nový experiment v přihlášené testovací agendě.
+CREDIT-NOTE-01 výslovně odlišuje vlastní kumulativní odpočty, životní cyklus,
+vratky a návaznost na vyúčtované zálohy; numerická/vizuální shoda neověřená.
+
+## E-036 — pravidelné faktury (12. 10. 2026)
+
+Veřejné oficiální stránky https://www.idoklad.cz/podpora/pravidelne-faktury
+(aktualizace 3. 1. 2025) a https://www.idoklad.cz/podpora/vzor-pravidelne-faktury
+(18. 12. 2022), přečtené 12. 10. 2026. Vzor lze vytvořit nově nebo z faktury,
+přenáší údaje odběratele, položky a ceny. Každá faktura má vlastní číslo.
+Nápověda vzoru uvádí den/týden/měsíc/rok a interval, kotvu prvního vystavení,
+volitelný konec měsíce, náhled 12 dat, konec datem/počtem, splatnost ve dnech,
+samostatný výběr e-mailových příjemců. Dále podporuje zálohy a proměnné v textech.
+Neprokazuje souběh, DB ani chování po výpadku/DST. Tyto mechanismy a pozastavené
+uložení s explicitní aktivací jsou naše rozhodnutí v recurring-invoices.md.
+Žádné nové pozorování přihlášené aplikace; tarifní omezení nepřebíráme.
+
+## E-037 — komunikace a automatické upomínky
+
+- Datum čtení: 13. 10. 2026; veřejná dokumentace, aktualizace stránky 4. 12. 2024.
+- URL: https://www.idoklad.cz/podpora/nastaveni-e-maily-a-komunikace
+- Zjištění: oddělené e-mailové texty, ruční odeslání; automatické upomínání
+  běžných faktur při přihlášení, s povolením kontaktu, odstupem po splatnosti,
+  intervalem, limitem celkové částky a maximálně deseti upomínkami. Automatická
+  upomínka obsahuje odkaz na PDF. Poděkování může být ruční při úhradě nebo
+  automatické při bankovním párování. Příjemci mohou zahrnovat další adresy.
+- Žádné nové živé odeslání z referenční agendy nebylo provedeno. Serverové
+  souběhy a idempotence nejsou touto stránkou doložené.
+- Naše odchylky a ochrany: `docs/specs/invoice-communication.md`; zejména serverový
+  worker, pauza faktury, jeden adresát, PDF příloha a ruční úhrady místo banky.
+
+## E-038 — odkazy vystavených faktur
+
+13. 10. 2026, veřejná dokumentace:
+- https://www.idoklad.cz/podpora/faktury-vydane (aktualizace 18. 4. 2024),
+  část Odesílání jedné faktury: volba PDF přílohy nebo odkazu na PDF v prohlížeči;
+  u odkazu lze evidovat datum zobrazení, PDF příloha sama tuto informaci nedává.
+- https://www.idoklad.cz/blog/novinky-duben-2021 : příjemce má odkaz na zobrazení
+  a stažení; uhrazený doklad je označen štítkem Uhrazeno. Historický článek,
+  nikoli potvrzení současné podoby stránky.
+
+Živý příjemcovský náhled a referenční e-mail nebyly v tomto scénáři nově
+pozorované. Odesílání zákazníkům neproběhlo. Expirace, více odvolatelných odkazů,
+počítání technických návštěv a ochrana fronty jsou návrh Open Faktury podle
+specifikace `docs/specs/invoice-sharing.md`, nikoli odvození interního modelu iDokladu.
+
+## E-039 — evidence nákupu a výdajové úhrady
+
+Ověřeno 13. 10. 2026, veřejná dokumentace:
+- https://www.idoklad.cz/podpora/nakup-faktury-prijate (aktualizace 5. 5. 2026).
+- https://www.idoklad.cz/podpora/nakup-uhrady (aktualizace 9. 12. 2024).
+
+Doložené: interní číslování oddělené od čísla dodavatele, dodavatel a data,
+příloha originálu, filtry, upravitelná DPH dle zdroje. Úhrady mohou být částečné,
+mají částku/datum/metodu; přehled je na dokladu, zrušení platby je podporované.
+Dokumentace popisuje také automatické zaplacení podle metody a přeplatky.
+
+P15-01 se záměrně omezuje na explicitní ruční výdaje bez přeplatků, CZK,
+řádky přesných částek ze zdroje a původní soubory. Transakční model, audit,
+revize, UUID, limity, PF řada a konkrétní monochromatické UI jsou vlastní návrh.
+Živá aplikace ani API nebyly v tomto kroku experimentálně ověřeny.
+Specifikace: [přijaté faktury](../specs/received-invoices.md).
+
+## E-040 — účtenky a nákupní úhrady (13. 10. 2026)
+
+Typ: veřejná oficiální nápověda, nikoli živé pozorování API/UI.
+- https://www.idoklad.cz/podpora/nakup-uctenky (aktualizace 6. 5. 2026):
+  vlastní číslování, nepovinný dodavatel, externí číslo, popis z první položky,
+  hotově/kartou, přílohy. Zaplacení a párování s bankou/pokladnou jsou
+  rozdílné skutečnosti.
+- https://www.idoklad.cz/podpora/nakup-uhrady (9. 12. 2024):
+  společný seznam úhrad, filtrování dodavatele/metody/popisu/data a vazba na doklad.
+- https://www.idoklad.cz/podpora/domovska-stranka (29. 4. 2025):
+  nákup zahrnuje přijaté faktury a účtenky.
+
+Náš návrh P15-02: CZK, pevná UC řada, přesné částky z originálu, atomická
+evidence zaplacené účtenky bez bankovního párování, revizní opravy se stornem.
+Definice období a metrik jsou explicitní ve specifikaci purchase-receipts.md;
+nepotvrzují shodu s účetními nebo daňovými výstupy iDokladu.
+
+## E-041 — banka a bankovní účty (13. 10. 2026)
+
+Oficiální veřejná dokumentace:
+- https://www.idoklad.cz/podpora/finance-banka (9. 12. 2024): příjmy/výdaje,
+  ruční výběr nespárovaného dokladu, účet/VS/partner/popisek/data, filtry a odkaz na doklad.
+- https://www.idoklad.cz/podpora/nastaveni-banka (29. 6. 2026): více účtů,
+  neměnná měna po prvním pohybu, notifikace a rozlišení párování od samotného pohybu.
+- E-040: účtenka kartou už eviduje zaplacení, bankovní párování je samostatné.
+
+Bez živého pozorování této části. P16-01 používá vlastní CSV s povinným
+externím ID, transakční propojení jedné úhrady, auditované odpojení a CZK.
+Žádný skutečný bankovní export nebyl dodán; neoznačovat syntetické CSV za
+bankovní fixture. Rozdíly a další rozsah: specs/banking.md.
+
+## E-042 — bankovní formáty a návrhy párování (13. 10. 2026)
+
+Druh důkazu: veřejná dokumentace, žádné přihlášené bankovní API/UI pozorování.
+SDK ani databázový model bank se z těchto dokumentů neodvozuje.
+
+- [Air Bank specifikace exportů](https://www.airbank.cz/archiv-dokumentu/technicke-pozadavky-a-specifikace-hromadnych-plateb-a-export-vypisu.pdf), dokument 22/01: XML camt.053.001.02, VS v EndToEndId.
+- [Fio API](https://www.fio.cz/docs/cz/API_Bankovnictvi.pdf), verze 16. 10. 2025: accountStatement JSON, sloupce transakce a bankovní ID column22.
+- [ČS George Business](https://www.csas.cz/en/george-help/george-business/accounts-and-loans/accounts/account-statements), bez uvedené verze: dostupnost SEPA XML camt.053.
+- [ČSOB ČBA XML](https://www.csob.cz/documents/10710/420157/multicash-xml.pdf), verze neuvedena zde: XML standard pro firemní výpisy.
+- [KB XML výpis](https://mojebanka.kb.cz/file/cs/KB-podminky_format_XML_vypis.pdf), 19 stran: bankovní reference AcctSvcrRef; pořadí MsgId není náhradou.
+- [UniCredit elektronické bankovnictví](https://www.unicreditbank.cz/cs/financni-instituce/cash-management/elektronicke-bankovnictvi.html), verze neuvedena: zveřejněný formát camt.052/053.
+- [MONETA XML DTD](https://www.moneta.cz/documents/20143/11740743/mmb-ib-struktura-vypisu-xml.zip), DTD revize 1.22: účet, transaction.id, date-post, amount, trn-messages type. Lexikální formáty částky/data a úplná pravidla směru nejsou z DTD doložené. Adaptér proto odmítá nejednoznačnost.
+- [RB ABO/Gemini](https://www.rb.cz/attachments/elektronicke-bankovnictvi/27804-Popis-datove-struktury-ABO-a-Gemini-formatu-A.pdf), 19 stran, str. 6–9: ediční účty, stabilní číslo dokladu, haléře, kódy 1/2/4/5, měna v názvu souboru.
+- [iDoklad nastavení banky](https://www.idoklad.cz/podpora/nastaveni-banka), aktualizace 29. 6. 2026: VS a částka při párování; [účtenky](https://www.idoklad.cz/podpora/nakup-uctenky), aktualizace 6. 5. 2026: ruční párování bez VS.
+
+Vlastní návrh: ručně potvrzené návrhy, omezení CZK, zákaz mixu importních formátů
+v účtu a odmítnutí batch položek. Přesná implementace/limity v
+[specifikaci P16-02](../specs/bank-statements.md). Syntetické fixtures nejsou
+skutečné exporty. Kompatibilita všech bankovních variant zůstává neověřená;
+potřebuje anonymizované originály. Pokrytí formátu neslibuje dostupnost exportu
+v každém osobním účtu nebo tarifu banky.
+
+## E-043 — párování podle VS/částky a hromadné potvrzení (14. 10. 2026)
+
+Veřejná dokumentace:
+[Nastavení – Banka](https://www.idoklad.cz/podpora/nastaveni-banka),
+[Finance – Banka](https://www.idoklad.cz/podpora/finance-banka),
+[Nákup – Účtenky](https://www.idoklad.cz/podpora/nakup-uctenky).
+Živé verze načtené 14. 10. 2026; nejde o SDK ani přihlášené pozorování.
+
+Dokumentace popisuje shodu účtu, VS a částky, automatické zpracování bankovních
+notifikací a ruční řešení neúspěšných shod. Účtenky bez VS nelze takto automaticky
+párovat. Nedokládá náš hromadný dialog, fingerprint ani přesnou transakční hranici.
+
+P16-03 je vlastní konzervativní rozšíření: uživatel potvrdí náhled aktuální stránky,
+jen přesné jednoznačné shody, bez tolerancí a částečných automatických úhrad.
+Kolize více pohybů vedou k ručnímu řešení, nikoli volbě prvního řádku.
+[Specifikace](../specs/bank-batch-matching.md). Syntetické testy nedokládají
+shodu celé bankovní automatizace iDokladu.
+
+## E-044 — pokladna, veřejná dokumentace (14. 10. 2026)
+
+Zdroje: https://www.idoklad.cz/podpora/finance-pokladna (aktualizace 9. 12. 2024)
+a https://www.idoklad.cz/podpora/nastaveni-pokladna (2. 9. 2024).
+Veřejná nápověda, nikoli živý experiment nebo potvrzení interní DB.
+Pokladna eviduje příjmy/výdaje a párování s doklady; přehled lze omezit
+pokladnou/obdobím. Nastavení zahrnuje počáteční stav a datum, číslování,
+měnu a výchozí pokladnu. Dokumentace popisuje automatické vytvoření
+pokladního dokladu při hotovostní úhradě a tisk. P16-04 dodává explicitní
+evidenci a párování; automatizace a tisk zůstávají rozdíly. Pravidla storna
+a neměnnosti počátku jsou vlastní návrh ve specs/cash-register.md.
+
+## E-045 — hlavní pokladna a automatické doklady (14. 10. 2026)
+
+Veřejná nápověda, znovu načtená 14. 10. 2026:
+https://www.idoklad.cz/podpora/nastaveni-pokladna (aktualizace 2. 9. 2024),
+https://www.idoklad.cz/podpora/nakup-uctenky (6. 5. 2026).
+Hlavní domácí pokladna je cílem automatických dokladů. Hotovostní účtenka
+vytváří pokladní doklad, jazyk tisku je samostatné nastavení. Nápověda není
+experiment se stornem nebo souběhem; P16-05 tyto podrobnosti výslovně navrhuje
+v cash-register.md. Samotné označení způsobu úhrady v našem editoru není platba.
+
+## E-046 — pokladní položka DPH a návaznost prodejek (14. 10. 2026)
+
+Veřejná nápověda načtená 14. 10. 2026 (nikoli přihlášený experiment):
+- https://www.idoklad.cz/podpora/finance-pokladna (9. 12. 2024): jedna položka
+  s názvem/cenou, typem ceny, sazbou a členěním DPH pro plátce; nepodporuje PDP.
+- https://www.idoklad.cz/podpora/prodejky (21. 11. 2024): prodej na místě,
+  odběratel není povinný, návazné zaúčtování.
+- https://www.idoklad.cz/podpora/zauctovani-prodejek (18. 12. 2022): souhrnný
+  pokladní doklad pro hotovost, interní doklad pro kartu/stravenku, storno
+  zaúčtování ve zdroji. Proto nelze prodejky pouze převést na běžné úhrady faktur.
+
+P16-06 dokončuje pouze samostatnou pokladní položku DPH. Vlastní návrh:
+kalkulátor of-czk-v1, neměnnost/storno, zákaz párování daňového plnění, omezení
+data, CZK, sazby a snapshot. Není ověřena numerická ani úplná UI shoda s iDokladem.
+Členění DPH a souhrnné zaúčtování ještě nejsou implementované.
+
+## E-047 — bankovní počátek, prodejky a terminály (14. 10. 2026)
+
+Veřejná dokumentace načtená 14. 10. 2026:
+https://www.idoklad.cz/podpora/nastaveni-banka (29. 6. 2026) výslovně popisuje
+nastavení počátečního stavu k datu. Způsob započtení hraničního dne a audit
+změn není doložen; bank-balances.md je definuje jako vlastní pravidla.
+https://www.idoklad.cz/podpora/karta-prodejky (6. 1. 2023) popisuje kombinaci
+hotovosti/karty/stravenky, nutnost plné úhrady, nepovinného odběratele a oddělení
+interní poznámky od tisku. Prodejky tedy nelze vydávat za obyčejné faktury.
+https://www.idoklad.cz/podpora/nastaveni-pokladna (2. 9. 2024) popisuje terminály
+a tisk. Jde o nápovědu, nikoli běhovou či numerickou shodu.
+
+## E-048 — Fio API a vlastní bankovní napojení (14. 10. 2026)
+
+Zdroj: veřejná dokumentace Fio API Bankovnictví, verze 16. 10. 2025,
+https://www.fio.cz/docs/cz/API_Bankovnictvi.pdf a
+https://www.fio.cz/bank-services/internetbanking-api . Ověřeno čtením veřejné
+dokumentace 14. 10. 2026; nešlo o volání skutečného bankovního účtu.
+Kontrakt dokládá čtení pohybů za interval přes
+`https://fioapi.fio.cz/v1/rest/periods/{token}/{from}/{to}/transactions.json`,
+token vytvořený oprávněným uživatelem a prodlevu aktivace nového tokenu.
+
+Open Faktura přidává vlastní gateway kontrakt a správu přístupů (P16-15a).
+Tato část je návrhové rozhodnutí, není oficiálním společným API českých bank
+ani dokladem plné shody s iDokladem. Testy jsou syntetické a loopback;
+živé ověření jednotlivých poskytovatelů zůstává otevřené.
+
+## E-049 — rozdělení bankovního pohybu (14. 10. 2026)
+
+Veřejná dokumentace https://www.idoklad.cz/podpora/finance-banka,
+aktualizace stránky 9. 12. 2024, načteno 14. 10. 2026. Popisuje ruční výběr
+jednoho nespárovaného dokladu a jednu položku pohybu. Rozdělení mezi více
+dokladů ani chování přeplatků z této stránky doložené není. Žádné nové
+pozorování přihlášené aplikace/API. P16-11 je explicitně vlastní rozšíření,
+nikoli potvrzená shoda s iDokladem; viz specs/bank-split-matching.md.
+
+## E-050 — prodejky a souhrnné zaúčtování, opětovné ověření (15. 10. 2026)
+
+Veřejná nápověda, nikoli pozorování přihlášené aplikace:
+https://www.idoklad.cz/podpora/prodejky (aktualizace 21. 11. 2024) popisuje
+prodej na místě s nepovinným odběratelem. Souhrnné zaúčtování odděluje hotovost
+(pokladní doklady) od karty/stravenek (interní doklady). U kombinace přenáší
+poměrnou část a sdružuje podle zařízení, případně odběratele. Storno zaúčtování
+uvolní zdrojové prodejky pro nové zpracování. Skladový prodej má návazný výdej.
+
+https://www.idoklad.cz/podpora/karta-prodejky (aktualizace 6. 1. 2023) popisuje
+samostatný editor, číslování a sdílené cenové předvolby; nejde o obyčejný návrh
+faktury. https://www.idoklad.cz/podpora/nastaveni-pokladna (aktualizace
+2. 9. 2024) je podklad profilové evidence terminálů.
+
+Neověřeno: konkrétní numerické rozdělení haléřů mezi způsoby úhrady, běhová
+pravidla oprav zaúčtovaných prodejek a kompatibilita externích zařízení.
+Daňová tvrzení nápovědy nejsou náhradou aktuálního oficiálního právního podkladu.
+Terminál v Open Faktuře je zatím konfigurace; není dokladem funkčního propojení
+s platebním hardwarem ani hotového modulu prodejek.
+
+## E-051 — Inbox (veřejná nápověda, 15. 10. 2026)
+
+Zdroj: https://www.idoklad.cz/podpora/inbox, poslední aktualizace stránky
+6. 5. 2026, přečteno 15. 10. 2026. Jde o veřejnou dokumentaci, nikoli
+pozorování přihlášené aplikace nebo znalost serverového modelu.
+
+Inbox podporuje jednotlivé i hromadné nahrání souborů a příjem příloh přes
+unikátní adresu agendy. Z dokumentu lze vytvořit přijatou fakturu či účtenku,
+nebo jej připojit k existujícímu dokladu. Strukturovaný obsah ISDOC/QR umožňuje
+předvyplnění; chybějící rozpoznání nesmí předstírat známý typ. Příjem bez příloh
+se nezpracovává. Vyčtená data uživatel kontroluje. Tarifní omezení nepřebíráme.
+
+Vlastní návrh Open Faktury: izolovaný originál v PostgreSQL, SHA-256 deduplikace
+v profilu, potvrzení převodu v transakci a samostatný audit. Uživatelský upload
+není totéž co ověřená bankovní notifikace. Žádná příloha sama nevytváří úhradu.
+
+## E-052 — ISDOC 6.0.2 (statický standard, 15. 10. 2026)
+
+Zdroj: https://isdoc.github.io/ a
+https://isdoc.github.io/xsd/isdoc-invoice-6.0.2.xsd,
+verze 6.0.2 z 25. 4. 2022. Přečteny názvy a významy polí řádku,
+dodavatele, měny, plateb a LegalMonetaryTotal. Jde o formátový kontrakt,
+nikoli skutečný export iDokladu. Syntetická fixture není certifikovaná
+XSD/Schematron validní faktura.
+
+První parser Open Faktury podporuje unsigned tuzemské CZK běžné faktury
+6.0.1/6.0.2 bez záloh, přenesené daně a již provedených plateb. Zachovává
+zdrojové částky; neshoda součtů je chyba. DTD a více namespace deklarací
+odmítá, externí zdroje nikdy nenačítá. Neověřuje elektronický podpis ani
+celou shodu XSD. ISDOC.PDF, ISDOCX, QR a další režimy zatím nejsou tímto
+parserem implementované.
+
+## E-053 — Skladové pohyby (veřejná nápověda, 15. 10. 2026)
+
+Zdroj: https://www.idoklad.cz/podpora/karta-skladove-pohyby, aktualizace
+23. 4. 2024; přečteno 15. 10. 2026. Dokumentuje ruční naskladnění/vyskladnění,
+pohyby z vydaných/přijatých faktur a dobropisů, seznam s příjmy/výdaji,
+detail položky a filtr období. E-025 doplňuje pozorovaný přepínač sledování
+zásoby. Není ověřená přesnost množství, souběh ani interní způsob inventury.
+
+Vlastní návrh: čtyři desetinná místa množství, neměnný pohyb s reverzním
+záznamem, UUID replay, profilový zámek a inventurní rozdíl vůči očekávané
+revizi. Záporná zásoba je evidovaná skutečnost, nikoli automatické omezení prodeje.
+
+## E-054 — Přehledy a datace grafu (16. 10. 2026)
+
+Veřejná nápověda: https://www.idoklad.cz/podpora/domovska-stranka, aktualizace
+29. 4. 2025, přečteno 16. 10. 2026. Faktury/dobropisy používají u daňových
+dokladů DUZP, jinak vystavení; nákupní faktury přijetí, účtenky/prodejky
+vystavení. Bilance prodeje zahrnuje faktury, dobropisy a prodejky, nikoli
+zálohy/DDPP. Nákup zahrnuje přijaté faktury a účtenky. Reference nabízí ceny
+s/bez DPH, kumulaci a srovnání roků. Nejde o pozorování testovací agendy;
+vlastní přesné obnovení částky vyúčtování není numericky ověřené vůči iDokladu.
+
+## E-055 — QR Platba SPAYD 1.0 (16. 10. 2026)
+
+Oficiální specifikace: https://qr-platba.cz/pro-vyvojare/specifikace-formatu/
+(bez uvedené revize, přečteno 16. 10. 2026). Hlavička SPD*1.0, ACC je IBAN,
+AM nejvýše 9 999 999,99 se dvěma desetinnými místy, CC, DT YYYYMMDD, X-VS
+maximálně deset číslic. Pro tisk doporučená korekce M. Náš renderer používá
+uloženou původní částku a lokální generování; neověřuje provedení platby.
+QR Faktura/SIND byla pouze prozkoumána: https://www.kdpcr.cz/informace/qr-faktura/popis-formatu,
+verze 1.0; její implementace a kombinace Platba+F zůstávají otevřené.
+
+## E-056 — Stav skladů k datu, hranice ocenění (17. 10. 2026)
+
+Veřejná dokumentace https://www.idoklad.cz/podpora/seznam-polozek-ceniku,
+aktualizace 23. 4. 2024, přečteno 17. 10. 2026: sestava Stav skladů obsahuje
+název, kód, množství a jednotku ke zvolenému datu. Cena v ceníku je prodejní
+cena, nikoli doložená pořizovací cena. Nápověda
+https://www.idoklad.cz/podpora/karta-skladove-pohyby (stejné datum aktualizace)
+dokládá členění příjmů/výdejů a filtrování datem. V těchto zdrojích není
+popsána metoda pořizovacího ocenění. Nebyl proveden srovnávací experiment.
+
+Vlastní rozšíření P18-03b: časově platná ručně zadaná skladová cena CZK za
+jednotku, historie a neoceněné položky; žádné tvrzení o FIFO či váženém průměru
+v iDokladu. Tato metoda nepřebírá prodejní cenu ani automaticky nepovažuje
+základ DPH z přijaté faktury za celkovou pořizovací cenu zásob.
+
+P18-03c (17. 10. 2026) zavádí vlastní konzervativní průběžný vážený průměr
+z explicitních pořizovacích cen příjmů. Syntetický příklad 10 × 20 + 5 × 50,
+výdej 3 → množství 12, hodnota 360 CZK je test našeho pravidla, nikoli pozorování
+iDokladu. Neznámé vstupy a nevyřešené opravy vedou k neznámé hodnotě;
+vyprázdnění zásoby zahajuje nový průměr. Viz hranice v `docs/specs/stock.md`.

@@ -1,0 +1,349 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura invoice communication",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/communication": {
+      "get": {
+        "operationId": "communication_settings",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "401": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "403": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "404": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "409": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "422": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "503": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          }
+        }
+      },
+      "put": {
+        "operationId": "communication_save",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "401": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "403": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "404": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "409": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "422": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "503": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Settings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices/{id}/communication/{purpose}": {
+      "get": {
+        "operationId": "communication_preview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "purpose",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "reminder",
+                "thanks"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "401": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "403": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "404": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "409": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "422": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "503": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices/{id}/communication": {
+      "put": {
+        "operationId": "communication_pause",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pause"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "401": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "403": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "404": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "409": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "422": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          },
+          "503": {
+            "description": "Unauthorized, forbidden, missing, stale or invalid command"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Pause"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Settings": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "reminders",
+          "thanks",
+          "first_days",
+          "repeat_days",
+          "minimum_total"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reminders": {
+            "type": "boolean"
+          },
+          "thanks": {
+            "type": "boolean"
+          },
+          "first_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 365
+          },
+          "repeat_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 365
+          },
+          "minimum_total": {
+            "type": "string"
+          }
+        }
+      },
+      "Preview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "purpose",
+          "eligible",
+          "paused",
+          "settlement_revision",
+          "revision",
+          "recipient",
+          "subject",
+          "body",
+          "automation_error"
+        ],
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "reminder",
+              "thanks"
+            ]
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "settlement_revision": {
+            "type": "integer"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "automation_error": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Pause": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paused"
+        ],
+        "properties": {
+          "paused": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

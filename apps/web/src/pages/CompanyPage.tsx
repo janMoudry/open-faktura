@@ -1,3 +1,4 @@
+import { CommunicationSettings } from "../components/organisms/CommunicationSettings";
 import { AresRegistration } from "../components/molecules/AresRegistration";
 import { useCompanyAres, companyRegistryData } from "../hooks/useCompanyAres";
 import { Link, useParams } from "react-router";
@@ -500,6 +501,13 @@ export function CompanyPage() {
               </>
             )}
           </>
+        )}
+        {company && (
+          <CommunicationSettings
+            key={company.id}
+            company={company.id}
+            editable={company.role === "owner"}
+          />
         )}
       </div>
       <Dialog

@@ -1,6 +1,6 @@
 # Lokální vývoj
 
-Monorepo obsahuje web/Tauri UI, Rust API a PostgreSQL. Aktuální implementované moduly a jejich omezení uvádí [přehled funkcí](../FEATURES.md). API klienti a MCP schémata se generují přes `pnpm generate:api`; lokální MCP a fakturační moduly jsou implementované, PWA/offline režim zatím ne.
+Monorepo obsahuje web/Tauri UI, Rust API a PostgreSQL. Aktuální implementované moduly a jejich omezení uvádí [checklist](FEATURE_CHECKLIST.md). API klienti a MCP schémata se generují přes `pnpm generate:api`; lokální MCP a fakturační moduly jsou implementované, PWA/offline režim zatím ne.
 
 ## Požadavky
 
@@ -112,3 +112,61 @@ Produktové routy: `/#/companies/:companyId/invoices` a `…/invoices/new`.
 API ukládá návrhy do PostgreSQL, migraci 007 spouští standardní start serveru.
 DB regrese: `DATABASE_URL=... pnpm test:invoices`; UI: `pnpm exec playwright test tests/e2e/invoices.spec.ts`.
 Specifikace a omezení: [invoice-drafts.md](specs/invoice-drafts.md).
+
+P13-03: `DATABASE_URL=… pnpm test:advance-settlements` spouští izolované scénáře vyúčtování, rezervací, odpočtů DDPP, doplatku, souběhu a upgradu z 019. UI je součástí `tests/e2e/sales.spec.ts`. [Specifikace](specs/advance-settlement.md).
+
+P13-04: `DATABASE_URL=… pnpm test:credit-notes`, doménové hranice `cargo test -p faktura-server --test credit_note`, UI `pnpm exec playwright test tests/e2e/credit-notes.spec.ts --workers=1`. Testy vytvářejí izolované DB; migrace 021 mění pohled úhrad, před upgradem zastavit starý server. [Specifikace](specs/credit-notes.md).
+
+P14-01: `DATABASE_URL=… pnpm test:recurring`; kalendář `cargo test -p faktura-domain recurring`; UI `pnpm exec playwright test tests/e2e/recurring.spec.ts --workers=1`. Scénáře mají izolované DB a lokální SMTP. Worker běží v API každé 2 sekundy, generuje nejvýše jeden výskyt za iteraci. [Specifikace](specs/recurring-invoices.md).
+
+P14-02: `docs/specs/invoice-communication.md`, migrace 023, `contracts/communication.openapi.json`
+a rozšíření invoice-delivery. `DATABASE_URL=… pnpm test:communication`; UI
+`tests/e2e/communication.spec.ts`. Testy jen izolovaná DB a loopback SMTP. Regrese
+`test:invoice-delivery`, `test:payments`, `test:recurring`, `test:delivery`. Automatizace
+je explicitně povolená v profilu; nepovolovat ji při testech v reálné agendě.
+
+P14-03: `DATABASE_URL=… pnpm test:invoice-shares`; UI
+`pnpm exec playwright test tests/e2e/invoice-sharing.spec.ts --workers=1`.
+Izolované DB, anonymní kontext pro veřejný náhled a lokální SMTP capture.
+Regrese `share`, `invoice_delivery`, `attachment`, `communication`, `recurring`.
+[Specifikace](specs/invoice-sharing.md), migrace 024; před upgradem zastavit API.
+
+P15-01: `DATABASE_URL=… pnpm test:received`, UI
+`pnpm exec playwright test tests/e2e/received.spec.ts --workers=1`.
+Syntetické profily, izolovaná DB; přílohy bez externího odesílání. Regrese
+`attachment`, `invoice_delivery`, `invoice_share`, navigace `routing.spec.ts`.
+Kontrakt received se generuje přes `pnpm generate:api`. Migrace 025.
+
+P15-02: `DATABASE_URL=… pnpm test:received` ověřuje i účtenky, přehledy,
+hranice období a upgrade025; `pnpm test:e2e tests/e2e/purchase-receipts.spec.ts`
+používá izolované DB a syntetická data. API/MCP generuje `pnpm generate:api`.
+
+P16-01: `DATABASE_URL=… pnpm test:bank`, UI
+`pnpm exec playwright test tests/e2e/bank.spec.ts --workers=2`.
+Regrese sdílených plateb: `test:payments`, `test:received`, `test:communication`.
+Migrace 027; `pnpm generate:api` generuje bank klienta a MCP nástroje.
+Testy vytvářejí izolované databáze, UI používá syntetické CSV a lokální SMTP capture.
+
+P16-02: `pnpm test:bank` zahrnuje nativní výpisy a návrhy shod;
+`cargo test -p faktura-infrastructure bank_statement` ověřuje syntetické kontrakty.
+Migrace 028 přidává importní zdroje. Před upgradem zastavit API; původní data se
+nemění. UI: `tests/e2e/bank.spec.ts`. [Podporované varianty a limity](specs/bank-statements.md).
+
+### Pokladna P16-04
+
+`DATABASE_URL=… pnpm test:cash` spustí izolované PostgreSQL testy (vyžaduje
+CREATEDB); `pnpm exec playwright test tests/e2e/cash.spec.ts --workers=2`
+ověřuje CS/EN desktop i mobil s vlastní dočasnou DB/API. Regrese: bank,
+payment, received a communication. [Výsledky](design/cash-validation.md).
+
+### Přehledy a QR (P19-01a / P20-04a)
+
+`DATABASE_URL=… pnpm test:period-report` ověřuje oddělené databáze, přesné
+součty s/bez DPH, dataci, stránky, oprávnění a REST/MCP. Uživatelské scénáře
+přehledů, skladu a vzhledu jsou v `tests/e2e/catalog.spec.ts` (CS/EN, desktop/mobile).
+
+`cargo test -p faktura-domain payment_qr` ověřuje SPAYD a účty.
+`DATABASE_URL=… pnpm test:invoices` zahrnuje QR PDF CS/EN v ignorovaném
+adresáři `tmp/pdfs`. Kontrola skenování 16. 10. 2026 použila Poppler
+150 DPI a zxing-cpp 2.3.0 v dočasném Python prostředí; nejde o povinnou
+produkční závislost. Generování QR probíhá lokálně v Rustu.

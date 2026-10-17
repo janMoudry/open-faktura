@@ -146,6 +146,7 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     InvoiceCalculation: {
       /** @enum {string} */
@@ -239,6 +240,7 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     DraftCalculation: {
       /** @enum {string} */
@@ -263,6 +265,7 @@ export interface components {
       number: string | null;
       issued_at: string | null;
       settlement: components["schemas"]["Settlement"] | null;
+      advances: components["schemas"]["AdvanceSettlement"] | null;
     };
     DraftPage: {
       items: components["schemas"]["Draft"][];
@@ -345,6 +348,30 @@ export interface components {
       /** @enum {string} */
       currency: "CZK";
       today: string;
+    };
+    AdvanceTaxDeduction: {
+      id: string;
+      number: string;
+      totals: components["schemas"]["InvoiceTotals"];
+    };
+    AdvanceSource: {
+      id: string;
+      number: string;
+      paid: string;
+      payment_ids: string[];
+      tax_receipts: components["schemas"]["AdvanceTaxDeduction"][];
+    };
+    AdvanceSettlement: {
+      version: string;
+      sources: components["schemas"]["AdvanceSource"][];
+      credited: string;
+      rounding_adjustment: string;
+      customer: components["schemas"]["PartySnapshot"];
+      supplier: components["schemas"]["PartySnapshot"];
+      /** @enum {string} */
+      tax_mode: "non_payer" | "vat_payer";
+      /** Format: date */
+      minimum_date: string;
     };
   };
   responses: never;
