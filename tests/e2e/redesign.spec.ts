@@ -4,6 +4,104 @@ import { mkdir } from "node:fs/promises";
 import { mockRedesignWorkspace } from "./redesign-fixture";
 import type { InvoiceDraft } from "@open-faktura/api-client";
 
+for (const language of ["cs", "en"] as const) {
+  test(`company default payment terms preselect new invoices (${language})`, async ({
+    page,
+  }, info) => {
+    await page.clock.setFixedTime(new Date("2026-10-17T10:00:00Z"));
+    const { company } = await mockRedesignWorkspace(page, { language });
+    await page.route("**/api/companies/design", async (route) => {
+      if (route.request().method() !== "PUT") return route.fallback();
+      const input = route.request().postDataJSON();
+      expect(input.revision).toBe(company.revision);
+      company.settings = input.settings;
+      company.revision++;
+      return route.fulfill({ json: company });
+    });
+    const text = (cs: string, en: string) => (language === "cs" ? cs : en);
+    for (const [days, expectedDay, expectedMonth] of [
+      [30, "16", "11"],
+      [0, "17", "10"],
+      [19, "05", "11"],
+    ] as const) {
+      await page.goto("/#/companies/design");
+      await page
+        .getByRole("button", {
+          name: text("Upravit nastavení", "Edit settings"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text("Fakturační nastavení", "Billing preferences"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", {
+          name: new RegExp(text("Výchozí splatnost", "Default payment terms")),
+        })
+        .click();
+      await page
+        .getByRole("option", {
+          name:
+            days === 0
+              ? text("Ihned", "Immediately")
+              : days === 19
+                ? text("Vlastní počet dní", "Custom number of days")
+                : text("30 dní", "30 days"),
+          exact: true,
+        })
+        .click();
+      if (days === 19)
+        await page
+          .getByRole("spinbutton", {
+            name: text("Splatnost (dny)", "Payment due in (days)"),
+            exact: true,
+          })
+          .fill("19");
+      if (days === 30 && language === "cs" && info.project.name === "desktop")
+        await page.screenshot({
+          path: "docs/design/redesign-2026-10-17/company-default-payment-terms.png",
+          fullPage: true,
+        });
+      await page
+        .getByRole("button", {
+          name: text("Uložit fakturační údaje", "Save billing details"),
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByText(text("Nastavení bylo uloženo.", "Settings saved."), {
+          exact: true,
+        }),
+      ).toBeVisible();
+      expect(company.settings.maturity_days).toBe(days);
+      await page.reload();
+      await page.goto("/#/companies/design/invoices/new");
+      const terms = page.getByRole("button", {
+        name: language === "cs" ? /Splatnost$/ : /Payment terms$/,
+      });
+      await expect(terms).toContainText(
+        days === 0
+          ? text("Ihned", "Immediately")
+          : days === 19
+            ? text("Vlastní datum", "Custom date")
+            : text("30 dní", "30 days"),
+      );
+      const due = page.locator(".ui-selection").filter({
+        has: page.getByText(text("Datum splatnosti", "Due date"), {
+          exact: true,
+        }),
+      });
+      await expect(due.getByRole("spinbutton").nth(0)).toHaveText(expectedDay);
+      await expect(due.getByRole("spinbutton").nth(1)).toHaveText(
+        expectedMonth,
+      );
+    }
+  });
+}
+
 test("brand logo and brand breadcrumb return to the active company overview", async ({
   page,
 }, info) => {
@@ -158,14 +256,12 @@ for (const language of ["cs", "en"] as const) {
       })
       .click();
     await expect(
-      page
-        .getByRole("status")
-        .filter({
-          hasText:
-            language === "cs"
-              ? "Návrh faktury byl uložen."
-              : "Invoice draft saved.",
-        }),
+      page.getByRole("status").filter({
+        hasText:
+          language === "cs"
+            ? "Návrh faktury byl uložen."
+            : "Invoice draft saved.",
+      }),
     ).toBeVisible();
     expect(stored!.data.due_on).toBe(stored!.data.issued_on);
     await page.reload();

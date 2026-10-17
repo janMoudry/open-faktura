@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { DatePicker, Select } from "@open-faktura/ui";
+import { DatePicker } from "@open-faktura/ui";
+import { PaymentTermsSelect, paymentTermDays } from "./PaymentTermsSelect";
 import { useAppTranslation } from "../../locales";
 import { addDays } from "../../utils/invoice";
 
@@ -20,7 +21,6 @@ export function InvoicePaymentDates({
 }) {
   const { t } = useAppTranslation();
   const [custom, setCustom] = useState(false);
-  const presets = [0, 7, 14, 21, 30, 60];
   const days =
     issuedOn && dueOn
       ? Math.round(
@@ -44,30 +44,15 @@ export function InvoicePaymentDates({
           });
         }}
       />
-      <Select
+      <PaymentTermsSelect
         label={t("draftMaturity")}
         hint={t("draftMaturityHint")}
         disabled={disabled || !issuedOn}
-        value={
-          !custom && days !== null && presets.includes(days)
-            ? String(days)
-            : "custom"
-        }
-        options={[
-          ...presets.map((days) => ({
-            value: String(days),
-            label:
-              days === 0
-                ? t("draftMaturityImmediate")
-                : t("draftMaturityDays", { days }),
-          })),
-          { value: "custom", label: t("draftMaturityCustom") },
-        ]}
-        onChange={(value) => {
-          setCustom(value === "custom");
-          if (!issuedOn || value === "custom") return;
-          const next = Number(value);
-          if (!presets.includes(next)) return;
+        value={!custom ? days : null}
+        onChange={(next) => {
+          setCustom(next === null);
+          if (!issuedOn || next === null || !paymentTermDays.includes(next))
+            return;
           const due_on = addDays(issuedOn, next);
           if (due_on.length === 10) onChange({ issued_on: issuedOn, due_on });
         }}

@@ -216,4 +216,5 @@ export async function mockRedesignWorkspace(
       });
     return route.fulfill({ status: 503, json: { code: "unavailable" } });
   });
+  return { company };
 }

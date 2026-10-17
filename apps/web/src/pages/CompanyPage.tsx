@@ -18,6 +18,7 @@ import {
 import type { CompanySettings } from "@open-faktura/api-client";
 import { useAppTranslation, type AppKey } from "../locales";
 import { useWorkspace } from "../hooks/useCompanyWorkspace";
+import { CompanyPaymentTerms } from "../components/molecules/PaymentTermsSelect";
 
 const labels: Record<keyof CompanySettings, AppKey> = {
   name: "companyName",
@@ -34,7 +35,7 @@ const labels: Record<keyof CompanySettings, AppKey> = {
   tax_effective_from: "taxEffective",
   currency: "currency",
   timezone: "timezone",
-  maturity_days: "maturityDays",
+  maturity_days: "companyDefaultMaturity",
   payment_method: "paymentMethod",
   iban: "iban",
   number_prefix: "numberPrefix",
@@ -392,7 +393,20 @@ export function CompanyPage() {
                         { value: "cash", label: "cash" },
                         { value: "bank_transfer", label: "bankTransfer" },
                       ])}
-                      {field("maturity_days", "number")}
+                      <CompanyPaymentTerms
+                        key={company.id}
+                        value={settings.maturity_days}
+                        disabled={busy}
+                        error={
+                          fields.includes("maturity_days")
+                            ? t("companyFieldInvalid")
+                            : undefined
+                        }
+                        onChange={(maturity_days) => {
+                          setSaved(false);
+                          setSettings({ ...settings, maturity_days });
+                        }}
+                      />
                       {(settings.payment_method === "bank_transfer" ||
                         settings.iban ||
                         fields.includes("iban")) &&
@@ -612,11 +626,15 @@ function Summary({
           <div key={key} className="min-w-0">
             <dt className="text-sm text-muted">{t(labels[key])}</dt>
             <dd className="min-w-0 break-words text-sm">
-              {values[key]
-                ? t(values[key]!)
-                : key === "tax_effective_from" && settings[key]
-                  ? formatCalendarDate(settings[key], language)
-                  : String(settings[key]) || t("notProvided")}
+              {key === "maturity_days"
+                ? settings.maturity_days === 0
+                  ? t("draftMaturityImmediate")
+                  : t("companyMaturityCount", { count: settings.maturity_days })
+                : values[key]
+                  ? t(values[key]!)
+                  : key === "tax_effective_from" && settings[key]
+                    ? formatCalendarDate(settings[key], language)
+                    : String(settings[key]) || t("notProvided")}
             </dd>
           </div>
         ))}
