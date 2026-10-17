@@ -283,6 +283,9 @@ details[open] > .contact-disclosure svg {
     min-height: var(--size-control-sm);
   }
   @media (min-width: 64rem) {
+    .profile-section .ui-selection > .text-muted {
+      grid-column: 2;
+    }
     .profile-facts > div {
       grid-template-columns: var(--spacing-form-label) minmax(0, 1fr);
     }
