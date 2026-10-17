@@ -267,6 +267,7 @@
   "draftDatesPayment": "Dates and payment",
   "draftIssued": "Issue date",
   "draftDue": "Due date",
+  "draftMaturityHint": "Calendar days from the issue date. 0 = due on the issue date.",
   "draftItems": "Invoice items",
   "draftPriceMode": "Price entry",
   "draftNetPrice": "Excluding VAT",

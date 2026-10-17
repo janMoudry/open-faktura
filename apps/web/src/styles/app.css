@@ -810,10 +810,10 @@ details[open] > .contact-disclosure svg {
       @apply min-w-0;
     }
     .invoice-editor-dates > .space-y-inline {
-      @apply items-end;
+      @apply items-start;
     }
     .invoice-editor-dates .ui-selection-label {
-      @apply text-xs;
+      @apply text-sm;
     }
   }
 }

@@ -56,6 +56,7 @@ import { IssuedInvoice } from "../components/organisms/IssuedInvoice";
 import { InvoiceSummary } from "../components/organisms/InvoiceSummary";
 import { InvoiceLines } from "../components/organisms/InvoiceLines";
 import { InvoiceCustomerPicker } from "../components/organisms/InvoiceCustomerPicker";
+import { InvoicePaymentDates } from "../components/molecules/InvoicePaymentDates";
 export function InvoiceDraftPage() {
   const { companyId = "", invoiceId = "" } = useParams();
   const [params] = useSearchParams();
@@ -553,25 +554,22 @@ function Editor({
                       {t("invoiceDates")}
                     </Heading>
                     <div className="space-y-inline">
-                      {(
-                        [
-                          ["issued_on", "draftIssued"],
-                          ["due_on", "draftDue"],
-                          ...(data.calculation.tax_mode === "vat_payer"
-                            ? [["tax_on", "draftTaxDate"]]
-                            : []),
-                        ] as ["issued_on" | "due_on" | "tax_on", AppKey][]
-                      ).map(([key, label]) => (
+                      <InvoicePaymentDates
+                        issuedOn={data.issued_on}
+                        dueOn={data.due_on}
+                        disabled={disabled}
+                        onChange={(dates) => change({ ...data, ...dates })}
+                      />
+                      {data.calculation.tax_mode === "vat_payer" && (
                         <DatePicker
-                          key={key}
-                          label={t(label)}
-                          value={data[key] ?? ""}
+                          label={t("draftTaxDate")}
+                          value={data.tax_on ?? ""}
                           disabled={disabled}
                           onChange={(v) =>
-                            change({ ...data, [key]: v || null })
+                            change({ ...data, tax_on: v || null })
                           }
                         />
-                      ))}
+                      )}
                     </div>
                   </div>
                   <div className="invoice-editor-payment space-y-field">

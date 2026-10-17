@@ -267,6 +267,7 @@
   "draftDatesPayment": "Data a platba",
   "draftIssued": "Datum vystavení",
   "draftDue": "Datum splatnosti",
+  "draftMaturityHint": "Kalendářní dny od vystavení. 0 = splatnost v den vystavení.",
   "draftItems": "Položky faktury",
   "draftPriceMode": "Zadávání cen",
   "draftNetPrice": "Bez DPH",

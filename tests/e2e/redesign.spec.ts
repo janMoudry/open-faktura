@@ -2,6 +2,106 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { mockRedesignWorkspace } from "./redesign-fixture";
+import type { InvoiceDraft } from "@open-faktura/api-client";
+
+for (const language of ["cs", "en"] as const) {
+  test(`invoice maturity days stay synchronized and survive saving (${language})`, async ({
+    page,
+  }, info) => {
+    await mockRedesignWorkspace(page, { language });
+    let stored: InvoiceDraft | undefined;
+    await page.route(
+      "**/api/companies/design/invoices/draft",
+      async (route) => {
+        if (route.request().method() === "PUT") {
+          stored = {
+            ...stored!,
+            revision: stored!.revision + 1,
+            data: route.request().postDataJSON().data,
+          };
+          return route.fulfill({ json: stored });
+        }
+        if (stored) return route.fulfill({ json: stored });
+        return route.fallback();
+      },
+    );
+    const response = page.waitForResponse((r) =>
+      r.url().endsWith("/invoices/draft"),
+    );
+    await page.goto("/#/companies/design/invoices/draft");
+    stored = await (await response).json();
+    const days = page.getByRole("spinbutton", {
+      name: language === "cs" ? "Splatnost (dny)" : "Payment due in (days)",
+      exact: true,
+    });
+    const issued = page.locator(".ui-selection").filter({
+      has: page.getByText(
+        language === "cs" ? "Datum vystavení" : "Issue date",
+        { exact: true },
+      ),
+    });
+    const due = page.locator(".ui-selection").filter({
+      has: page.getByText(language === "cs" ? "Datum splatnosti" : "Due date", {
+        exact: true,
+      }),
+    });
+    await expect(days).toHaveValue("14");
+    await days.fill("30");
+    // October → November also crosses the Prague daylight-saving transition.
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("15");
+    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("11");
+    await issued.getByRole("spinbutton").nth(0).press("ArrowUp");
+    await expect(days).toHaveValue("30");
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("16");
+    await due.getByRole("spinbutton").nth(0).fill("20");
+    await expect(days).toHaveValue("34");
+    await days.fill("0");
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("17");
+    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("10");
+    await days.fill("");
+    await expect(days).toHaveValue("");
+    await days.fill("30");
+    await page
+      .getByRole("button", {
+        name: language === "cs" ? "Uložit návrh" : "Save draft",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByRole("status").filter({
+        hasText:
+          language === "cs"
+            ? "Návrh faktury byl uložen."
+            : "Invoice draft saved.",
+      }),
+    ).toBeVisible();
+    expect(stored!.data.issued_on).toBe("2026-10-17");
+    expect(stored!.data.due_on).toBe("2026-11-16");
+    await page.reload();
+    await expect(days).toHaveValue("30");
+    if (language === "cs" && info.project.name === "desktop")
+      await page.screenshot({
+        path: "docs/design/redesign-2026-10-17/invoice-maturity-days.png",
+        fullPage: true,
+      });
+    // Calendar arithmetic must handle leap days and crossing a year boundary.
+    stored!.data.issued_on = "2028-02-28";
+    stored!.data.due_on = "2028-03-13";
+    await page.reload();
+    await expect(days).toHaveValue("14");
+    await days.fill("1");
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("29");
+    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("02");
+    stored!.data.issued_on = "2026-12-31";
+    stored!.data.due_on = "2027-01-14";
+    await page.reload();
+    await expect(days).toHaveValue("14");
+    await days.fill("1");
+    await expect(due.getByRole("spinbutton").nth(0)).toHaveText("01");
+    await expect(due.getByRole("spinbutton").nth(1)).toHaveText("01");
+    await expect(due.getByRole("spinbutton").nth(2)).toHaveText("2027");
+  });
+}
 
 test("appearance saves the selected theme and restores it after reload", async ({
   page,
