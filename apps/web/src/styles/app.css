@@ -420,7 +420,7 @@ details[open] > .contact-disclosure svg {
     display: block !important;
   }
   .workspace-root {
-    @apply min-h-screen bg-canvas;
+    @apply relative min-h-screen bg-canvas;
   }
   .workspace-header {
     @apply bg-canvas;
@@ -604,7 +604,7 @@ details[open] > .contact-disclosure svg {
       @apply flex-1;
     }
     .workspace-account {
-      @apply fixed bottom-0 left-0 w-workspace-sidebar border-t border-border bg-sidebar p-field;
+      @apply fixed z-40 bottom-0 left-0 w-workspace-sidebar border-t border-border bg-sidebar p-field;
     }
     .workspace-sidebar {
       top: var(--spacing-sidebar-chrome);
@@ -626,7 +626,7 @@ details[open] > .contact-disclosure svg {
       @apply order-3 w-full border-t border-border px-field py-inline;
     }
     .workspace-account {
-      @apply ml-auto;
+      @apply absolute right-0 top-0 z-40;
     }
     .workspace-create {
       @apply px-field py-inline;

@@ -25,6 +25,48 @@ export function AppLayout({
   onSmtp?: () => void;
 }) {
   const { t, language, setLanguage } = useAppTranslation();
+  const accountControls = (
+    <div
+      className={`flex flex-wrap items-center gap-inline ${workspace ? "workspace-account ml-auto px-field py-inline" : ""}`}
+    >
+      {workspace && email ? (
+        <AccountMenu
+          email={email}
+          name={name}
+          actions={actions}
+          onSettings={onAccountSettings}
+          onSmtp={onSmtp}
+        />
+      ) : (
+        <>
+          <div
+            role="group"
+            aria-label="Čeština / English"
+            className="flex gap-inline"
+          >
+            {(["cs", "en"] as const).map((code) => (
+              <Button
+                key={code}
+                size="sm"
+                variant={language === code ? "secondary" : "ghost"}
+                aria-pressed={language === code}
+                lang={code}
+                onClick={() => setLanguage(code)}
+              >
+                {code === "cs" ? "Čeština" : "English"}
+              </Button>
+            ))}
+          </div>
+          {actions}
+        </>
+      )}
+      {!workspace && (
+        <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
+          {t("version")}
+        </span>
+      )}
+    </div>
+  );
   return (
     <div className={workspace ? "workspace-root" : "min-h-screen"}>
       <header
@@ -52,48 +94,10 @@ export function AppLayout({
             </div>
           )}
           {workspace && <WorkspaceBreadcrumb />}
-          <div
-            className={`flex flex-wrap items-center gap-inline ${workspace ? "workspace-account ml-auto px-field py-inline" : ""}`}
-          >
-            {workspace && email ? (
-              <AccountMenu
-                email={email}
-                name={name}
-                actions={actions}
-                onSettings={onAccountSettings}
-                onSmtp={onSmtp}
-              />
-            ) : (
-              <>
-                <div
-                  role="group"
-                  aria-label="Čeština / English"
-                  className="flex gap-inline"
-                >
-                  {(["cs", "en"] as const).map((code) => (
-                    <Button
-                      key={code}
-                      size="sm"
-                      variant={language === code ? "secondary" : "ghost"}
-                      aria-pressed={language === code}
-                      lang={code}
-                      onClick={() => setLanguage(code)}
-                    >
-                      {code === "cs" ? "Čeština" : "English"}
-                    </Button>
-                  ))}
-                </div>
-                {actions}
-              </>
-            )}
-            {!workspace && (
-              <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-                {t("version")}
-              </span>
-            )}
-          </div>
+          {!workspace && accountControls}
         </div>
       </header>
+      {workspace && accountControls}
       <main
         className={
           workspace ? "" : "mx-auto max-w-6xl px-group py-page md:py-20"

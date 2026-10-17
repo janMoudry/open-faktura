@@ -8,6 +8,9 @@ export default defineConfig({
   use: { baseURL },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    ...(process.env.E2E_WEBKIT === "1"
+      ? [{ name: "webkit", use: { ...devices["Desktop Safari"] } }]
+      : []),
     {
       name: "mobile",
       use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },

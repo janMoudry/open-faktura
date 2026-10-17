@@ -132,3 +132,36 @@ test("redesign: header saves the form and a failed save retains edits", async ({
   await expect(description).toHaveValue("Změněný popis položky");
   await expect(issue).toBeDisabled();
 });
+
+test("avatar opens from the workspace and after scrolling at desktop breakpoints", async ({
+  page,
+}) => {
+  await mockRedesignWorkspace(page);
+  for (const width of [1024, 1280, 1600]) {
+    await page.setViewportSize({ width, height: 720 });
+    await page.goto("/#/workspace");
+    const avatar = page.getByRole("button", {
+      name: "Uživatelské menu",
+      exact: true,
+    });
+    await expect(avatar).toBeVisible();
+    for (const scroll of [0, 700]) {
+      await page.evaluate((y) => window.scrollTo(0, y), scroll);
+      const box = await page.locator(".workspace-account-avatar").boundingBox();
+      expect(box).not.toBeNull();
+      await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+      await expect(avatar).toHaveAttribute("aria-expanded", "true");
+      await expect(page.locator(".account-popover")).toBeVisible();
+      if (
+        width === 1280 &&
+        scroll === 0 &&
+        process.env.DESIGN_CAPTURE === "1"
+      ) {
+        await page.screenshot({
+          path: "docs/design/redesign-2026-10-17/account-menu.png",
+        });
+      }
+      await page.keyboard.press("Escape");
+    }
+  }
+});

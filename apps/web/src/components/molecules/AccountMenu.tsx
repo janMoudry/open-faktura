@@ -71,7 +71,10 @@ export function AccountMenu({
         aria-label={t("accountMenu")}
         aria-expanded={open}
         aria-controls={id}
-        onClick={() => setOpen(!open)}
+        onClick={(event) => {
+          event.currentTarget.focus({ preventScroll: true });
+          setOpen((value) => !value);
+        }}
         className="workspace-account-trigger"
       >
         <span className="workspace-account-avatar" aria-hidden="true">

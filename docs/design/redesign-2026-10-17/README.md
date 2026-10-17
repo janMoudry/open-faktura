@@ -71,3 +71,13 @@ E2E_WEB_PORT=5174 DESIGN_CAPTURE=1 pnpm exec playwright test tests/e2e/redesign.
 
 Alternativní port odděluje náhled a testy od současně běžícího hlavního frontendového serveru.
 UI je připravené v oddělené pracovní kopii; pracovní rozpracování jiného agenta se nepřepisuje.
+
+## Menu uživatelského účtu
+
+Po hlášení neotevření avatara je účet samostatným potomkem kořene workspace,
+nikoli pevným prvkem uvnitř přichycené hlavičky. Kliknutí explicitně přesune
+focus na tlačítko i ve WebKitu. Původní hlášení se v izolovaných testech
+nepodařilo reprodukovat; úprava odstraňuje závislost menu na chování hlavičky.
+Regrese ověřuje klik přímo na kolečko iniciál, šířky 1024/1280/1600 px,
+posun stránky, Escape a všechny dosavadní scénáře účtu v Chromiu a WebKitu.
+WebKit lze přidat pomocí `E2E_WEBKIT=1` a `--project=webkit`.
