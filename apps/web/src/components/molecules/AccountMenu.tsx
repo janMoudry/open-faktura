@@ -95,7 +95,7 @@ export function AccountMenu({
           id={id}
           role="region"
           aria-label={t("accountMenu")}
-          className="account-popover absolute right-0 top-full z-50 mt-inline w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-popover border border-border bg-surface shadow-paper"
+          className="account-popover w-72 max-w-[calc(100vw-2rem)] rounded-popover border border-border bg-surface shadow-paper"
         >
           <div className="border-b border-border p-field">
             <p className="text-sm font-semibold">{name || t("accountTitle")}</p>

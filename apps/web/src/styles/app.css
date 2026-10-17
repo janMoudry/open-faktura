@@ -88,6 +88,9 @@
   .account-language-option[aria-pressed="true"] {
     @apply bg-primary-soft text-foreground;
   }
+  .account-popover {
+    @apply absolute right-0 top-full z-50 mt-inline overflow-hidden;
+  }
   .account-popover :is(button, a):focus-visible {
     outline-offset: -2px;
   }

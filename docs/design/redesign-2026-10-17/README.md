@@ -74,10 +74,13 @@ UI je připravené v oddělené pracovní kopii; pracovní rozpracování jinéh
 
 ## Menu uživatelského účtu
 
-Po hlášení neotevření avatara je účet samostatným potomkem kořene workspace,
-nikoli pevným prvkem uvnitř přichycené hlavičky. Kliknutí explicitně přesune
-focus na tlačítko i ve WebKitu. Původní hlášení se v izolovaných testech
-nepodařilo reprodukovat; úprava odstraňuje závislost menu na chování hlavičky.
+Příčinou neviditelného menu byl konflikt utility `top-full` na prvku s responzivním
+`top-auto` v komponentové vrstvě CSS: pravidlo utility mělo přednost a otevřené menu
+zůstávalo pod spodním okrajem. Pozice i overflow nyní žijí ve stejné komponentové
+vrstvě; na desktopu se menu otevírá nad avatarem, na mobilu pod ním.
+Účet je samostatným potomkem kořene workspace, nikoli pevným prvkem uvnitř
+přichycené hlavičky. Kliknutí explicitně přesune focus na tlačítko i ve WebKitu.
 Regrese ověřuje klik přímo na kolečko iniciál, šířky 1024/1280/1600 px,
-posun stránky, Escape a všechny dosavadní scénáře účtu v Chromiu a WebKitu.
+posun stránky, Escape, skutečnou výšku menu a oba svislé okraje viewportu,
+plus dosavadní scénáře účtu v Chromiu a WebKitu.
 WebKit lze přidat pomocí `E2E_WEBKIT=1` a `--project=webkit`.

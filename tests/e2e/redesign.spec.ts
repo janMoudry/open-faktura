@@ -152,6 +152,11 @@ test("avatar opens from the workspace and after scrolling at desktop breakpoints
       await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
       await expect(avatar).toHaveAttribute("aria-expanded", "true");
       await expect(page.locator(".account-popover")).toBeVisible();
+      await expect(page.locator(".account-popover")).toHaveCSS("opacity", "1");
+      const menuBox = await page.locator(".account-popover").boundingBox();
+      expect(menuBox!.height).toBeGreaterThan(200);
+      expect(menuBox!.y).toBeGreaterThanOrEqual(0);
+      expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(720);
       if (
         width === 1280 &&
         scroll === 0 &&
@@ -159,6 +164,7 @@ test("avatar opens from the workspace and after scrolling at desktop breakpoints
       ) {
         await page.screenshot({
           path: "docs/design/redesign-2026-10-17/account-menu.png",
+          animations: "disabled",
         });
       }
       await page.keyboard.press("Escape");
