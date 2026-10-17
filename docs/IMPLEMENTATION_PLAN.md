@@ -14,7 +14,7 @@ Odkazy „FEATURES §…“ níže označují oddíly původního [referenčníh
 
 Uživatel výslovně zahrnul **celý plánovaný rozsah Open Faktury** z [přehledu funkcí](../FEATURES.md).
 P10–P20 jsou autorizovaný rozsah implementace, nikoli jen volitelný seznam.
-Monochromatický brand, CS/EN a skutečné profilově izolované API/DB zůstávají.
+Vlastní brand Open Faktury (UI-REDESIGN-01), CS/EN a skutečné profilově izolované API/DB zůstávají.
 Referenční chování ověřujeme po scénářích; vlastní pravidla a mezery mají explicitní stav.
 
 Pořadí samostatně ověřitelných dodávek:
@@ -35,6 +35,10 @@ Pořadí samostatně ověřitelných dodávek:
 Každá dodávka končí referenčním důkazem, specifikací odchylek, DB migrací,
 REST/MCP kontraktem, CS/EN UI a integračními scénáři. Nedokončená položka
 zůstává označená jako nedostupná. Tento seznam sám o sobě nedokládá hotové moduly.
+
+## UI-REDESIGN-01 — vlastní vizuální identita (17. 10. 2026)
+
+Schválené obrázkové návrhy převedené do tokenů, společného shellu, Přehledu, seznamu a editoru faktur. Účetní chování a kontrakty zůstávají společné. Rozsah a limity ověření: [záznam dodávky](design/redesign-2026-10-17/README.md).
 
 ## Výchozí stav a hranice
 

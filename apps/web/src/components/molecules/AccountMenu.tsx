@@ -72,16 +72,20 @@ export function AccountMenu({
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen(!open)}
-        className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-primary text-sm font-semibold uppercase text-surface"
+        className="workspace-account-trigger"
       >
-        {name?.trim()
-          ? name
-              .trim()
-              .split(/\s+/)
-              .map((part) => part[0])
-              .slice(0, 2)
-              .join("")
-          : email.slice(0, 2)}
+        <span className="workspace-account-avatar" aria-hidden="true">
+          {name?.trim()
+            ? name
+                .trim()
+                .split(/\s+/)
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join("")
+            : email.slice(0, 2)}
+        </span>
+        <span className="workspace-account-name">{name || email}</span>
+        <Icon name="chevronDown" />
       </button>
       {open && (
         <div

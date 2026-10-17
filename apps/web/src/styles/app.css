@@ -268,89 +268,6 @@ details[open] > .contact-disclosure svg {
   min-height: var(--size-control-sm);
 }
 
-/* The workspace frame follows reference E023; colours remain Open Faktura tokens. */
-@layer components {
-  .workspace-root {
-    @apply min-h-screen bg-surface;
-  }
-  .workspace-content {
-    @apply bg-canvas;
-    min-height: calc(100dvh - var(--spacing-workspace-appbar));
-  }
-  .workspace-nav-item {
-    min-height: var(--size-control);
-  }
-  .workspace-nav-item[aria-current="page"] {
-    @apply bg-primary text-surface;
-  }
-  .workspace-nav-children {
-    @apply space-y-inline bg-canvas p-inline;
-  }
-  .workspace-nav-group[open] > summary {
-    @apply bg-primary-soft;
-  }
-  .workspace-nav-group > summary > svg:last-child {
-    transition: transform var(--duration-feedback) var(--ease-feedback);
-  }
-  .workspace-nav-group[open] > summary > svg:last-child {
-    transform: rotate(180deg);
-  }
-  .workspace-nav-item:not(:disabled):not([aria-current="page"]):hover {
-    @apply bg-primary-soft;
-  }
-  @media (min-width: 64rem) {
-    body:has(.workspace-root) {
-      @apply bg-primary;
-    }
-    .workspace-root {
-      margin: var(--spacing-workspace-frame);
-      border-radius: var(--radius-workspace);
-      min-height: calc(100dvh - 2 * var(--spacing-workspace-frame));
-    }
-    .workspace-header {
-      top: var(--spacing-workspace-frame);
-      border-radius: var(--radius-workspace) var(--radius-workspace) 0 0;
-      border-bottom: 0;
-    }
-    .workspace-sidebar {
-      left: var(--spacing-workspace-frame);
-      top: calc(
-        var(--spacing-workspace-frame) + var(--spacing-workspace-appbar)
-      );
-      bottom: var(--spacing-workspace-frame);
-      border: 0;
-      border-bottom-left-radius: var(--radius-workspace);
-    }
-    .workspace-brand {
-      @apply border-0;
-    }
-    .workspace-content {
-      padding: var(--spacing-group);
-      border-radius: var(--radius-workspace) 0 var(--radius-workspace) 0;
-      min-height: calc(
-        100dvh - var(--spacing-workspace-appbar) - 2 *
-          var(--spacing-workspace-frame)
-      );
-    }
-    .workspace-nav-item {
-      border-radius: var(--radius-action);
-      min-height: var(--size-control);
-      padding-block: var(--spacing-inline);
-    }
-    .workspace-panel,
-    .profile-form,
-    .invoice-sheet,
-    .contact-sheet {
-      border-radius: var(--radius-panel);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .workspace-nav-group > summary > svg:last-child {
-      transition: none;
-    }
-  }
-}
-
 @layer components {
   .profile-grid {
     @apply grid gap-field xl:grid-cols-2;
@@ -412,24 +329,6 @@ details[open] > .contact-disclosure svg {
   }
   .register-pagination .ui-select-trigger {
     @apply w-20;
-  }
-  .register-sheet {
-    @apply border-0;
-  }
-  .register-sheet .invoice-list-tabs {
-    @apply bg-canvas;
-  }
-  .register-sheet .ui-filter-tabs {
-    @apply gap-inline border-0 px-0;
-  }
-  .register-sheet .ui-filter-tab {
-    @apply rounded-t-panel px-group;
-  }
-  .register-sheet .ui-filter-tab[aria-pressed="true"] {
-    @apply bg-surface;
-  }
-  .register-sheet .ui-tab-indicator {
-    @apply bg-transparent;
   }
   @media (min-width: 64rem) {
     .workspace-page-heading {
@@ -499,5 +398,443 @@ details[open] > .contact-disclosure svg {
     .catalog-fields .ui-selection-label {
       @apply mb-0 font-normal text-muted;
     }
+  }
+}
+
+/* Open Faktura brand, approved 17 October 2026. */
+@layer components {
+  .brand-logo {
+    @apply block;
+    width: 10rem;
+  }
+  .brand-logo img {
+    @apply block h-auto w-full;
+  }
+  .brand-logo-dark {
+    display: none !important;
+  }
+  :root[data-theme="dark"] .brand-logo-light {
+    display: none;
+  }
+  :root[data-theme="dark"] .brand-logo-dark {
+    display: block !important;
+  }
+  .workspace-root {
+    @apply min-h-screen bg-canvas;
+  }
+  .workspace-header {
+    @apply bg-canvas;
+  }
+  .workspace-appbar {
+    @apply flex flex-wrap;
+  }
+  .workspace-brand {
+    @apply border-0 py-control;
+  }
+  .workspace-breadcrumb {
+    @apply hidden min-w-0 items-center gap-control text-sm text-muted lg:flex;
+  }
+  .workspace-breadcrumb [aria-current] {
+    @apply truncate font-medium text-foreground;
+  }
+  .workspace-breadcrumb a:hover {
+    @apply text-primary underline;
+  }
+  .workspace-sidebar {
+    @apply bg-sidebar;
+  }
+  .workspace-nav-item {
+    @apply rounded-control font-medium text-foreground;
+    min-height: var(--size-control);
+  }
+  .workspace-nav-item[aria-current="page"] {
+    @apply bg-primary-soft text-nav-active;
+    box-shadow: inset 3px 0 0 var(--color-primary);
+  }
+  .workspace-nav-item:not(:disabled):not([aria-current="page"]):hover {
+    @apply bg-canvas;
+  }
+  .workspace-nav-group[open] > summary {
+    @apply bg-transparent font-semibold;
+  }
+  .workspace-nav-group > summary > svg:last-child {
+    transition: transform var(--duration-feedback) var(--ease-feedback);
+  }
+  .workspace-nav-group[open] > summary > svg:last-child {
+    transform: rotate(180deg);
+  }
+  .workspace-nav-children {
+    @apply space-y-0 bg-transparent py-inline pl-group;
+  }
+  .workspace-nav-children .workspace-nav-item {
+    @apply text-sm;
+  }
+  .workspace-content {
+    @apply mx-auto max-w-workspace-content bg-canvas px-field py-group lg:px-group;
+  }
+  .workspace-panel,
+  .profile-form,
+  .invoice-sheet,
+  .contact-sheet {
+    @apply rounded-panel border border-border bg-surface;
+  }
+  .register-sheet {
+    @apply border border-border;
+  }
+  .register-sheet .invoice-list-tabs {
+    @apply border-b border-border bg-surface;
+  }
+  .register-sheet .ui-filter-tabs {
+    @apply gap-inline px-field;
+  }
+  .register-sheet .ui-filter-tab {
+    @apply rounded-none px-field;
+  }
+  .register-sheet .ui-filter-tab[aria-pressed="true"] {
+    @apply bg-transparent;
+  }
+  .register-sheet .ui-tab-indicator {
+    @apply bg-primary;
+  }
+  .register-current-page {
+    @apply rounded-control text-primary-foreground;
+  }
+  .invoice-register-table .ui-table-head {
+    @apply font-medium text-muted;
+  }
+  .invoice-register-table .ui-table-cell {
+    @apply py-control;
+  }
+  .invoice-sort {
+    @apply font-medium;
+  }
+  .page-heading {
+    @apply flex flex-wrap items-center justify-between gap-field;
+  }
+  .page-heading-copy {
+    @apply space-y-inline;
+  }
+  .page-heading-actions {
+    @apply flex flex-wrap items-center gap-control;
+  }
+  .register-search {
+    @apply flex min-w-0 flex-1 items-center gap-inline;
+  }
+  .register-search .ui-control {
+    @apply w-full;
+  }
+  .register-search .ui-button {
+    @apply shrink-0;
+  }
+  .invoice-summary-strip {
+    @apply grid overflow-hidden rounded-panel border border-border bg-surface sm:grid-cols-3;
+  }
+  .invoice-summary-strip > a {
+    @apply space-y-inline p-group hover:bg-sidebar;
+  }
+  .invoice-summary-strip > a + a {
+    @apply border-t border-border sm:border-t-0 sm:border-l;
+  }
+  .metric-label {
+    @apply flex items-center gap-control text-sm font-medium text-muted;
+  }
+  .metric-value {
+    @apply text-2xl font-semibold tracking-tight text-foreground tabular-nums;
+  }
+  .metric-hint {
+    @apply text-xs leading-relaxed text-muted;
+  }
+  .overview-grid {
+    @apply grid items-start gap-field xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)];
+  }
+  .overview-metrics {
+    @apply grid gap-field sm:grid-cols-2 xl:grid-cols-4;
+  }
+  .overview-metric {
+    @apply space-y-control rounded-panel border border-border bg-surface p-group;
+  }
+  .overview-section-heading {
+    @apply flex flex-wrap items-center justify-between gap-control p-group;
+  }
+  .overview-attention-link {
+    @apply flex items-start gap-control border-t border-border p-group hover:bg-sidebar;
+  }
+  .overview-attention-link > div {
+    @apply min-w-0 flex-1 space-y-inline;
+  }
+  .overview-documents {
+    @apply grid gap-field sm:grid-cols-2;
+  }
+  .overview-documents > a {
+    @apply flex items-center justify-between gap-field rounded-control bg-sidebar p-field hover:bg-primary-soft;
+  }
+  .overview-recent-table {
+    @apply min-w-invoice-table;
+  }
+  @media (min-width: 64rem) {
+    .workspace-root::before {
+      content: "";
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--spacing-workspace-sidebar);
+      background: var(--color-sidebar);
+      border-right: 1px solid var(--color-border);
+      pointer-events: none;
+    }
+    .workspace-header {
+      margin-left: var(--spacing-workspace-sidebar);
+      top: 0;
+    }
+    .workspace-appbar {
+      @apply px-group;
+    }
+    .workspace-brand {
+      @apply fixed left-0 top-0 flex items-center bg-sidebar px-group;
+      width: var(--spacing-workspace-sidebar);
+      height: 6rem;
+    }
+    .workspace-profile {
+      @apply fixed left-0 w-workspace-sidebar px-field;
+      top: 6rem;
+    }
+    .workspace-profile > div > button {
+      @apply w-full rounded-control border border-border bg-surface p-control;
+    }
+    .workspace-profile > div > button > span:nth-child(2) {
+      @apply flex-1;
+    }
+    .workspace-account {
+      @apply fixed bottom-0 left-0 w-workspace-sidebar border-t border-border bg-sidebar p-field;
+    }
+    .workspace-sidebar {
+      top: var(--spacing-sidebar-chrome);
+      bottom: 5rem;
+      border-right: 1px solid var(--color-border);
+    }
+    .workspace-create {
+      @apply px-field pt-inline pb-field;
+    }
+    .workspace-content {
+      min-height: calc(100dvh - var(--spacing-workspace-appbar));
+    }
+  }
+  @media (max-width: 63.999rem) {
+    .workspace-brand .brand-logo {
+      width: 8rem;
+    }
+    .workspace-profile {
+      @apply order-3 w-full border-t border-border px-field py-inline;
+    }
+    .workspace-account {
+      @apply ml-auto;
+    }
+    .workspace-create {
+      @apply px-field py-inline;
+    }
+    .workspace-content {
+      @apply py-field;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .workspace-nav-group > summary > svg:last-child {
+      transition: none;
+    }
+  }
+}
+
+@layer components {
+  .workspace-account-trigger {
+    @apply flex min-h-11 items-center gap-control rounded-control text-left text-sm text-foreground;
+  }
+  .workspace-account-avatar {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-canvas text-sm font-semibold uppercase;
+  }
+  .workspace-account-name {
+    @apply hidden min-w-0 flex-1 truncate lg:block;
+  }
+  .workspace-account-trigger > svg {
+    @apply hidden lg:block;
+  }
+  .invoice-editor-sheet {
+    @apply overflow-hidden;
+  }
+  .invoice-editor-customer {
+    @apply bg-surface;
+  }
+  .invoice-editor .invoice-form-facts {
+    @apply bg-surface;
+  }
+  .invoice-editor .invoice-party-summary .ui-selection {
+    @apply block;
+  }
+  .invoice-editor .invoice-form-facts .ui-selection {
+    @apply block;
+  }
+  .invoice-editor .invoice-form-facts .ui-selection-label {
+    @apply mb-inline font-medium text-foreground;
+  }
+  .invoice-editor .invoice-form-facts .ui-field-horizontal {
+    @apply block;
+  }
+  .invoice-editor .profile-actions {
+    @apply border-t border-border bg-surface;
+  }
+  .invoice-editor .invoice-section:last-child {
+    @apply border-b-0;
+  }
+  @media (min-width: 64rem) {
+    .workspace-account > div {
+      @apply w-full;
+    }
+    .workspace-account-trigger {
+      @apply w-full;
+    }
+    .workspace-account .account-popover {
+      @apply bottom-full left-0 right-auto top-auto mb-field mt-0;
+      max-height: calc(100dvh - 6rem);
+      overflow-y: auto;
+    }
+  }
+  @media (min-width: 80rem) {
+    .invoice-editor-sheet {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      align-items: start;
+    }
+    .invoice-editor-customer {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .invoice-editor-facts {
+      display: contents;
+    }
+    .invoice-editor-dates {
+      grid-column: 1;
+      grid-row: 2;
+      @apply border-b border-border p-form-inset;
+    }
+    .invoice-editor-dates > .space-y-inline {
+      @apply grid grid-cols-3 gap-control space-y-0;
+    }
+    .invoice-editor-payment {
+      grid-column: 2;
+      grid-row: 1 / 3;
+      @apply h-full border-l border-border bg-sidebar p-form-inset;
+    }
+    .invoice-editor-payment .ui-field-horizontal {
+      display: block;
+    }
+    .invoice-editor-payment .ui-field-label {
+      @apply mb-inline;
+    }
+    .invoice-editor-settings {
+      grid-column: 2;
+      grid-row: 3 / 6;
+      @apply h-full border-b-0 border-l border-border bg-sidebar;
+    }
+    .invoice-editor-items {
+      grid-column: 1;
+      grid-row: 3;
+    }
+    .invoice-editor-sheet > .invoice-summary {
+      grid-column: 1;
+      grid-row: 4;
+    }
+    .invoice-editor-sheet > .profile-actions {
+      grid-column: 1 / -1;
+    }
+    .invoice-editor-sheet
+      > .invoice-section:not(.invoice-editor-customer):not(
+        .invoice-editor-items
+      ):not(.invoice-editor-settings):not(.invoice-summary) {
+      grid-column: 1;
+    }
+  }
+}
+
+@layer components {
+  .invoice-editor-facts {
+    @apply grid gap-section md:grid-cols-2;
+  }
+  .invoice-editor-additional {
+    @apply rounded-control bg-sidebar p-control;
+  }
+  .invoice-editor-additional[open] > div {
+    @apply mt-field;
+  }
+  .invoice-editor > .flex > div:first-child {
+    @apply flex flex-wrap items-center gap-control;
+  }
+  .invoice-editor > .flex > div:first-child > .mt-control {
+    @apply mt-0;
+  }
+  .invoice-editor .invoice-section > .space-y-field {
+    @apply space-y-field;
+  }
+  .invoice-editor-items > .ui-selection {
+    @apply max-w-sm;
+  }
+  .invoice-editor .invoice-line-head {
+    @apply rounded-control;
+  }
+  .overview-grid .ui-chart {
+    height: 13rem;
+  }
+  @media (min-width: 80rem) {
+    .invoice-editor-facts {
+      display: contents;
+    }
+    .invoice-editor-sheet > .invoice-editor-customer {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .invoice-editor-sheet .invoice-editor-dates {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .invoice-editor-sheet .invoice-editor-payment {
+      grid-column: 2;
+      grid-row: 1 / 3;
+    }
+    .invoice-editor-sheet > .invoice-editor-settings {
+      grid-column: 2;
+      grid-row: 3 / 6;
+    }
+    .invoice-editor-payment .ui-field-horizontal > div:first-child {
+      @apply min-h-0 mb-inline font-medium text-foreground;
+    }
+    .invoice-editor-dates .ui-selection {
+      @apply min-w-0;
+    }
+    .invoice-editor-dates > .space-y-inline {
+      @apply items-end;
+    }
+    .invoice-editor-dates .ui-selection-label {
+      @apply text-xs;
+    }
+  }
+}
+
+@layer components {
+  .invoice-line-actions {
+    @apply flex flex-wrap items-center gap-control;
+  }
+}
+/* Keep the item grid beside the original unlayered responsive grid rules. */
+@media (min-width: 64rem) {
+  .invoice-line-head,
+  .invoice-editor-line {
+    grid-template-columns:
+      minmax(0, 3fr) minmax(0, 0.8fr) minmax(0, 1.1fr)
+      minmax(0, 1.3fr) minmax(0, 1.5fr) var(--size-control);
+  }
+  .invoice-lines-taxed .invoice-line-head,
+  .invoice-lines-taxed .invoice-editor-line {
+    grid-template-columns:
+      minmax(0, 3fr) minmax(0, 0.8fr) minmax(0, 1.1fr)
+      minmax(0, 1.3fr) minmax(0, 0.9fr) minmax(0, 1.5fr) var(--size-control);
+  }
+  .invoice-line-options {
+    @apply text-xs;
   }
 }

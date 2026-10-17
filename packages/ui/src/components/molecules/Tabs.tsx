@@ -35,7 +35,7 @@ export function Tabs({
             key={item.id}
             id={item.id}
             isDisabled={item.disabled}
-            title={item.description}
+            aria-description={item.description}
             className="ui-content-tab"
           >
             {item.label}

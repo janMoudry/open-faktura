@@ -32,7 +32,7 @@
     width: var(--size-control-sm);
   }
   .ui-button-primary {
-    @apply bg-primary text-surface enabled:hover:bg-primary-hover;
+    @apply bg-primary text-primary-foreground enabled:hover:bg-primary-hover;
   }
   .ui-button-secondary {
     @apply border-border bg-surface text-foreground enabled:hover:bg-canvas;
@@ -41,7 +41,7 @@
     @apply text-primary enabled:hover:bg-primary-soft;
   }
   .ui-button-danger {
-    @apply bg-danger text-surface enabled:hover:bg-danger-hover;
+    @apply bg-danger text-danger-foreground enabled:hover:bg-danger-hover;
   }
   .ui-control {
     @apply block w-full min-w-0 rounded-control border border-control-border bg-surface px-3 py-2.5 text-base leading-5 text-foreground placeholder:text-muted disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted sm:text-sm;
@@ -159,7 +159,7 @@
     @apply text-muted;
   }
   .ui-date-segment:focus {
-    @apply bg-primary text-surface;
+    @apply bg-primary text-primary-foreground;
   }
   .ui-calendar-popover {
     @apply p-3;
@@ -190,7 +190,7 @@
     @apply text-muted;
   }
   .ui-calendar-cell[data-selected] {
-    @apply bg-primary text-surface;
+    @apply bg-primary text-primary-foreground;
   }
   .ui-calendar-cell[data-disabled],
   .ui-calendar-cell[data-unavailable] {

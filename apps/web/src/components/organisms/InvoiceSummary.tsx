@@ -19,7 +19,7 @@ export function InvoiceSummary({
   const { t, language } = useAppTranslation();
   return (
     <section
-      className="invoice-section"
+      className="invoice-section invoice-summary"
       aria-label={t("draftSummary")}
       aria-busy={loading}
     >

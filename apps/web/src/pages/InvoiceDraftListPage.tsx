@@ -1,3 +1,5 @@
+import { useInvoiceOverview } from "../hooks/useInvoiceOverview";
+import { InvoiceOverviewMetrics } from "../components/organisms/InvoiceOverviewMetrics";
 import { RegisterExport } from "../components/organisms/RegisterExport";
 import { RegisterPagination } from "../components/molecules/RegisterPagination";
 import { InvoiceListFilters } from "../components/organisms/InvoiceListFilters";
@@ -158,65 +160,25 @@ export function InvoiceDraftListPage() {
     });
   const loaded = result?.key === key;
   const data = loaded ? result.value : null;
+  const overview = useInvoiceOverview(companyId, onExpired);
   const editable = company?.id === companyId && company.role !== "viewer";
   return (
     <div className="space-y-group">
-      <div className="flex flex-wrap items-center justify-between gap-field">
-        <div>
+      <div className="page-heading">
+        <div className="page-heading-copy">
           <Heading level={1} size="page">
             {t("navInvoices")}
           </Heading>
+          <p className="text-sm text-muted">{t("invoiceRegisterIntro")}</p>
         </div>
-        <RegisterExport
-          key={companyId}
-          company={companyId}
-          onExpired={onExpired}
-          selection={{
-            kind: "invoices",
-            search: {
-              query,
-              sort: sort as Extract<
-                ExportRequest["selection"],
-                { kind: "invoices" }
-              >["search"]["sort"],
-              status,
-              customer_id: customer || undefined,
-              date_field,
-              date_from,
-              date_to,
-              amount_min,
-              amount_max,
-            },
-          }}
-        />
-      </div>
-      <div>
-        <Button
-          size="sm"
-          variant="secondary"
-          aria-expanded={filtersOpen}
-          aria-controls="invoice-filters"
-          onClick={() => setFiltersOpen((v) => !v)}
-        >
-          <Icon name="settings" />
-          {t("draftFilters")}
-          {(customer || rangeActive) && (
-            <Badge>{Number(!!customer) + Number(rangeActive)}</Badge>
-          )}
-        </Button>
-        {filtersOpen && (
-          <InvoiceListFilters
-            key={
-              companyId +
-              [date_field, date_from, date_to, amount_min, amount_max].join("|")
-            }
-            company={companyId}
-            params={params}
-            onExpired={onExpired}
-            onChange={change}
-          />
+        {editable && (
+          <Link className="ui-button ui-button-primary ui-button-md" to="new">
+            <Icon name="plus" />
+            {t("draftNew")}
+          </Link>
         )}
       </div>
+      {overview.value && <InvoiceOverviewMetrics value={overview.value} />}
       <div className="invoice-sheet register-sheet overflow-hidden">
         <div className="invoice-list-tabs">
           <FilterTabs
@@ -236,14 +198,14 @@ export function InvoiceDraftListPage() {
         <div className="p-field space-y-field">
           <div className="flex flex-wrap items-end justify-between gap-field">
             <form
-              className="flex min-w-0 basis-full items-end gap-inline sm:basis-auto"
+              className="register-search"
               onSubmit={(e) => {
                 e.preventDefault();
                 change({ q: input });
               }}
             >
               <Input
-                className="w-full sm:w-72"
+                className="w-full"
                 aria-label={t("draftSearch")}
                 placeholder={t("invoiceSearchPlaceholder")}
                 value={input}
@@ -259,16 +221,59 @@ export function InvoiceDraftListPage() {
                 <Icon name="search" />
               </Button>
             </form>
-            {editable && (
-              <Link
-                className="ui-button ui-button-secondary ui-button-sm"
-                to="new"
+            <div className="page-heading-actions">
+              <Button
+                size="sm"
+                variant="secondary"
+                aria-expanded={filtersOpen}
+                aria-controls="invoice-filters"
+                onClick={() => setFiltersOpen((v) => !v)}
               >
-                <Icon name="plus" />
-                {t("draftNew")}
-              </Link>
-            )}
+                <Icon name="settings" />
+                {t("draftFilters")}
+                {(customer || rangeActive) && (
+                  <Badge>{Number(!!customer) + Number(rangeActive)}</Badge>
+                )}
+              </Button>
+              <RegisterExport
+                key={companyId}
+                company={companyId}
+                onExpired={onExpired}
+                selection={{
+                  kind: "invoices",
+                  search: {
+                    query,
+                    sort: sort as Extract<
+                      ExportRequest["selection"],
+                      { kind: "invoices" }
+                    >["search"]["sort"],
+                    status,
+                    customer_id: customer || undefined,
+                    date_field,
+                    date_from,
+                    date_to,
+                    amount_min,
+                    amount_max,
+                  },
+                }}
+              />
+            </div>
           </div>
+          {filtersOpen && (
+            <InvoiceListFilters
+              key={
+                companyId +
+                [date_field, date_from, date_to, amount_min, amount_max].join(
+                  "|",
+                )
+              }
+              company={companyId}
+              params={params}
+              onExpired={onExpired}
+              onChange={change}
+            />
+          )}
+
           {(query || customer || rangeActive) && (
             <div className="flex items-center gap-inline">
               {query && (
@@ -365,8 +370,11 @@ export function InvoiceDraftListPage() {
                 >
                   <Table className="min-w-invoice-register invoice-register-table table-fixed">
                     <colgroup>
-                      {[22, 6, 15, 15, 10, 10, 13, 9].map((width, i) => (
-                        <col key={i} style={{ width: `${width}%` }} />
+                      {[22, 17, 12, 12, 14, 14, 0].map((width, i) => (
+                        <col
+                          key={i}
+                          style={{ width: i === 6 ? "7rem" : `${width}%` }}
+                        />
                       ))}
                     </colgroup>
                     <TableHeader>
@@ -374,11 +382,10 @@ export function InvoiceDraftListPage() {
                         {(
                           [
                             ["draftDocument", "number"],
-                            ["invoiceColumnStatus", ""],
-                            ["invoiceDescription", ""],
                             ["draftCustomer", "customer"],
                             ["invoiceColumnIssued", "issued"],
                             ["invoiceColumnDue", "due"],
+                            ["invoiceColumnStatus", ""],
                             ["invoiceColumnAmount", "amount"],
                             ["invoiceListActions", ""],
                           ] as const
@@ -439,27 +446,16 @@ export function InvoiceDraftListPage() {
                                   d.data.calculation.lines[0]?.description.trim() ||
                                   t("draftUntitled")}
                               </Link>
-                              {!d.number && (
-                                <Badge>{t("draftListStatus")}</Badge>
-                              )}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            {d.settlement ? (
-                              <PaymentStatus value={d.settlement} compact />
-                            ) : d.number ? (
-                              <Badge>{t("invoiceIssuedStatus")}</Badge>
-                            ) : (
-                              <span className="text-muted">—</span>
+                            {d.number && (
+                              <p
+                                className="mt-1 truncate text-xs text-muted"
+                                title={d.data.calculation.lines[0]?.description}
+                              >
+                                {d.data.calculation.lines[0]?.description ||
+                                  "—"}
+                              </p>
                             )}
-                          </TableCell>
-                          <TableCell className="max-w-xs">
-                            <p
-                              className="truncate"
-                              title={d.data.calculation.lines[0]?.description}
-                            >
-                              {d.data.calculation.lines[0]?.description || "—"}
-                            </p>
                           </TableCell>
                           <TableCell className="truncate">
                             {d.data.customer?.name || t("notProvided")}
@@ -473,6 +469,19 @@ export function InvoiceDraftListPage() {
                             {d.data.due_on
                               ? formatCalendarDate(d.data.due_on, language)
                               : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {d.settlement ? (
+                              <PaymentStatus value={d.settlement} />
+                            ) : (
+                              <Badge>
+                                {t(
+                                  d.number
+                                    ? "invoiceIssuedStatus"
+                                    : "draftListStatus",
+                                )}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-right font-semibold tabular-nums">
                             {d.totals

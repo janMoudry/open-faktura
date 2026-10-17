@@ -1,4 +1,6 @@
 import { Link } from "react-router";
+import { BrandLogo } from "../atoms/BrandLogo";
+import { WorkspaceBreadcrumb } from "../molecules/WorkspaceBreadcrumb";
 import { AccountMenu } from "../molecules/AccountMenu";
 import { Button } from "@open-faktura/ui";
 import { useAppTranslation } from "../../locales";
@@ -37,19 +39,21 @@ export function AppLayout({
         >
           <Link
             to="/workspace"
+            aria-label={t("brandName")}
             className={
               workspace ? "workspace-brand" : "text-lg font-bold tracking-tight"
             }
           >
-            open<span className="text-primary">faktura</span>
+            <BrandLogo />
           </Link>
           {workspace && (
-            <div className="min-w-0 px-inline lg:px-field">
+            <div className="workspace-profile min-w-0 px-inline lg:px-field">
               {profileSwitcher}
             </div>
           )}
+          {workspace && <WorkspaceBreadcrumb />}
           <div
-            className={`flex flex-wrap items-center gap-inline ${workspace ? "ml-auto px-field py-inline" : ""}`}
+            className={`flex flex-wrap items-center gap-inline ${workspace ? "workspace-account ml-auto px-field py-inline" : ""}`}
           >
             {workspace && email ? (
               <AccountMenu

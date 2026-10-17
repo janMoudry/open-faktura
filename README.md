@@ -27,6 +27,7 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Skladové pohyby z faktur, nákupů a prodejek včetně oprav a vratek; ruční pohyby, inventury, souhrnný stav k datu a ruční ocenění i automatický průměr z pořizovacích cen nákupních příjmů (opravy a vratky zatím mohou mít neznámou hodnotu).
 - Měsíční i kumulativní přehled prodeje/nákupu, meziroční srovnání a zdrojové doklady.
 - Čeština a angličtina, světlý/tmavý/systémový vzhled, REST API a lokální MCP.
+- Vlastní vizuální identita Open Faktury, nové logo, Přehled a seznam/editor faktur — [UI-REDESIGN-01](docs/design/redesign-2026-10-17/README.md).
 
 Aktuální fakturační rozsah je tuzemská agenda v CZK. Výpočty mají dokumentovaná vlastní pravidla; numerická shoda s externími systémy není kompletně ověřená. Importní předvolby **pro konkrétní služby nejsou ověřené adaptéry**. CSV/XLSX export je tabulkový přehled, ne úplná záloha ani účetní export.
 

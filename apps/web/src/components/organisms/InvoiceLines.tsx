@@ -1,5 +1,5 @@
 import { unitOptions } from "../../utils/units";
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Button, Field, Heading, Select, Icon } from "@open-faktura/ui";
 import type { DraftData, InvoiceTotals } from "@open-faktura/api-client";
 import { useAppTranslation } from "../../locales";
@@ -24,13 +24,17 @@ export function InvoiceLines({
   const { t, language } = useAppTranslation();
   const root = useRef<HTMLDivElement>(null);
   const units = unitOptions(t);
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const patch = (index: number, patch: Partial<(typeof value.lines)[number]>) =>
     onChange({
       ...value,
       lines: value.lines.map((l, i) => (i === index ? { ...l, ...patch } : l)),
     });
   return (
-    <section className="invoice-section" ref={root}>
+    <section
+      className={`invoice-section invoice-editor-items ${value.tax_mode === "vat_payer" ? "invoice-lines-taxed" : ""}`}
+      ref={root}
+    >
       <div className="flex flex-wrap items-center justify-between gap-field">
         <Heading level={2} size="card">
           {title ?? t("draftItems")}
@@ -50,12 +54,13 @@ export function InvoiceLines({
           />
         )}
       </div>
-      {!disabled && catalogPicker}
+      {!disabled && catalogOpen && catalogPicker}
       <div className="invoice-line-head" aria-hidden="true">
         <span>{t("draftDescription")}</span>
-        <span>{t("draftUnitPrice")}</span>
         <span>{t("draftQuantity")}</span>
         <span>{t("draftUnit")}</span>
+        <span>{t("draftUnitPrice")}</span>
+        {value.tax_mode === "vat_payer" && <span>{t("draftVat")}</span>}
         <span className="text-right">{t("invoiceColumnAmount")}</span>
         <span>{t("invoiceListActions")}</span>
       </div>
@@ -79,9 +84,9 @@ export function InvoiceLines({
           </div>
           {(
             [
-              ["unit_price", "draftUnitPrice"],
               ["quantity", "draftQuantity"],
               ["unit", "draftUnit"],
+              ["unit_price", "draftUnitPrice"],
             ] as const
           ).map(([key, label]) => (
             <div className="invoice-line-input" key={key}>
@@ -119,6 +124,24 @@ export function InvoiceLines({
               )}
             </div>
           ))}
+          {value.tax_mode === "vat_payer" && (
+            <div className="invoice-line-input invoice-line-vat">
+              <Select
+                label={t("draftVat")}
+                value={line.vat_percent}
+                disabled={disabled}
+                options={["0", "12", "21"].map((v) => ({
+                  value: v,
+                  label: `${v} %`,
+                }))}
+                onChange={(vat_percent) =>
+                  patch(index, {
+                    vat_percent: vat_percent as "0" | "12" | "21",
+                  })
+                }
+              />
+            </div>
+          )}
           <div className="invoice-line-total text-right text-sm font-semibold tabular-nums">
             <span className="lg:sr-only text-muted font-normal">
               {t("invoiceColumnAmount")}{" "}
@@ -143,22 +166,6 @@ export function InvoiceLines({
             </Button>
           )}
           <div className="invoice-line-options flex flex-wrap items-start gap-field">
-            {value.tax_mode === "vat_payer" && (
-              <Select
-                label={t("draftVat")}
-                value={line.vat_percent}
-                disabled={disabled}
-                options={["0", "12", "21"].map((v) => ({
-                  value: v,
-                  label: `${v} %`,
-                }))}
-                onChange={(vat_percent) =>
-                  patch(index, {
-                    vat_percent: vat_percent as "0" | "12" | "21",
-                  })
-                }
-              />
-            )}
             <details open={line.discount_percent !== "0" || undefined}>
               <summary className="cursor-pointer text-sm text-muted">
                 {t("draftLineDiscount")}
@@ -185,26 +192,40 @@ export function InvoiceLines({
         </fieldset>
       ))}
       {!disabled && (
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={value.lines.length >= 500}
-          onClick={() => {
-            onChange({
-              ...value,
-              lines: [...value.lines, newLine(value.tax_mode)],
-            });
-            requestAnimationFrame(() =>
-              root.current
-                ?.querySelectorAll<HTMLInputElement>("[data-line-description]")
-                .item(value.lines.length)
-                ?.focus(),
-            );
-          }}
-        >
-          <Icon name="plus" />
-          {t("draftAddItem")}
-        </Button>
+        <div className="invoice-line-actions">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={value.lines.length >= 500}
+            onClick={() => {
+              onChange({
+                ...value,
+                lines: [...value.lines, newLine(value.tax_mode)],
+              });
+              requestAnimationFrame(() =>
+                root.current
+                  ?.querySelectorAll<HTMLInputElement>(
+                    "[data-line-description]",
+                  )
+                  .item(value.lines.length)
+                  ?.focus(),
+              );
+            }}
+          >
+            <Icon name="plus" />
+            {t("draftAddItem")}
+          </Button>
+          {catalogPicker && (
+            <Button
+              variant="ghost"
+              aria-expanded={catalogOpen}
+              onClick={() => setCatalogOpen((v) => !v)}
+            >
+              <Icon name="catalog" />
+              {t("catalogPick")}
+            </Button>
+          )}
+        </div>
       )}
       <details
         className="max-w-md ml-auto"
