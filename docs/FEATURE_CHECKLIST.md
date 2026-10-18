@@ -128,6 +128,7 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P16-11: rozdělení pohybu mezi více dokladů, přesný nerozdělený zbytek/přeplatek, atomické odpojení a CS/EN. [Rozsah](specs/bank-split-matching.md).
 - [x] P16-12: ruční bankovní/pokladní párování záloh a vratek dobropisů, vlastní platební operace, existující úhrady bez zdvojení a ochrana DDPP/vyúčtování. [Rozsah](specs/treasury-documents.md).
 - [ ] P16-13: cizí měny a kurzy.
+- [x] P16-13h: české i zahraniční IBAN bankovních účtů, kontrola formátu a checksumu, import se shodou účtu/měny; bez rozšíření IBAN na dokladech a QR ([rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů)).
 - [x] P16-04: CZK pokladny, počáteční stav, PP/VP doklady, saldo za období, storno, ruční párování nových/existujících hotovostních úhrad, REST/MCP a CS/EN. [Hranice](specs/cash-register.md).
 - [x] P16-05: volitelná hlavní pokladna, automatické PP/VP ze skutečných hotovostních úhrad vydaných/přijatých faktur a účtenek, opravy/storna, PDF a náhled tisku v CS/EN. [Rozsah](specs/cash-register.md).
 - [x] P16-06: jedna samostatná položka pokladního dokladu s DPH, cena net/gross, serverový náhled, uložený rozpis, filtr a PDF CS/EN. Bez členění DPH a daňových výkazů. [Rozsah](specs/cash-register.md).

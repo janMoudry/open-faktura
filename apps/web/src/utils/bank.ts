@@ -4,6 +4,7 @@ export function bankError(e: unknown): AppKey {
   if (!(e instanceof SalesFailure)) return "bankFailed";
   if (e.status === 409) return "bankConflict";
   if (e.status !== 422) return "bankFailed";
+  if (e.fields.includes("iban")) return "bankIbanInvalid";
   if (e.fields.includes("bank_rate")) return "bankForeignRateInvalid";
   if (e.fields.includes("currency")) return "bankCurrencyMismatch";
   if (e.fields.includes("currency_matching"))

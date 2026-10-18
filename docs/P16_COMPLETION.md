@@ -5,6 +5,14 @@ Tento soubor sleduje pouze část P16; navazující rozsah zůstává v implemen
 plánu a FEATURES.md. Toto není
 potvrzení dokončení. Dřívější P16-01 až P16-06 mají vymezený rozsah ve specifikacích.
 
+## Aktuální měnová návaznost
+
+P16-13h doplňuje zahraniční IBAN bankovní evidence bez migrace: normalizace,
+validace formátu/checksumu, profilová unikátnost a zachování kontroly účtu/měny
+importu. [Rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů).
+Navazují zahraniční platební údaje dokladů/QR, automatika záloh a vratek a jejich
+párování mezi různými měnami. Historické záznamy níže popisují stav v době dodání.
+
 ## Akceptační celky
 
 - [ ] P16-07 Prodejky: položky, nepovinný odběratel, skutečné plné úhrady

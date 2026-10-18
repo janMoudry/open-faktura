@@ -603,7 +603,25 @@ async fn rest_mcp_parity_account_update_and_origin(p: PgPool) {
     use tower::ServiceExt as _;
     let (a, token, c, _) = setup(&p).await;
     let s = PgBank(p.clone());
-    let ac = account(&s, &a, &c).await;
+    let Reply::Account(ac) = run(
+        &s,
+        &a,
+        &c,
+        Action::Account {
+            id: None,
+            revision: None,
+            archived: false,
+            data: AccountData {
+                name: "Foreign".into(),
+                iban: "GB82WEST12345698765432".into(),
+                currency: "CZK".into(),
+            },
+        },
+    )
+    .await
+    else {
+        panic!()
+    };
     let m = movement(&s, &a, &c, &ac, "12").await;
     let app =
         faktura_server::banking::router(p.clone(), vec!["http://localhost:5173".into()], false);
@@ -634,7 +652,7 @@ async fn rest_mcp_parity_account_update_and_origin(p: PgPool) {
     });
     let client = ().serve(client_io).await.unwrap();
     use base64::Engine;
-    let native = serde_json::json!({"account_id":ac.id,"format":"camt053","filename":"synthetic.xml","content_base64":base64::engine::general_purpose::STANDARD.encode(include_str!("../../../tests/fixtures/bank/camt053.xml"))});
+    let native = serde_json::json!({"account_id":ac.id,"format":"camt053","filename":"synthetic.xml","content_base64":base64::engine::general_purpose::STANDARD.encode(include_str!("../../../tests/fixtures/bank/camt053.xml").replace("CZ6508000000192000145399", &ac.data.iban))});
     let response = app
         .clone()
         .oneshot(

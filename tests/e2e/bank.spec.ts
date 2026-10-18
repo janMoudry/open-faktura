@@ -1111,11 +1111,22 @@ for (const english of [false, true])
         .fill("Operating EUR");
       await dialog
         .getByLabel(labels.bankIban, { exact: true })
-        .fill("CZ3808000000192000145400");
+        .fill("DE89370400440532013001");
+      await dialog
+        .getByRole("button", { name: labels.bankSave, exact: true })
+        .click();
+      await expect(dialog.getByText(labels.bankIbanInvalid)).toBeVisible();
+      await dialog
+        .getByLabel(labels.bankIban, { exact: true })
+        .fill("de89 3704 0044 0532 0130 00");
       await dialog
         .getByRole("button", { name: new RegExp(labels.bankCurrency) })
         .click();
       await page.getByRole("option", { name: "EUR", exact: true }).click();
+      await page.screenshot({
+        path: `docs/design/bank-foreign-iban-${english ? "en" : "cs"}-${info.project.name}.png`,
+        animations: "disabled",
+      });
       await dialog
         .getByRole("button", { name: labels.bankSave, exact: true })
         .click();
@@ -1210,6 +1221,7 @@ for (const english of [false, true])
       const eurAccount = (
         await (await page.request.get(`${base}/bank/accounts`)).json()
       ).find((a: { data: { currency: string } }) => a.data.currency === "EUR");
+      expect(eurAccount.data.iban).toBe("DE89370400440532013000");
       await page.goto(`/#/companies/${alpha.id}/bank?account=${eurAccount.id}`);
       await page
         .getByRole("button", { name: labels.bankBatchOpen, exact: true })

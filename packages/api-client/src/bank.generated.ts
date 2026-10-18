@@ -234,6 +234,7 @@ export interface components {
   schemas: {
     BankAccountData: {
       name: string;
+      /** @description Czech or foreign IBAN. Whitespace is removed and letters uppercased before country-specific format and checksum validation. Unique within the billing profile; immutable after the first movement. */
       iban: string;
       /** @enum {string} */
       currency:

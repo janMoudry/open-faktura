@@ -18,7 +18,7 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Výchozí splatnost v nastavení firmy, automaticky předvyplněná na nové faktuře.
 - Ceník, opakovaně použitelné šablony a cenové nabídky s převodem na fakturu.
 - Veřejné odkazy na nabídky i faktury, odvolání odkazu a historie zobrazení.
-- Bankovní účty v CZK i cizích měnách, [import výpisů](docs/specs/bank-statements.md), kontrola duplicit a ruční i dávkové párování úhrad.
+- Bankovní účty s českým i zahraničním IBAN v CZK i cizích měnách, [import výpisů](docs/specs/bank-statements.md), kontrola duplicit a ruční i dávkové párování úhrad.
 - [Cizoměnové doklady a přehledy](docs/specs/report-currencies.md), uložené kurzy a návrh kurzu ČNB na vyžádání.
 - [Párování rozdílných měn](docs/specs/bank-foreign-matching.md) u běžných faktur a přehled uložených kurzových rozdílů bez účetního zaúčtování.
 - [Evidence DPH a orientační obrat](docs/specs/tax-dashboard.md) včetně samostatných pokladních plnění; nejde o daňové přiznání ani zákonný obrat.

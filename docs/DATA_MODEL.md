@@ -547,3 +547,8 @@ a bank_value_czk. Staré snapshoty zůstávají beze změny (CZK/None/None); nov
 ukládají bankovní hodnotu v CZK explicitně. bank_match.amount je nadále
 nativní alokace, nikoli CZK přepočet. Rozdíl je rozdíl uložených CZK hodnot
 se znaménkem podle směru; nejde o účetní zápis. specs/bank-foreign-matching.md.
+
+P16-13h (18. 10. 2026): `bank_account.iban` přijímá normalizovaný zahraniční
+IBAN s validací země, struktury a checksumu. Textový sloupec, firemní unikátnost
+a neměnnost po pohybu se nemění; bez migrace. Měna účtu se neodvozuje ze země.
+Nejde o rozšíření platebních údajů dokladů ani QR; viz specs/bank-currencies.md.

@@ -79,3 +79,12 @@ a kartu bez ceny. Opakovat beze změny a po změně jedné ceny.
 Uložit anonymizované XML a popis výběru objektů/polí; XSD, pokud je dostupné.
 Porovnat identity, význam částek a vazby na hladiny s hodnotami v aplikaci.
 Bez těchto výstupů nelze označit nativní adaptér za ověřený.
+
+### P16-13h — zahraniční IBAN (18. 10. 2026)
+
+Technická akceptace se syntetickými daty: DE/GB účet, normalizace, chybná země,
+délka/struktura/checksum, firemní duplicita, cizí profil, camt s jiným účtem/měnou,
+replay importu, saldo a neměnnost použitého IBAN; CS/EN desktop/mobile.
+Otevřené referenční ověření: v testovací agendě iDokladu zadat stejnou sadu
+příkladových identifikátorů, zaznamenat validace a nastavení měny. Bez něj
+netvrdit shodu seznamu přijímaných zemí nebo přesných validačních pravidel.

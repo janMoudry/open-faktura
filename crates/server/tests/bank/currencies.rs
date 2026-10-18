@@ -213,3 +213,120 @@ async fn upgrade053_keeps_native_czk_history(p: PgPool) {
     assert_eq!(row, ("CZK".into(), "123.45".into()));
     fresh.close().await;
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn foreign_iban_normalization_import_dedup_and_immutability(p: PgPool) {
+    use base64::Engine;
+    let (a, _, c, other) = setup(&p).await;
+    let s = PgBank(p.clone());
+    let create = || Action::Account {
+        id: None,
+        revision: None,
+        archived: false,
+        data: AccountData {
+            name: "Foreign EUR".into(),
+            iban: "de89 3704 0044 0532 0130 00".into(),
+            currency: "EUR".into(),
+        },
+    };
+    let Reply::Account(ac) = run(&s, &a, &c, create()).await else {
+        panic!()
+    };
+    assert_eq!(ac.data.iban, "DE89370400440532013000");
+    assert!(s
+        .execute(
+            &a,
+            &c,
+            Command {
+                request_id: key(),
+                action: create()
+            }
+        )
+        .await
+        .is_err());
+    // Same identifier is allowed in another profile, but its movements remain isolated.
+    run(&s, &a, &other, create()).await;
+    let xml = include_str!("../../../../tests/fixtures/bank/camt053.xml")
+        .replace("CZ6508000000192000145399", &ac.data.iban)
+        .replace("CZK", "EUR");
+    let file = |xml: &str| banking::StatementInput {
+        account_id: ac.id.clone(),
+        format: "camt053".into(),
+        filename: "synthetic-de.xml".into(),
+        content_base64: base64::engine::general_purpose::STANDARD.encode(xml),
+    };
+    assert!(s.statement_preview(&a, &c, file(&xml)).await.unwrap().valid);
+    for invalid in [
+        xml.replace(&ac.data.iban, "GB82WEST12345698765432"),
+        xml.replace("EUR", "USD"),
+    ] {
+        assert!(s.statement_preview(&a, &c, file(&invalid)).await.is_err());
+        assert!(s
+            .execute(
+                &a,
+                &c,
+                Command {
+                    request_id: key(),
+                    action: Action::Statement {
+                        file: file(&invalid)
+                    }
+                }
+            )
+            .await
+            .is_err());
+    }
+    assert!(s.statement_preview(&a, &other, file(&xml)).await.is_err());
+    assert_eq!(
+        s.movements(&a, &c, Default::default()).await.unwrap().total,
+        0
+    );
+    for _ in 0..2 {
+        run(&s, &a, &c, Action::Statement { file: file(&xml) }).await;
+    }
+    assert_eq!(
+        s.movements(&a, &c, Default::default()).await.unwrap().total,
+        2
+    );
+    assert_eq!(
+        s.movements(&a, &other, Default::default())
+            .await
+            .unwrap()
+            .total,
+        0
+    );
+    let balance = s
+        .balance(
+            &a,
+            &c,
+            BalanceQuery {
+                account_id: ac.id.clone(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(balance.currency, "EUR");
+    assert_eq!(balance.income, "100.01");
+    assert_eq!(balance.expense, "25.00");
+    assert!(s
+        .execute(
+            &a,
+            &c,
+            Command {
+                request_id: key(),
+                action: Action::Account {
+                    id: Some(ac.id.clone()),
+                    revision: Some(ac.revision),
+                    archived: false,
+                    data: AccountData {
+                        iban: "GB82WEST12345698765432".into(),
+                        ..ac.data.clone()
+                    },
+                }
+            }
+        )
+        .await
+        .is_err());
+    assert_eq!(s.accounts(&a, &c).await.unwrap()[0].data.iban, ac.data.iban);
+}

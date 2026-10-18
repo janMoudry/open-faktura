@@ -23,7 +23,7 @@ impl AccountData {
         if self.name.is_empty() || !text(&self.name, 100) {
             e.push("name".into());
         }
-        if !crate::company::valid_iban(&self.iban) {
+        if self.iban.parse::<iban::Iban>().is_err() {
             e.push("iban".into());
         }
         if !crate::exchange::CURRENCIES.contains(&self.currency.as_str()) {
@@ -79,5 +79,57 @@ impl MovementData {
             e.push("text".into());
         }
         e
+    }
+}
+
+#[cfg(test)]
+mod iban_tests {
+    use super::*;
+
+    #[test]
+    fn international_accounts_validate_country_format_and_checksum() {
+        // Public example identifiers, not accounts contacted by these tests.
+        for iban in [
+            "CZ6508000000192000145399",
+            "SK3112000000198742637541",
+            "DE89370400440532013000",
+            "GB82WEST12345698765432",
+            "FR1420041010050500013M02606",
+            "NL91ABNA0417164300",
+            "CH9300762011623852957",
+        ] {
+            let data = AccountData {
+                name: "Test".into(),
+                iban: iban.into(),
+                currency: "EUR".into(),
+            };
+            assert!(data.validate().is_empty(), "{iban}");
+        }
+        for iban in [
+            "",
+            "DE89370400440532013001",
+            "DE8937040044053201300",
+            "ZZ89370400440532013000",
+            "GB82WES112345698765432",
+            "DE89💰",
+            "DE89370400440532013000;",
+        ] {
+            let data = AccountData {
+                name: "Test".into(),
+                iban: iban.into(),
+                currency: "EUR".into(),
+            };
+            assert!(data.validate().contains(&"iban".into()), "{iban}");
+        }
+        let mut data = AccountData {
+            name: " Test ".into(),
+            iban: "de89 3704 0044 0532 0130 00".into(),
+            currency: "USD".into(),
+        };
+        data.normalize();
+        assert_eq!(data.iban, "DE89370400440532013000");
+        assert!(data.validate().is_empty());
+        // Treasury support must not silently expand invoice/profile or QR rules.
+        assert!(!crate::company::valid_iban(&data.iban));
     }
 }

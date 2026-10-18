@@ -145,3 +145,44 @@ vydané/přijaté faktury, včetně CZK faktur. Vyžaduje explicitní bankovní 
 do CZK, uchovává částky a ocenění obou stran. Migrace 055; podrobnosti
 v [bank-foreign-matching.md](bank-foreign-matching.md#p16-13g--rozdílné-měny-z-cizoměnového-účtu).
 Rozdílné měny záloh/vratek, jejich automatika a zahraniční IBAN stále zbývají.
+
+## P16-13h — zahraniční IBAN bankovních účtů
+
+18. 10. 2026, E-069. Bankovní evidence přijímá české i zahraniční IBAN
+podporované verzovaným validátorem `iban` 0.2.0 (MIT/Apache-2.0).
+Normalizace odstraní mezery a převede písmena na velká. Validátor ověřuje
+známou zemi, její délku a strukturu BBAN a kontrolní součet mod 97.
+Platný formát není ověření existence účtu ani majitele. Země IBAN neurčuje měnu;
+i zahraniční účet může být vedený v CZK. Měna zůstává z explicitního číselníku.
+
+Databázový `bank_account.iban` je již textový; změna nevyžaduje migraci ani
+přepis historických dat. Unikátnost normalizovaného IBAN v profilu a neměnnost
+po prvním pohybu zůstávají. Příkazy REST/MCP používají společnou validaci.
+CSV je nadále import do výslovně vybraného účtu (nemá IBAN hlavičku).
+camt.053 a ostatní již podporované strukturované formáty nadále musí uvádět
+shodný účet a měnu. Cizí IBAN neznamená podporu libovolné bankovní varianty
+XML, automatické zapojení poskytovatele ani rozšíření českého RB ABO.
+
+Tato část mění pouze bankovní evidenci. Platební údaje faktur, profilů, kontaktů
+a QR zatím zachovávají své dosavadní české validace; jejich rozšíření je
+samostatná návaznost. Pravidla shodných/rozdílných měn při párování se nemění.
+
+Akceptace: normalizace DE/GB účtu, nesprávný checksum/délka/země/BBAN,
+uložení a reload, duplicita v profilu a oddělení profilů, camt EUR se shodným
+IBAN a odmítnutí jiného účtu/měny bez částečného zápisu, opakovaný import,
+nezměněné saldo v EUR, zákaz změny použitého IBAN, REST/MCP shoda a CS/EN UI.
+Testy používají veřejné příkladové identifikátory a syntetické výpisy,
+nikdy skutečné bankovní přístupy ani platební příkazy.
+
+### Ověření P16-13h
+
+18. 10. 2026: `pnpm test:bank` — 63 testů izolované PostgreSQL, včetně nového
+foreign_iban scénáře a REST/MCP s GB účtem. Doménový test `cargo test -p
+faktura-domain --lib iban` prošel. `pnpm check`, build serveru a webu prošly;
+web má dosavadní upozornění na velikost společného chunku.
+Bank E2E po opravě duplicitní pojmenované oblasti reportu: 4/4 CS/EN
+Desktop Chrome/emulovaný iPhone 13. Mobilní CS catalog E2E s axe: 1/1.
+Screenshoty `docs/design/bank-foreign-iban-{cs,en}-{desktop,mobile}.png`
+zachycují formulář po chybné validaci; CS desktop/mobile vizuálně zkontrolovány.
+Lokální API restartované a health OK, bez nové migrace a bez skutečných
+bankovních přístupů. Nepředstavuje ověření živé shody s iDokladem.

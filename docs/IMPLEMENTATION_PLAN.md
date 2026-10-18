@@ -909,3 +909,12 @@ a přijatou fakturou, včetně připojení existující úhrady. Explicitní ban
 kurz do CZK, uložené hodnoty obou stran a rozdíl; migrace 055, REST/MCP a CS/EN.
 Zbývají rozdílné měny záloh/vratek, jejich automatika a zahraniční IBAN.
 [Specifikace](specs/bank-foreign-matching.md#p16-13g--rozdílné-měny-z-cizoměnového-účtu).
+
+
+## P16-13h — zahraniční IBAN bankovních účtů (18. 10. 2026)
+
+Bankovní evidence přijímá zahraniční IBAN s normalizací, kontrolou země,
+struktury a checksumu přes verzovaný validátor. Bez migrace; firemní unikátnost,
+immutabilita po pohybu, shoda účtu/měny importu a REST/MCP zůstávají společné.
+UI a validace CS/EN. [Specifikace a akceptace](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů).
+Navazují zahraniční IBAN dokladů/QR, automatika záloh/vratek a jejich různé měny.

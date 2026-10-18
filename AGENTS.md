@@ -414,3 +414,9 @@ P16-13g: bank-foreign-matching.md, migrace 055, volitelný bank_rate v příkazu
 (povinný non-CZK, pro CZK nepovolený). Snapshot bank_currency/bank_rate/bank_value_czk;
 legacy CZK/None/None. Test:bank cross_currency, upgrade054, REST/MCP a CS/EN bank E2E.
 Bank_amount nativní, report součty CZK. Před upgradem záloha a zastavení API.
+
+
+P16-13h: bank-currencies.md, bez migrace. Pouze bankovní AccountData validuje
+zahraniční IBAN přes iban 0.2.0; profily/doklady/QR zůstávají CZ. Test:bank
+currency_tests + REST/MCP, domain iban a CS/EN bank E2E. Země neurčuje měnu;
+formát není ověření existence účtu. Import zachovává shodu IBAN i měny.

@@ -95,7 +95,7 @@ export function ExchangeDifferenceReport({
           <div
             className="overflow-x-auto"
             tabIndex={0}
-            role="region"
+            role="group"
             aria-label={t("fxReportTitle")}
           >
             <Table>

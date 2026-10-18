@@ -918,3 +918,21 @@ původní měna zahraniční transakce není měnou zaúčtovaného pohybu. Nejd
 pozorování bank ani iDokladu. Seznam podporovaných měn, neměnnost a zákaz
 párování jsou naše pravidla. Testy EUR jsou syntetické transformace fixtures,
 nikoli ověření skutečného exportu. RB zahraniční přípony zatím nepodporujeme.
+
+## E-069 — zahraniční identifikátory bankovních účtů (18. 10. 2026)
+
+Veřejná nápověda https://www.idoklad.cz/podpora/nastaveni-banka
+(aktualizace 29. 6. 2026, přečteno 18. 10. 2026) uvádí měnu účtu a IBAN
+pro mezinárodní platby. Nedokládá seznam přijímaných zemí ani validační algoritmus.
+Živý experiment v testovací agendě nebyl proveden.
+
+Technický primární zdroj: https://docs.rs/iban/0.2.0/iban/ a staticky přečtený
+zdroj `iban` 0.2.0 z crates.io, `src/lib.rs`, implementace `FromStr`:
+kontrola známé země, délky, znakové struktury BBAN a mod 97. Knihovna odkazuje
+na registr Swift/ISO 13616. Seznam zemí je svázaný s verzí závislosti v Cargo.lock;
+netvrdíme aktuální úplnost celosvětového registru ani validaci existence účtu.
+
+P16-13h je vlastní návrh rozšíření bankovní evidence. Normalizace, unikátnost
+v profilu, měna nezávislá na zemi a omezení na bankovní evidenci jsou v
+specs/bank-currencies.md. Příkladové IBAN a syntetické XML testy nejsou
+skutečnými exporty ani důkazem chování iDokladu či zahraničních bank.

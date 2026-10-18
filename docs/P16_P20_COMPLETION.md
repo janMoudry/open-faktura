@@ -17,6 +17,12 @@ Dále zbývají měny, notifikace,
 tiskové nastavení a členění DPH. Skutečné bankovní exporty a živé ověření
 adaptérů vyžadují doložené vstupy; syntetické testy je nenahrazují.
 
+- [x] P16-13h: zahraniční IBAN bankovních účtů, normalizace a kontrola formátu/checksumu,
+      zachovaná shoda účtu a měny při importu; bez migrace. Podrobnosti v
+      [bank-currencies.md](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů).
+      Návaznosti: zahraniční IBAN na dokladech/QR, automatika záloh/vratek
+      a jejich párování mezi různými měnami.
+
 ## P17 — Příjem dokladů
 
 - [x] P17-01: upload, originál, deduplikace, archiv/obnova, auditní historie,
