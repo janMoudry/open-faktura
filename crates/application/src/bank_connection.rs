@@ -20,6 +20,7 @@ pub struct Run {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Status {
     pub matching_enabled: bool,
+    pub matching_treasury: bool,
     pub matching_next_at: Option<String>,
     pub matching_error: Option<String>,
     pub matching_last: Option<MatchingRun>,
@@ -62,6 +63,8 @@ pub enum Action {
     },
     Matching {
         enabled: bool,
+        #[serde(default)]
+        include_treasury: bool,
     },
     Disconnect,
     Test,

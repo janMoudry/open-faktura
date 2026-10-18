@@ -70,7 +70,7 @@
   "timezone": "Časové pásmo",
   "maturityDays": "Splatnost (dny)",
   "paymentMethod": "Způsob úhrady",
-  "iban": "IBAN (CZ účet)",
+  "iban": "IBAN",
   "numberPrefix": "Prefix číselné řady",
   "numberYear": "Rok řady",
   "nextNumber": "Následující číslo",
@@ -1404,6 +1404,7 @@
   "retailCancel": "Stornovat prodejku",
   "retailConflict": "Doklad nebo terminál se změnil. Načtěte aktuální verzi před další změnou.",
   "retailInvalid": "Zkontrolujte položky, datum a součet úhrad. Prodejka plátce DPH může mít nejvýše 10 000 Kč.",
+  "retailPostingPdf": "PDF / tisk zaúčtování",
   "retailPostingTitle": "Zaúčtování prodejek",
   "retailPostingHelp": "Vyberte prodejky v tabulce. Hotovost vytvoří pokladní doklad; karty a poukázky se uloží v interním rozpisu. Zobrazuje se posledních 100 dávek.",
   "retailPostingDate": "Datum zaúčtování",
@@ -1713,5 +1714,7 @@
   "invoiceEditorSettings": "Nastavení faktury",
   "invoiceIssueHint": "Vystavení přidělí číslo a uzamkne obsah. Fakturu neodešle.",
   "overviewAllHistory": "Aktuální stav za celou historii",
-  "overviewInvoiceCount": "Počet faktur: {{count}}"
+  "overviewInvoiceCount": "Počet faktur: {{count}}",
+  "matchingTreasury": "Zahrnout zálohy a vratky dobropisů",
+  "matchingTreasuryHelp": "Vyžaduje stejnou měnu, přesnou částku a jednoznačný variabilní symbol. Vratky se hledají podle variabilního symbolu původní faktury. Existující úhrady se pouze připojí."
 }

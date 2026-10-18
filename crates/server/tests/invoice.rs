@@ -1030,3 +1030,57 @@ async fn qr_payment_pdf_uses_exact_issued_snapshot(pool: PgPool) {
         std::fs::write(format!("../../tmp/pdfs/qr-{language}.txt"), expected).unwrap();
     }
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "requires isolated PostgreSQL"]
+async fn foreign_iban_is_issued_and_retained_in_pdf_snapshot(pool: PgPool) {
+    let (actor, _, company, other) = setup(&pool).await;
+    let store = PgDraft(pool.clone());
+    for language in ["cs", "en"] {
+        let mut input = issuable();
+        input.language = language.into();
+        input.payment.method = "bank_transfer".into();
+        input.payment.bank_account.clear();
+        input.payment.iban = "DE89370400440532013000".into();
+        let saved = draft::create(
+            &store,
+            &actor,
+            &company,
+            Create {
+                request_id: uuid::Uuid::new_v4().to_string(),
+                data: input,
+            },
+        )
+        .await
+        .unwrap();
+        let issued = draft::issue(
+            &store,
+            &actor,
+            &company,
+            &saved.id,
+            issue_command(&uuid::Uuid::new_v4().to_string(), saved.revision),
+        )
+        .await
+        .unwrap();
+        assert_eq!(issued.data.payment.iban, "DE89370400440532013000");
+        assert!(
+            faktura_domain::payment_qr::payload(&issued.data.payment, "100.00", "CZK", None)
+                .is_none()
+        );
+        let pdf = draft::pdf(&store, &actor, &company, &issued.id)
+            .await
+            .unwrap();
+        assert!(pdf.starts_with(b"%PDF-"));
+        assert_eq!(
+            pdf,
+            draft::pdf(&store, &actor, &company, &issued.id)
+                .await
+                .unwrap()
+        );
+        assert!(draft::pdf(&store, &actor, &other, &issued.id)
+            .await
+            .is_err());
+        std::fs::create_dir_all("../../tmp/pdfs").unwrap();
+        std::fs::write(format!("../../tmp/pdfs/foreign-iban-{language}.pdf"), pdf).unwrap();
+    }
+}

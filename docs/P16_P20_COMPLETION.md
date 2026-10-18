@@ -12,7 +12,8 @@ Podrobná akceptace a stav: [P16_COMPLETION.md](P16_COMPLETION.md).
 Dokončeno P16-12: společné platební operace záloh a dobropisů v bance/pokladně.
 P16-09a má konfiguraci terminálů i jejich snapshoty na prodejkách.
 CZK prodejky a dávkové zaúčtování mají backend/DB/REST/MCP/CS/EN a regrese;
-zbývají návazné daňové/skladové funkce a samostatná interní tisková sestava.
+skladové a základní přehledové návaznosti jsou implementované. PDF dávky
+doplňuje P16-08b níže; úplné daňové režimy zůstávají otevřené.
 Dále zbývají měny, notifikace,
 tiskové nastavení a členění DPH. Skutečné bankovní exporty a živé ověření
 adaptérů vyžadují doložené vstupy; syntetické testy je nenahrazují.
@@ -129,3 +130,14 @@ a přijatou fakturou, včetně připojení existující úhrady. Explicitní ban
 kurz do CZK, uložené hodnoty obou stran a rozdíl; migrace 055, REST/MCP a CS/EN.
 Zbývají rozdílné měny záloh/vratek, jejich automatika a zahraniční IBAN.
 [Specifikace](specs/bank-foreign-matching.md#p16-13g--rozdílné-měny-z-cizoměnového-účtu).
+
+### Dodávka 18. 10. 2026 — P16-13i, P16-08b, P16-14b
+
+- [x] Zahraniční IBAN profilů a vystavených dokladů; historické PDF beze změny. QR zůstává CZ/CZK.
+- [x] PDF/tisk souhrnného zaúčtování prodejek v CS/EN, snapshot vystavitele, cache po revizích, označení storna (migrace 056).
+- [x] Samostatný opt-in pro automatické párování záloh a vratek ve stejné měně, existující úhrady bez duplicity (migrace 057).
+
+Specifikace: [měny](specs/bank-currencies.md), [prodejky](specs/sales-receipts.md),
+[automatika](specs/bank-auto-matching.md). Neuzavírá celé P16–P20. Otevřené
+zůstávají rozdílné měny záloh/vratek, notifikace bank, příjem e-mailů a
+vytěžování, S4/S5, účetní/daňové exporty a zbývající funkce P20.

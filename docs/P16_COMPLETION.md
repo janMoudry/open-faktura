@@ -10,8 +10,8 @@ potvrzení dokončení. Dřívější P16-01 až P16-06 mají vymezený rozsah v
 P16-13h doplňuje zahraniční IBAN bankovní evidence bez migrace: normalizace,
 validace formátu/checksumu, profilová unikátnost a zachování kontroly účtu/měny
 importu. [Rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů).
-Navazují zahraniční platební údaje dokladů/QR, automatika záloh a vratek a jejich
-párování mezi různými měnami. Historické záznamy níže popisují stav v době dodání.
+P16-13i doplňuje zahraniční IBAN dokladů a P16-14b opt-in automatiku záloh
+a vratek. Nadále zbývá jejich párování mezi různými měnami a širší QR formáty. Historické záznamy níže popisují stav v době dodání.
 
 ## Akceptační celky
 
@@ -122,3 +122,14 @@ a přijatou fakturou, včetně připojení existující úhrady. Explicitní ban
 kurz do CZK, uložené hodnoty obou stran a rozdíl; migrace 055, REST/MCP a CS/EN.
 Zbývají rozdílné měny záloh/vratek, jejich automatika a zahraniční IBAN.
 [Specifikace](specs/bank-foreign-matching.md#p16-13g--rozdílné-měny-z-cizoměnového-účtu).
+
+### Dodávka 18. 10. 2026 — P16-13i, P16-08b, P16-14b
+
+- [x] Zahraniční IBAN profilů a vystavených dokladů; historické PDF beze změny. QR zůstává CZ/CZK.
+- [x] PDF/tisk souhrnného zaúčtování prodejek v CS/EN, snapshot vystavitele, cache po revizích, označení storna (migrace 056).
+- [x] Samostatný opt-in pro automatické párování záloh a vratek ve stejné měně, existující úhrady bez duplicity (migrace 057).
+
+Specifikace: [měny](specs/bank-currencies.md), [prodejky](specs/sales-receipts.md),
+[automatika](specs/bank-auto-matching.md). Neuzavírá celé P16–P20. Otevřené
+zůstávají rozdílné měny záloh/vratek, notifikace bank, příjem e-mailů a
+vytěžování, S4/S5, účetní/daňové exporty a zbývající funkce P20.

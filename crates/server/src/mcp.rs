@@ -110,7 +110,7 @@ fn tools() -> Vec<Tool> {
             .expect("bank tools");
     for schema in bank.as_array().unwrap() {
         let name = schema["name"].as_str().unwrap();
-        result.push(Tool::new(name.to_owned(),"Profile-scoped CZK banking with explicit foreign invoice allocation. Foreign matching creates a new payment in document currency or links the full existing payment when payment_id is supplied; bank_amount remains CZK and the difference is not a ledger entry. Preview does not import. Execute explicitly creates/updates an account, imports CSV or a documented bank statement, records a manual movement, matches or unmatches a payment. Never sends a bank transfer. Connection test/sync contacts the configured provider; schedule enables recurring external reads and requires explicit opt-in. Matching enables recurring payment writes for exact matches and requires a separate explicit opt-in. Never log bank tokens. Existing payments can be linked without a second payment; unmatch reverses only payments created by matching.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="bank_execute" && name!="bank_connection_execute")));
+        result.push(Tool::new(name.to_owned(),"Profile-scoped banking in account currency with explicit cross-currency invoice allocation. Foreign matching creates a new payment in document currency or links the full existing payment when payment_id is supplied; bank_amount remains in account currency and the CZK difference is not a ledger entry. Preview does not import. Execute explicitly creates/updates an account, imports CSV or a documented bank statement, records a manual movement, matches or unmatches a payment. Never sends a bank transfer. Connection test/sync contacts the configured provider; schedule enables recurring external reads and requires explicit opt-in. Matching enables recurring payment writes for exact matches and requires a separate explicit opt-in. include_treasury additionally opts into advances and credit refunds using the original invoice reference. Never log bank tokens. Existing payments can be linked without a second payment; unmatch reverses only payments created by matching.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="bank_execute" && name!="bank_connection_execute")));
     }
     let preferences: serde_json::Value =
         serde_json::from_str(include_str!("../../../contracts/preferences.tools.json"))
@@ -548,6 +548,7 @@ impl ServerHandler for CompanyMcp {
             | "retail_preview"
             | "retail_execute"
             | "retail_pdf"
+            | "retail_posting_pdf"
             | "retail_postings"
             | "retail_posting_preview"
             | "retail_post"
@@ -1970,6 +1971,13 @@ async fn retail_tool(
                 )
                 .await?,
         ),
+        "retail_posting_pdf" => {
+            use base64::Engine;
+            let language = value["language"].as_str().ok_or_else(invalid)?;
+            return Ok(
+                serde_json::json!({"mime_type":"application/pdf","content_base64":base64::engine::general_purpose::STANDARD.encode(store.posting_pdf(actor,&c,&id,language).await?)}),
+            );
+        }
         "retail_pdf" => {
             use base64::Engine;
             return Ok(

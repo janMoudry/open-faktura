@@ -186,3 +186,12 @@ Screenshoty `docs/design/bank-foreign-iban-{cs,en}-{desktop,mobile}.png`
 zachycují formulář po chybné validaci; CS desktop/mobile vizuálně zkontrolovány.
 Lokální API restartované a health OK, bez nové migrace a bez skutečných
 bankovních přístupů. Nepředstavuje ověření živé shody s iDokladem.
+
+## P16-13i — IBAN profilu a vydaného dokladu (18. 10. 2026)
+
+Sdílená validace profilu a vystavení přijímá české i zahraniční IBAN podle
+stejné knihovny jako bankovní evidence (E-069). IBAN se uloží do snapshotu
+a vytiskne v CS/EN PDF. Neověřuje existenci účtu. Země profilu a základní
+měna se tím nemění. QR Platba zůstává pouze pro CZ IBAN a CZK (E-070).
+Historická PDF se neregenerují; bez migrace. Test invoice ověřuje obě řeči,
+uložený IBAN, cache i izolaci profilu.

@@ -109,8 +109,12 @@ function Connection({
     return () => c.abort();
   }, [companyId, account.id, attempt]);
   const [matchingEnabled, setMatchingEnabled] = useState(false);
+  const [matchingTreasury, setMatchingTreasury] = useState(false);
   useEffect(() => {
-    if (status) setMatchingEnabled(status.matching_enabled);
+    if (status) {
+      setMatchingEnabled(status.matching_enabled);
+      setMatchingTreasury(status.matching_treasury);
+    }
   }, [status]);
   const [interval, setInterval] = useState("0");
   useEffect(() => {
@@ -146,7 +150,12 @@ function Connection({
                     : (Number(interval) as 15 | 60 | 360 | 1440),
               }
             : action === "matching"
-              ? { ...base, action, enabled: matchingEnabled }
+              ? {
+                  ...base,
+                  action,
+                  enabled: matchingEnabled,
+                  include_treasury: matchingTreasury,
+                }
               : { ...base, action },
       );
       setStatus(result);
@@ -340,13 +349,23 @@ function Connection({
                     (account.archived && !status.matching_enabled)
                   }
                 />
+                <Switch
+                  label={t("matchingTreasury")}
+                  checked={matchingTreasury}
+                  onChange={(e) => setMatchingTreasury(e.target.checked)}
+                  disabled={busy || status.busy || account.archived}
+                />
+                <p className="text-sm text-muted">
+                  {t("matchingTreasuryHelp")}
+                </p>
                 <Button
                   variant="secondary"
                   disabled={
                     busy ||
                     status.busy ||
                     !!secret ||
-                    matchingEnabled === status.matching_enabled ||
+                    (matchingEnabled === status.matching_enabled &&
+                      matchingTreasury === status.matching_treasury) ||
                     (account.archived && matchingEnabled)
                   }
                   onClick={() => void run("matching")}

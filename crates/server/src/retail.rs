@@ -33,6 +33,10 @@ pub fn router(pool: PgPool, origins: Vec<String>, secure: bool) -> Router {
             post(posting_preview),
         )
         .route("/api/companies/{c}/retail/postings/reverse", post(unpost))
+        .route(
+            "/api/companies/{c}/retail/postings/{id}/pdf",
+            get(posting_pdf),
+        )
         .route("/api/companies/{c}/retail/commands", post(command))
         .route("/api/companies/{c}/retail/{id}", get(detail))
         .route("/api/companies/{c}/retail/{id}/history", get(history))
@@ -185,4 +189,32 @@ async fn postings(State(s): State<S>, h: HeaderMap, Path(c): Path<String>) -> Re
         Err(e) => return e.into_response(),
     };
     response(PgRetail(s.pool).postings(&a, &c).await)
+}
+
+#[derive(serde::Deserialize)]
+struct PdfLanguage {
+    language: String,
+}
+async fn posting_pdf(
+    State(s): State<S>,
+    h: HeaderMap,
+    Path((c, id)): Path<(String, String)>,
+    Query(q): Query<PdfLanguage>,
+) -> Response {
+    let a = match actor(&s, &h, false).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    match PgRetail(s.pool).posting_pdf(&a, &c, &id, &q.language).await {
+        Ok(bytes) => (
+            [
+                (header::CONTENT_TYPE, "application/pdf"),
+                (header::CACHE_CONTROL, "no-store"),
+                (header::CONTENT_DISPOSITION, "inline; filename=posting.pdf"),
+            ],
+            bytes,
+        )
+            .into_response(),
+        Err(e) => Failure(e).into_response(),
+    }
 }

@@ -168,3 +168,11 @@ export async function retailHistory(
     throw new SalesFailure(502, "invalid_response");
   return v;
 }
+
+export const retailPostingPdfUrl = (
+  b: string,
+  c: string,
+  id: string,
+  language: "cs" | "en",
+) =>
+  root(b, c) + `/postings/${encodeURIComponent(id)}/pdf?language=${language}`;

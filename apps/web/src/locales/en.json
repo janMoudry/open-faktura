@@ -70,7 +70,7 @@
   "timezone": "Time zone",
   "maturityDays": "Payment due in (days)",
   "paymentMethod": "Payment method",
-  "iban": "IBAN (Czech account)",
+  "iban": "IBAN",
   "numberPrefix": "Number series prefix",
   "numberYear": "Series year",
   "nextNumber": "Next number",
@@ -1404,6 +1404,7 @@
   "retailCancel": "Cancel sales receipt",
   "retailConflict": "The document or terminal has changed. Load the latest version before another change.",
   "retailInvalid": "Check the items, date and payment total. VAT payer sales receipts are limited to CZK 10,000.",
+  "retailPostingPdf": "Posting PDF / print",
   "retailPostingTitle": "Post sales receipts",
   "retailPostingHelp": "Select receipts in the table. Cash creates a cash register document; card and voucher payments are stored in an internal breakdown. The latest 100 batches are shown.",
   "retailPostingDate": "Posting date",
@@ -1713,5 +1714,7 @@
   "invoiceEditorSettings": "Invoice settings",
   "invoiceIssueHint": "Issuing assigns a number and locks the content. It does not send the invoice.",
   "overviewAllHistory": "Current balance across all history",
-  "overviewInvoiceCount": "Invoice count: {{count}}"
+  "overviewInvoiceCount": "Invoice count: {{count}}",
+  "matchingTreasury": "Include advances and credit note refunds",
+  "matchingTreasuryHelp": "Requires the same currency, exact amount and a unique payment reference. Refunds use the original invoice payment reference. Existing payments are linked without duplication."
 }

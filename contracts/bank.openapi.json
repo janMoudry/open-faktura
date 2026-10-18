@@ -2115,6 +2115,9 @@
               }
             ],
             "nullable": true
+          },
+          "matching_treasury": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -2132,7 +2135,8 @@
           "matching_enabled",
           "matching_next_at",
           "matching_error",
-          "matching_last"
+          "matching_last",
+          "matching_treasury"
         ]
       },
       "BankConnectionCommand": {
@@ -2329,6 +2333,11 @@
               },
               "enabled": {
                 "type": "boolean"
+              },
+              "include_treasury": {
+                "type": "boolean",
+                "default": false,
+                "description": "Explicitly include advances and credit refunds with the original invoice payment reference."
               }
             },
             "required": [

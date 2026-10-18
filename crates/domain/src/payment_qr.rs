@@ -22,7 +22,7 @@ pub fn iban(payment: &PaymentSnapshot) -> Option<String> {
         .collect::<String>()
         .to_uppercase();
     if !supplied.is_empty() {
-        return valid_iban(&supplied).then_some(supplied);
+        return (supplied.starts_with("CZ") && valid_iban(&supplied)).then_some(supplied);
     }
     let raw = payment.bank_account.trim();
     let (account, bank) = raw.split_once('/')?;
@@ -106,6 +106,8 @@ mod tests {
         assert!(payload(&p, "9999999.99", "CZK", None).is_some());
         assert!(payload(&p, "1", "EUR", None).is_none());
         p.iban = "CZ6508000000192000145390".into();
+        assert!(payload(&p, "1", "CZK", None).is_none());
+        p.iban = "DE89370400440532013000".into();
         assert!(payload(&p, "1", "CZK", None).is_none());
         p.iban.clear();
         p.variable_symbol = "1*AM:99".into();

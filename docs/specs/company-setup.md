@@ -21,7 +21,7 @@ Níže je vlastní implementační kontrakt, nikoli tvrzení o interním chován
   Prázdné volitelné řetězce znamenají nezadáno; nevracet null.
 - Země CZ a měna CZK jsou explicitní podporované hodnoty. IČO není povinné pro
   individual; při zadání má 8 číslic (kontrola registru není součástí P03).
-  IBAN se ověřuje délkou pro CZ (24), strukturou a mod-97; podporujeme CZ účet.
+  IBAN se ověřuje podle země, délky, struktury a mod-97; od P16-13i podporujeme také zahraniční IBAN (knihovna iban 0.2.0). QR Platba má oddělené omezení CZ/CZK.
   Bez účtu je dostupná hotovost. Převod před dokončením účet vyžaduje.
 - Rozpracované údaje lze uložit neúplné; neprázdné neplatné údaje jsou odmítnuty
   s kódem pole. Dokončení vyžaduje jméno, sídlo, IČO pro business, DIČ plátce,

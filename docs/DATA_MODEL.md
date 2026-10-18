@@ -552,3 +552,11 @@ P16-13h (18. 10. 2026): `bank_account.iban` přijímá normalizovaný zahraničn
 IBAN s validací země, struktury a checksumu. Textový sloupec, firemní unikátnost
 a neměnnost po pohybu se nemění; bez migrace. Měna účtu se neodvozuje ze země.
 Nejde o rozšíření platebních údajů dokladů ani QR; viz specs/bank-currencies.md.
+
+### Doplnění 18. 10. 2026 — tisk zaúčtování a rozsah párování
+
+Migrace 056: `retail_posting.issuer` je nullable JSON snapshot profilu při
+zaúčtování, historické NULL se neodhadují. `retail_posting_pdf` ukládá byty
+PDF pod (company_id, posting_id, revision, language), firemní FK a CS/EN.
+Migrace 057: `bank_connection.matching_treasury` je boolean default false;
+rozšíření automatiky vyžaduje samostatné explicitní nastavení.

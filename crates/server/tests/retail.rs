@@ -262,6 +262,26 @@ async fn posting_exact_groups_replay_reversal_and_source_guards(p: PgPool) {
     };
     let serialized = serde_json::to_value(&cmd).unwrap();
     let posted = s.post(&a, &c, cmd).await.unwrap();
+    for language in ["cs", "en"] {
+        let pdf = s.posting_pdf(&a, &c, &posted.id, language).await.unwrap();
+        assert!(pdf.starts_with(b"%PDF-"));
+        assert_eq!(
+            pdf,
+            s.posting_pdf(&a, &c, &posted.id, language).await.unwrap()
+        );
+        assert!(s
+            .posting_pdf(&a, &other, &posted.id, language)
+            .await
+            .is_err());
+        std::fs::create_dir_all("../../tmp/pdfs").unwrap();
+        std::fs::write(format!("../../tmp/pdfs/retail-posting-{language}.pdf"), pdf).unwrap();
+    }
+    assert!(s.posting_pdf(&a, &c, &posted.id, "xx").await.is_err());
+    let issuer: serde_json::Value = sqlx::query_scalar("SELECT issuer FROM retail_posting WHERE company_id=$1::text::bigint AND id=$2::text::bigint")
+        .bind(&c).bind(&posted.id).fetch_one(&p).await.unwrap();
+    assert_eq!(issuer["name"], "Synthetic shop");
+    let original_pdf = s.posting_pdf(&a, &c, &posted.id, "cs").await.unwrap();
+
     assert_eq!(
         s.post(&a, &c, serde_json::from_value(serialized).unwrap())
             .await
@@ -321,7 +341,11 @@ async fn posting_exact_groups_replay_reversal_and_source_guards(p: PgPool) {
         revision: posted.revision,
         reason: "Correction".into(),
     };
-    assert!(s.unpost(&a, &c, reverse).await.unwrap().cancelled);
+    let cancelled = s.unpost(&a, &c, reverse).await.unwrap();
+    assert!(cancelled.cancelled);
+    let cancelled_pdf = s.posting_pdf(&a, &c, &cancelled.id, "cs").await.unwrap();
+    assert_ne!(original_pdf, cancelled_pdf);
+
     assert!(s.get(&a, &c, &one.id).await.unwrap().posting_id.is_none());
     assert!(s.posting_preview(&a, &c, input).await.is_ok());
     let count: i64 = sqlx::query_scalar(
@@ -444,6 +468,50 @@ async fn posting_stale_preview_concurrency_and_mcp_parity(p: PgPool) {
     let (left, right) = tokio::join!(s.post(&a, &c, left), s.post(&a, &c, right));
     assert_eq!(usize::from(left.is_ok()) + usize::from(right.is_ok()), 1);
     assert_eq!(s.postings(&a, &c).await.unwrap().len(), 1);
+    let posted = s.postings(&a, &c).await.unwrap().remove(0);
+    let router = faktura_server::retail::router(p.clone(), vec![], false);
+    // The session was moved into MCP; create another authenticated session for REST.
+    let (_, http_token) = auth::login(
+        &PgAuth::new(p.clone(), None),
+        "owner@example.test",
+        "Synthetic password 123!",
+    )
+    .await
+    .unwrap();
+    let response = router
+        .oneshot(
+            Request::builder()
+                .uri(format!(
+                    "/api/companies/{c}/retail/postings/{}/pdf?language=en",
+                    posted.id
+                ))
+                .header("cookie", format!("faktura_session={http_token}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    let bytes = to_bytes(response.into_body(), 10_000_000).await.unwrap();
+    let args = serde_json::json!({"company_id":c,"id":posted.id,"language":"en"});
+    let reply = client
+        .call_tool(
+            CallToolRequestParams::new("retail_posting_pdf")
+                .with_arguments(args.as_object().unwrap().clone()),
+        )
+        .await
+        .unwrap();
+    assert_ne!(reply.is_error, Some(true));
+    let json = serde_json::to_value(reply).unwrap();
+    let payload: serde_json::Value =
+        serde_json::from_str(json["content"][0]["text"].as_str().unwrap()).unwrap();
+    use base64::Engine;
+    assert_eq!(
+        bytes.as_ref(),
+        base64::engine::general_purpose::STANDARD
+            .decode(payload["content_base64"].as_str().unwrap())
+            .unwrap()
+    );
     client.cancel().await.unwrap();
     task.await.unwrap();
 }
@@ -530,4 +598,45 @@ async fn stock_sale_edit_and_cancel_are_exact(p: PgPool) {
         .await
         .unwrap();
     assert_eq!(stock.cards(&a, &c).await.unwrap()[0].quantity, "5");
+}
+
+#[sqlx::test(migrations = false)]
+#[ignore = "isolated PostgreSQL"]
+async fn upgrade055_preserves_legacy_posting_without_inventing_issuer(p: PgPool) {
+    use retail::PostingStore;
+    let previous = sqlx::migrate::Migrator {
+        migrations: std::borrow::Cow::Owned(
+            sqlx::migrate!("../../migrations")
+                .iter()
+                .filter(|m| m.version < 202610180056)
+                .cloned()
+                .collect(),
+        ),
+        ..sqlx::migrate::Migrator::DEFAULT
+    };
+    previous.run(&p).await.unwrap();
+    let (a, _, c, _) = setup(&p).await;
+    let id: i64 = sqlx::query_scalar("INSERT INTO retail_posting(company_id,booked_on,groups,reason,actor_id) VALUES($1,'2026-10-15','[]','Legacy test',$2) RETURNING id")
+        .bind(c.parse::<i64>().unwrap()).bind(a.parse::<i64>().unwrap()).fetch_one(&p).await.unwrap();
+    sqlx::migrate!("../../migrations").run(&p).await.unwrap();
+    let issuer: Option<serde_json::Value> =
+        sqlx::query_scalar("SELECT issuer FROM retail_posting WHERE id=$1")
+            .bind(id)
+            .fetch_one(&p)
+            .await
+            .unwrap();
+    assert!(issuer.is_none());
+    let store = PgRetail(p);
+    let pdf = store
+        .posting_pdf(&a, &c, &id.to_string(), "cs")
+        .await
+        .unwrap();
+    assert!(pdf.starts_with(b"%PDF"));
+    assert_eq!(
+        pdf,
+        store
+            .posting_pdf(&a, &c, &id.to_string(), "cs")
+            .await
+            .unwrap()
+    );
 }

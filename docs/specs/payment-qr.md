@@ -21,3 +21,7 @@ Ověřeno 16. 10. 2026: dvě doménové regrese, izolovaný PostgreSQL scénář
 `qr_payment_pdf_uses_exact_issued_snapshot`, render CS/EN PDF přes Poppler
 150 DPI a dekódování pomocí zxing-cpp 2.3.0 (přesná shoda celého payloadu).
 To není ověření konkrétní mobilní bankovní aplikace.
+
+P16-13i (18. 10. 2026) umožňuje zahraniční IBAN v profilu a na faktuře,
+ale nezvětšuje rozsah QR Platby. Pro non-CZ IBAN se QR nevygeneruje ani
+při částce v CZK. Test ověřuje toto oddělení; důvod v E-070.

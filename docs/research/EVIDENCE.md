@@ -936,3 +936,14 @@ P16-13h je vlastní návrh rozšíření bankovní evidence. Normalizace, uniká
 v profilu, měna nezávislá na zemi a omezení na bankovní evidenci jsou v
 specs/bank-currencies.md. Příkladové IBAN a syntetické XML testy nejsou
 skutečnými exporty ani důkazem chování iDokladu či zahraničních bank.
+
+## E-070 — zahraniční IBAN a QR Platba (18. 10. 2026)
+
+Veřejný primární zdroj https://qr-platba.cz/pro-vyvojare/specifikace-formatu/
+popisuje účet ACC jako IBAN a volitelný BIC.
+https://qr-platba.cz/kontakt/ omezuje spolehlivou použitelnost na tuzemské
+platby; samotná syntaxe IBAN nepotvrzuje podporu zahraniční bankovní aplikací.
+Přečteno 18. 10. 2026; standard 1.2 (červen 2021) na
+https://qr-platba.cz/wp-content/uploads/1645-standard-qr-v1-2-cerven-2021.pdf.
+Vlastní rozhodnutí: přijmout zahraniční IBAN v profilu/dokladu, zachovat QR
+jen CZ/CZK. Živé ověření iDokladu či mobilních bank nebylo provedeno.

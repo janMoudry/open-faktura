@@ -918,3 +918,23 @@ struktury a checksumu přes verzovaný validátor. Bez migrace; firemní unikát
 immutabilita po pohybu, shoda účtu/měny importu a REST/MCP zůstávají společné.
 UI a validace CS/EN. [Specifikace a akceptace](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů).
 Navazují zahraniční IBAN dokladů/QR, automatika záloh/vratek a jejich různé měny.
+
+### Dodávka 18. 10. 2026 — P16-13i, P16-08b, P16-14b
+
+- [x] Zahraniční IBAN profilů a vystavených dokladů; historické PDF beze změny. QR zůstává CZ/CZK.
+- [x] PDF/tisk souhrnného zaúčtování prodejek v CS/EN, snapshot vystavitele, cache po revizích, označení storna (migrace 056).
+- [x] Samostatný opt-in pro automatické párování záloh a vratek ve stejné měně, existující úhrady bez duplicity (migrace 057).
+
+Specifikace: [měny](specs/bank-currencies.md), [prodejky](specs/sales-receipts.md),
+[automatika](specs/bank-auto-matching.md). Neuzavírá celé P16–P20. Otevřené
+zůstávají rozdílné měny záloh/vratek, notifikace bank, příjem e-mailů a
+vytěžování, S4/S5, účetní/daňové exporty a zbývající funkce P20.
+
+Ověření dodávky: `pnpm check`, `pnpm build:web`, serverový build a 27 doménových
+testů prošly. Izolované DB: company 6, invoice 9, retail 6; bank 65 scénářů
+a rozšířená sada native_treasury 8 (překrývá část bank), následná kontrola
+auditu vratky; regrese advance 3, cash 16 a credit_note 6. Chromium bank
+a cash CS/EN desktop/mobile: všech 8 prošlo po opravě cílové URL testovacího
+stahování PDF. PDF CS/EN renderované přes Poppler a vizuálně zkontrolované.
+Lokální upgrade po záloze: migrace 056/057 úspěšné, API health OK. Nejde
+o ověření skutečných bank, tiskárny či úplné shody iDokladu.

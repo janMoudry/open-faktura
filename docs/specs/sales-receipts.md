@@ -70,5 +70,22 @@ replay, role, snapshot terminálu, číslování, PDF, storno, souběžné zaú�
 zastaralý náhled a shodu REST/MCP. Regrese všech 16 pokladních scénářů prošla.
 CS/EN desktop/mobile `cash.spec.ts` ověřuje vytvoření prodejky, PDF,
 náhled, zaúčtování a zrušení dávky. PDF pokladního dokladu obsahuje převzatý
-souhrn DPH. Interní rozpis karet/poukázek je uložený v dávce; samostatná tisková
-sestava interního dokladu zatím chybí. To není dokončené celé P16-08.
+souhrn DPH. Interní rozpis karet/poukázek je uložený v dávce; tisk celé dávky včetně interních skupin doplňuje P16-08b níže.
+
+## P16-08b — PDF zaúčtování (18. 10. 2026)
+
+REST `/retail/postings/{id}/pdf?language=cs|en` a MCP `retail_posting_pdf`
+vrací společnou sestavu všech skupin v dávce, včetně interních čísel
+karet/stravenek, terminálu, odběratele, zdrojových ID a uložených rozpisů.
+Neprovádí nový výpočet ani novou úhradu. UI nabízí PDF/tisk v historii dávek.
+Jde o vlastní tiskové rozložení nad E-050, nikoli doloženou vizuální shodu.
+
+Migrace 056 přidává snapshot vystavitele při zaúčtování a cache podle
+profilu, dávky, revize a jazyka. Staré dávky mají issuer=NULL a výslovné
+upozornění, že historické údaje nejsou uložené. Dnešní údaje se nedoplňují.
+Storno vytváří PDF nové revize s označením a důvodem; stará cache zůstává.
+Přístup ověřuje členství i při cache hitu. Renderer nemá síťové I/O.
+
+Test retail ověřuje CS/EN PDF, cache, izolaci, storno, REST/MCP a upgrade055;
+UI cash.spec.ts ověřuje dostupné PDF. Systémový tisk Tauri není tímto testem
+ověřen. Úplné daňové režimy prodejek zůstávají součástí P19.

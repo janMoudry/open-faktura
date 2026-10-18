@@ -129,7 +129,6 @@ mod iban_tests {
         data.normalize();
         assert_eq!(data.iban, "DE89370400440532013000");
         assert!(data.validate().is_empty());
-        // Treasury support must not silently expand invoice/profile or QR rules.
-        assert!(!crate::company::valid_iban(&data.iban));
+        assert!(crate::company::valid_iban(&data.iban));
     }
 }

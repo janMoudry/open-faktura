@@ -107,3 +107,5 @@ pub mod money_catalog;
 pub mod tax_report;
 
 pub mod exchange_rate;
+
+mod retail_posting_pdf;

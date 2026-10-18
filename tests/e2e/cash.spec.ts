@@ -309,6 +309,20 @@ for (const english of [false, true])
       await page
         .getByLabel(labels.retailReason, { exact: true })
         .fill("Synthetic posting reversal");
+      const postingLink = page.getByRole("link", {
+        name: labels.retailPostingPdf,
+        exact: true,
+      });
+      await expect(postingLink).toBeVisible();
+      const postingUrl = new URL(
+        (await postingLink.getAttribute("href"))!,
+        page.url(),
+      );
+      const postingPdf = await page.request.get(
+        `http://127.0.0.1:${port}${postingUrl.pathname}${postingUrl.search}`,
+      );
+      expect(postingPdf.ok()).toBe(true);
+      expect((await postingPdf.body()).subarray(0, 4).toString()).toBe("%PDF");
       await page
         .getByRole("button", { name: labels.retailPostingReverse, exact: true })
         .click();

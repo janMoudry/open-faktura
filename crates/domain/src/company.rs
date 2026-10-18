@@ -189,22 +189,9 @@ impl CompanySettings {
     }
 }
 pub fn valid_iban(value: &str) -> bool {
-    if value.len() != 24
-        || !value.starts_with("CZ")
-        || !value[2..].bytes().all(|b| b.is_ascii_digit())
-    {
-        return false;
-    }
-    let mut remainder = 0_u32;
-    for b in value.bytes().skip(4).chain(value.bytes().take(4)) {
-        if b.is_ascii_digit() {
-            remainder = (remainder * 10 + u32::from(b - b'0')) % 97;
-        } else {
-            remainder = (remainder * 100 + u32::from(b - b'A' + 10)) % 97;
-        }
-    }
-    remainder == 1
+    value.parse::<iban::Iban>().is_ok()
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,6 +201,10 @@ mod tests {
         assert!(s.issues(false).is_empty());
         assert!(s.issues(true).contains(&"name".into()));
         s.iban = "CZ6508000000192000145399".into();
+        assert!(s.issues(false).is_empty());
+        s.iban = "de89 3704 0044 0532 0130 00".into();
+        s.normalize();
+        assert_eq!(s.iban, "DE89370400440532013000");
         assert!(s.issues(false).is_empty());
         s.iban = "CZ6508000000192000145390".into();
         assert!(s.issues(false).contains(&"iban".into()));

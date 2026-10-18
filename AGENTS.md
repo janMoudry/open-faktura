@@ -420,3 +420,11 @@ P16-13h: bank-currencies.md, bez migrace. Pouze bankovní AccountData validuje
 zahraniční IBAN přes iban 0.2.0; profily/doklady/QR zůstávají CZ. Test:bank
 currency_tests + REST/MCP, domain iban a CS/EN bank E2E. Země neurčuje měnu;
 formát není ověření existence účtu. Import zachovává shodu IBAN i měny.
+
+P16-13i/P16-08b/P16-14b: zahraniční IBAN profilu/dokladů, QR stále CZ/CZK;
+PDF zaúčtování prodejek (migrace 056) a opt-in automatika záloh/vratek ve
+shodné měně (057). Specs bank-currencies, sales-receipts, bank-auto-matching.
+Testy invoice/retail/bank, cash/bank E2E CS/EN. Před upgradem zastavit staré
+API a zálohovat DB. Legacy issuer=NULL není dnešní profil; PDF cache po revizích.
+Matching treasury default false, původní úhrady nezdvojovat, vratky hledají VS
+původní faktury. Různé měny záloh/vratek a další P16–P20 stále zbývají.

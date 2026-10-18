@@ -368,6 +368,7 @@ function connectionStatus(v: BankConnectionStatus): BankConnectionStatus {
     invalid();
   if (
     typeof v.matching_enabled !== "boolean" ||
+    typeof v.matching_treasury !== "boolean" ||
     (v.matching_next_at !== null && typeof v.matching_next_at !== "string") ||
     (v.matching_error !== null && typeof v.matching_error !== "string") ||
     (v.matching_last !== null &&

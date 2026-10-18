@@ -898,7 +898,8 @@
         "secret": {},
         "company_id": {},
         "enabled": {},
-        "interval_minutes": {}
+        "interval_minutes": {},
+        "include_treasury": {}
       },
       "oneOf": [
         {
@@ -1119,6 +1120,11 @@
             },
             "enabled": {
               "type": "boolean"
+            },
+            "include_treasury": {
+              "type": "boolean",
+              "default": false,
+              "description": "Explicitly include advances and credit refunds with the original invoice payment reference."
             },
             "company_id": {
               "type": "string"

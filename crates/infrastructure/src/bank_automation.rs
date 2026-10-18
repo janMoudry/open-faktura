@@ -40,10 +40,12 @@ impl PgBank {
         if !locked {
             return Ok(false);
         }
-        let cursor=sqlx::query_scalar::<_,i64>("SELECT matching_cursor FROM bank_connection WHERE company_id=$1 AND account_id=$2 AND revision=$3 AND matching_enabled AND matching_actor_id=$4 AND matching_next_at<=now() FOR UPDATE").bind(c).bind(account).bind(revision).bind(actor).fetch_optional(&mut *tx).await.map_err(err)?;
-        let Some(cursor) = cursor else {
+        let config=sqlx::query("SELECT matching_cursor,matching_treasury FROM bank_connection WHERE company_id=$1 AND account_id=$2 AND revision=$3 AND matching_enabled AND matching_actor_id=$4 AND matching_next_at<=now() FOR UPDATE").bind(c).bind(account).bind(revision).bind(actor).fetch_optional(&mut *tx).await.map_err(err)?;
+        let Some(config) = config else {
             return Ok(false);
         };
+        let cursor: i64 = config.get("matching_cursor");
+        let include_treasury: bool = config.get("matching_treasury");
         let ac = get_account(&mut tx, c, &account.to_string()).await?;
         if ac.archived {
             return Err(Error::Forbidden);
@@ -60,15 +62,16 @@ impl PgBank {
         let (checked, matched, items) = if ids.is_empty() {
             (0, 0, serde_json::json!([]))
         } else {
-            let report = matching::batch_preview(
+            let report = matching::batch_preview_scoped(
                 &mut tx,
                 c,
                 BatchInput {
                     movement_ids: ids.iter().map(ToString::to_string).collect(),
                 },
+                include_treasury,
             )
             .await?;
-            let items=serde_json::Value::Array(report.items.iter().map(|i|serde_json::json!({"movement_id":i.movement.id,"status":i.status,"document_id":i.candidate.as_ref().map(|c|&c.document_id)})).collect());
+            let items=serde_json::Value::Array(report.items.iter().map(|i|serde_json::json!({"movement_id":i.movement.id,"status":i.status,"target_kind":i.candidate.as_ref().map(|c|&c.target_kind),"document_id":i.candidate.as_ref().map(|c|&c.document_id)})).collect());
             let checked = report.items.len() as i32;
             let matched = matching::apply_batch(&mut tx, &a, &company, actor, c, report)
                 .await?

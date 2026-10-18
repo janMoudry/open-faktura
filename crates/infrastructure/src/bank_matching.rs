@@ -6,6 +6,14 @@ pub(super) async fn suggestions(
     c: i64,
     m: &Movement,
 ) -> Result<Vec<Candidate>> {
+    suggestions_scoped(tx, c, m, false).await
+}
+async fn suggestions_scoped(
+    tx: &mut Transaction<'_, Postgres>,
+    c: i64,
+    m: &Movement,
+    include_treasury: bool,
+) -> Result<Vec<Candidate>> {
     if m.data.variable_symbol.is_empty() || m.matches.iter().any(|v| v.detached_at.is_none()) {
         return Ok(vec![]);
     }
@@ -43,6 +51,48 @@ pub(super) async fn suggestions(
             choices.retain(|v| v.payment_id.is_some());
         }
         result.extend(choices);
+    }
+    if include_treasury {
+        // Explicit opt-in: advances use their VS; refunds use the original invoice VS.
+        let (table, filter, symbol, currency_path) = if incoming {
+            (
+                "sales_document",
+                "kind='advance' AND NOT archived",
+                "data->'invoice'->'payment'->>'variable_symbol'",
+                "data->'invoice'->'calculation'->>'currency'",
+            )
+        } else {
+            (
+                "credit_note",
+                "status='issued'",
+                "source->'data'->'payment'->>'variable_symbol'",
+                "totals->>'currency'",
+            )
+        };
+        let ids: Vec<i64> = sqlx::query_scalar(&format!("SELECT id FROM {table} WHERE company_id=$1 AND {filter} AND {currency_path}=$3 AND coalesce({symbol},'')<>'' AND ltrim({symbol},'0')=$2 ORDER BY id LIMIT 101"))
+            .bind(c).bind(m.data.variable_symbol.trim_start_matches('0')).bind(&m.data.currency).fetch_all(&mut **tx).await.map_err(err)?;
+        if ids.len() > 100 {
+            return Err(invalid("suggestions_limit"));
+        }
+        for doc in ids {
+            let mut choices = crate::treasury_documents::candidates(
+                tx,
+                c,
+                incoming,
+                value.abs(),
+                m.data.booked_on,
+                "bank_transfer",
+                &m.data.currency,
+                "",
+                Some(doc),
+                false,
+            )
+            .await?;
+            if choices.iter().any(|v| v.payment_id.is_some()) {
+                choices.retain(|v| v.payment_id.is_some());
+            }
+            result.extend(choices);
+        }
     }
     if result
         .iter()
@@ -250,6 +300,14 @@ pub(super) async fn batch_preview(
     c: i64,
     input: BatchInput,
 ) -> Result<BatchPreview> {
+    batch_preview_scoped(tx, c, input, false).await
+}
+pub(super) async fn batch_preview_scoped(
+    tx: &mut Transaction<'_, Postgres>,
+    c: i64,
+    input: BatchInput,
+    include_treasury: bool,
+) -> Result<BatchPreview> {
     if input.movement_ids.is_empty() || input.movement_ids.len() > 25 {
         return Err(invalid("movement_ids"));
     }
@@ -275,7 +333,7 @@ pub(super) async fn batch_preview(
         } else if m.data.variable_symbol.is_empty() {
             "no_symbol"
         } else {
-            let choices = match suggestions(tx, c, &m).await {
+            let choices = match suggestions_scoped(tx, c, &m, include_treasury).await {
                 Ok(v) => v,
                 Err(Error::Invalid(fields)) if fields.iter().any(|f| f == "suggestions_limit") => {
                     items.push(BatchItem {

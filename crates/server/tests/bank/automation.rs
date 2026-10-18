@@ -13,7 +13,10 @@ pub(super) async fn enable(p: &PgPool, a: &str, c: &str, ac: &Account) {
             account_id: ac.id.clone(),
             revision: v.revision,
             request_id: key(),
-            action: bc::Action::Matching { enabled: true },
+            action: bc::Action::Matching {
+                enabled: true,
+                include_treasury: false,
+            },
         },
     )
     .await
@@ -41,7 +44,10 @@ async fn exact_concurrent_and_manual_detachment(p: PgPool) {
                 account_id: ac.id.clone(),
                 revision: 0,
                 request_id: key(),
-                action: bc::Action::Matching { enabled: true }
+                action: bc::Action::Matching {
+                    enabled: true,
+                    include_treasury: false
+                }
             }
         )
         .await
@@ -127,7 +133,10 @@ async fn existing_payment_is_linked_once_and_permission_loss_pauses(p: PgPool) {
                 account_id: ac.id,
                 revision: v.revision,
                 request_id: key(),
-                action: bc::Action::Matching { enabled: true }
+                action: bc::Action::Matching {
+                    enabled: true,
+                    include_treasury: false
+                }
             }
         )
         .await
@@ -236,6 +245,7 @@ async fn upgrade034_preserves_download_schedule_but_matching_is_off(p: PgPool) {
         .unwrap();
     assert!(v.configured && v.schedule_enabled);
     assert!(!v.matching_enabled);
+    assert!(!v.matching_treasury);
     assert!(v.matching_next_at.is_none());
     assert_eq!(v.revision, 4);
     assert!(!PgBank(p).process_matching_one().await.unwrap());
@@ -254,7 +264,7 @@ async fn matching_rest_mcp_configuration_and_status(p: PgPool) {
     let ac = account(&PgBank(p.clone()), &a, &c).await;
     let app =
         faktura_server::banking::router(p.clone(), vec!["http://localhost:5173".into()], false);
-    let command = serde_json::json!({"account_id":ac.id,"revision":0,"request_id":key(),"action":"matching","enabled":true});
+    let command = serde_json::json!({"account_id":ac.id,"revision":0,"request_id":key(),"action":"matching","enabled":true,"include_treasury":true});
     let r = app
         .oneshot(
             Request::builder()

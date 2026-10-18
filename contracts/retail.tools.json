@@ -1152,5 +1152,32 @@
       ],
       "additionalProperties": false
     }
+  },
+  {
+    "name": "retail_posting_pdf",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "cs",
+            "en"
+          ]
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "language"
+      ],
+      "additionalProperties": false
+    }
   }
 ]

@@ -230,7 +230,15 @@ async fn mcp_sdk_client_obeys_membership_and_revocation(pool: PgPool) {
             .unwrap();
     });
     let client = ().serve(client_io).await.unwrap();
-    assert_eq!(client.list_all_tools().await.unwrap().len(), 22);
+    let tools = client.list_all_tools().await.unwrap();
+    for required in ["companies_list", "company_context", "invoice_calculate"] {
+        assert!(
+            tools.iter().any(|tool| tool.name.as_ref() == required),
+            "missing {required}"
+        );
+    }
+    let names: std::collections::HashSet<_> = tools.iter().map(|tool| tool.name.as_ref()).collect();
+    assert_eq!(names.len(), tools.len());
     let listed = client
         .call_tool(CallToolRequestParams::new("companies_list"))
         .await

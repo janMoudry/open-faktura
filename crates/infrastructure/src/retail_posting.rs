@@ -167,6 +167,41 @@ async fn audit(
 }
 #[async_trait]
 impl PostingStore for PgRetail {
+    async fn posting_pdf(&self, a: &str, c: &str, i: &str, language: &str) -> Result<Vec<u8>> {
+        if !["cs", "en"].contains(&language) {
+            return Err(invalid("language"));
+        }
+        let mut tx = self.0.begin().await.map_err(err)?;
+        let (_, company) = crate::draft::authorize(&mut tx, a, c, false).await?;
+        let row = sqlx::query("SELECT * FROM retail_posting WHERE company_id=$1 AND id=$2")
+            .bind(company)
+            .bind(id(i)?)
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(err)?
+            .ok_or(Error::NotFound)?;
+        let issuer: Option<serde_json::Value> = row.get("issuer");
+        let document = posting(row)?;
+        let revision = document.revision;
+        let cached: Option<Vec<u8>> = sqlx::query_scalar("SELECT content FROM retail_posting_pdf WHERE company_id=$1 AND posting_id=$2 AND revision=$3 AND language=$4")
+            .bind(company).bind(id(i)?).bind(revision).bind(language).fetch_optional(&mut *tx).await.map_err(err)?;
+        tx.commit().await.map_err(err)?;
+        if let Some(bytes) = cached {
+            return Ok(bytes);
+        }
+        let lang = language.to_owned();
+        let bytes = tokio::task::spawn_blocking(move || {
+            crate::retail_posting_pdf::render(&document, issuer.as_ref(), &lang)
+        })
+        .await
+        .map_err(err)?
+        .map_err(err)?;
+        sqlx::query("INSERT INTO retail_posting_pdf(company_id,posting_id,revision,language,content) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING")
+            .bind(company).bind(id(i)?).bind(revision).bind(language).bind(&bytes).execute(&self.0).await.map_err(err)?;
+        sqlx::query_scalar("SELECT content FROM retail_posting_pdf WHERE company_id=$1 AND posting_id=$2 AND revision=$3 AND language=$4")
+            .bind(company).bind(id(i)?).bind(revision).bind(language).fetch_one(&self.0).await.map_err(err)
+    }
+
     async fn posting_preview(
         &self,
         a: &str,
@@ -205,7 +240,7 @@ impl PostingStore for PgRetail {
         if preview.fingerprint != cmd.fingerprint {
             return Err(Error::Conflict);
         }
-        let posting_id:i64=sqlx::query_scalar("INSERT INTO retail_posting(company_id,booked_on,groups,reason,actor_id) VALUES($1,$2,'[]','post',$3) RETURNING id").bind(c).bind(cmd.input.booked_on).bind(a).fetch_one(&mut *tx).await.map_err(err)?;
+        let posting_id:i64=sqlx::query_scalar("INSERT INTO retail_posting(company_id,booked_on,groups,reason,actor_id,issuer) VALUES($1,$2,'[]','post',$3,(SELECT settings FROM company WHERE id=$1)) RETURNING id").bind(c).bind(cmd.input.booked_on).bind(a).fetch_one(&mut *tx).await.map_err(err)?;
         for (index, group) in preview.groups.iter_mut().enumerate() {
             if group.method == "cash" {
                 let data = faktura_domain::cash::MovementData {

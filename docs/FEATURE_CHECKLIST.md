@@ -132,9 +132,9 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P16-04: CZK pokladny, počáteční stav, PP/VP doklady, saldo za období, storno, ruční párování nových/existujících hotovostních úhrad, REST/MCP a CS/EN. [Hranice](specs/cash-register.md).
 - [x] P16-05: volitelná hlavní pokladna, automatické PP/VP ze skutečných hotovostních úhrad vydaných/přijatých faktur a účtenek, opravy/storna, PDF a náhled tisku v CS/EN. [Rozsah](specs/cash-register.md).
 - [x] P16-06: jedna samostatná položka pokladního dokladu s DPH, cena net/gross, serverový náhled, uložený rozpis, filtr a PDF CS/EN. Bez členění DPH a daňových výkazů. [Rozsah](specs/cash-register.md).
-- [ ] P16: automatika záloh/dobropisů, členění DPH, prodejky a jejich souhrnné zaúčtování, terminály a konfigurace tiskových sestav.
+- [ ] P16: dokončení měnových vazeb záloh/dobropisů, členění DPH, externí terminály a konfigurace tiskových sestav.
 - [x] CZK prodejky: kombinované úhrady, terminál, číslování, historie a PDF CS/EN.
-- [x] Dávkové zaúčtování: náhled, uložené rozpisy, pokladní příjem pouze hotovosti, replay a storno; samostatný tisk interních dokladů ještě chybí.
+- [x] Dávkové zaúčtování: náhled, uložené rozpisy, pokladní příjem pouze hotovosti, replay a storno; PDF celé dávky včetně interních skupin doplňuje P16-08b.
 - [x] Inbox základ: originály, deduplikace, archiv a atomické vytvoření přijaté faktury s přílohou v CS/EN.
 - [ ] P17: dokončení inboxu, ISDOC/QR, e-mailový příjem a volitelné vytěžování.
 - [x] P18 základ: skladové karty, ruční pohyby, reverzy a inventury s revizemi, historií a CS/EN.
@@ -228,3 +228,14 @@ a přijatou fakturou, včetně připojení existující úhrady. Explicitní ban
 kurz do CZK, uložené hodnoty obou stran a rozdíl; migrace 055, REST/MCP a CS/EN.
 Zbývají rozdílné měny záloh/vratek, jejich automatika a zahraniční IBAN.
 [Specifikace](specs/bank-foreign-matching.md#p16-13g--rozdílné-měny-z-cizoměnového-účtu).
+
+### Dodávka 18. 10. 2026 — P16-13i, P16-08b, P16-14b
+
+- [x] Zahraniční IBAN profilů a vystavených dokladů; historické PDF beze změny. QR zůstává CZ/CZK.
+- [x] PDF/tisk souhrnného zaúčtování prodejek v CS/EN, snapshot vystavitele, cache po revizích, označení storna (migrace 056).
+- [x] Samostatný opt-in pro automatické párování záloh a vratek ve stejné měně, existující úhrady bez duplicity (migrace 057).
+
+Specifikace: [měny](specs/bank-currencies.md), [prodejky](specs/sales-receipts.md),
+[automatika](specs/bank-auto-matching.md). Neuzavírá celé P16–P20. Otevřené
+zůstávají rozdílné měny záloh/vratek, notifikace bank, příjem e-mailů a
+vytěžování, S4/S5, účetní/daňové exporty a zbývající funkce P20.

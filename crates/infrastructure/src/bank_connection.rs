@@ -57,7 +57,7 @@ fn run(r: sqlx::postgres::PgRow) -> Run {
 }
 async fn status(tx: &mut Transaction<'_, Postgres>, c: i64, id: i64) -> Result<Status> {
     let row = sqlx::query(
-        "SELECT revision,provider,schedule_enabled,interval_minutes,next_run_at,schedule_error,matching_enabled,matching_next_at,matching_error FROM bank_connection WHERE company_id=$1 AND account_id=$2",
+        "SELECT revision,provider,schedule_enabled,interval_minutes,next_run_at,schedule_error,matching_enabled,matching_treasury,matching_next_at,matching_error FROM bank_connection WHERE company_id=$1 AND account_id=$2",
     )
     .bind(c)
     .bind(id)
@@ -72,6 +72,7 @@ async fn status(tx: &mut Transaction<'_, Postgres>, c: i64, id: i64) -> Result<S
     let matching_last=sqlx::query("SELECT created_at,checked,matched FROM bank_matching_run WHERE company_id=$1 AND account_id=$2 ORDER BY id DESC LIMIT 1").bind(c).bind(id).fetch_optional(&mut **tx).await.map_err(err)?.map(|r|MatchingRun{at:r.get::<chrono::DateTime<chrono::Utc>,_>("created_at").to_rfc3339(),checked:r.get("checked"),matched:r.get("matched")});
     Ok(Status {
         matching_enabled: row.as_ref().is_some_and(|r| r.get("matching_enabled")),
+        matching_treasury: row.as_ref().is_some_and(|r| r.get("matching_treasury")),
         matching_next_at: row
             .as_ref()
             .and_then(|r| r.get::<Option<chrono::DateTime<chrono::Utc>>, _>("matching_next_at"))
@@ -133,7 +134,7 @@ impl ConnectionStore for PgConnection {
             || (account.archived
                 && !matches!(
                     &cmd.action,
-                    Action::Disconnect | Action::Matching { enabled: false }
+                    Action::Disconnect | Action::Matching { enabled: false, .. }
                 ))
         {
             return Err(Error::Conflict);
@@ -190,8 +191,12 @@ impl ConnectionStore for PgConnection {
             }
             sqlx::query("UPDATE bank_connection SET schedule_enabled=$3,interval_minutes=$4,schedule_actor_id=$5,next_run_at=CASE WHEN $3 THEN now()+make_interval(mins=>$4) ELSE NULL END,schedule_error=NULL,revision=revision+1,updated_by=$5,updated_at=now() WHERE company_id=$1 AND account_id=$2").bind(c).bind(id).bind(enabled).bind(interval_minutes).bind(actor).execute(&mut *tx).await.map_err(err)?;
         }
-        if let Action::Matching { enabled } = cmd.action {
-            sqlx::query("UPDATE bank_connection SET matching_enabled=$3,matching_actor_id=$4,matching_next_at=CASE WHEN $3 THEN now()+interval '30 seconds' ELSE NULL END,matching_cursor=0,matching_error=NULL,revision=revision+1,updated_by=$4,updated_at=now() WHERE company_id=$1 AND account_id=$2").bind(c).bind(id).bind(enabled).bind(actor).execute(&mut *tx).await.map_err(err)?;
+        if let Action::Matching {
+            enabled,
+            include_treasury,
+        } = cmd.action
+        {
+            sqlx::query("UPDATE bank_connection SET matching_enabled=$3,matching_treasury=$5,matching_actor_id=$4,matching_next_at=CASE WHEN $3 THEN now()+interval '30 seconds' ELSE NULL END,matching_cursor=0,matching_error=NULL,revision=revision+1,updated_by=$4,updated_at=now() WHERE company_id=$1 AND account_id=$2").bind(c).bind(id).bind(enabled).bind(actor).bind(include_treasury).execute(&mut *tx).await.map_err(err)?;
         }
         let io = kind == "test" || kind == "sync";
         sqlx::query("INSERT INTO bank_connection_run(company_id,account_id,request_id,actor_id,revision,kind,status,finished_at) VALUES($1,$2,$3::text::uuid,$4,$5,$6,$7,CASE WHEN $7='success' THEN now() ELSE NULL END)").bind(c).bind(id).bind(&cmd.request_id).bind(actor).bind(cmd.revision).bind(kind).bind(if io{"running"}else{"success"}).execute(&mut *tx).await.map_err(err)?;

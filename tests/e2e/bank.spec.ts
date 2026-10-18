@@ -339,6 +339,13 @@ for (const english of [false, true])
       await expect(
         dialog.getByText(labels.connectionNetwork, { exact: true }),
       ).toBeVisible();
+      await expect(
+        dialog.getByRole("switch", {
+          name: labels.matchingTreasury,
+          exact: true,
+        }),
+      ).not.toBeChecked();
+      await dialog.getByText(labels.matchingTreasury, { exact: true }).click();
       await dialog.getByText(labels.matchingEnable, { exact: true }).click();
       await dialog
         .getByRole("button", { name: labels.matchingSave, exact: true })
@@ -346,6 +353,18 @@ for (const english of [false, true])
       await expect(
         dialog.getByText(labels.matchingOn, { exact: true }),
       ).toBeVisible();
+      await expect(
+        dialog.getByRole("switch", {
+          name: labels.matchingTreasury,
+          exact: true,
+        }),
+      ).toBeChecked();
+      expect(
+        sql(
+          "SELECT matching_treasury FROM bank_connection WHERE matching_enabled",
+          database,
+        ).toString(),
+      ).toMatch(/\n\s*t\s*\n/);
       sql(
         "UPDATE bank_connection SET matching_next_at=now()-interval '1 minute' WHERE matching_enabled",
         database,

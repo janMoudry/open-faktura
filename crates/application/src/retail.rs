@@ -116,6 +116,7 @@ pub struct UnpostCommand {
 }
 #[async_trait]
 pub trait PostingStore: Send + Sync {
+    async fn posting_pdf(&self, a: &str, c: &str, id: &str, language: &str) -> Result<Vec<u8>>;
     async fn posting_preview(
         &self,
         a: &str,

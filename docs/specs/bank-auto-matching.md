@@ -58,3 +58,24 @@ Worker a dávka podporují běžné faktury v měně účtu, včetně non-CZK.
 Konkurenční pohyb má stejnou měnu; čísla v různých měnách nejsou srovnatelná.
 Nemění opt-in, oprávnění ani zacházení s existujícími úhradami a odpojením.
 [Podrobnosti a omezení](bank-currencies.md#p16-13e--dávka-a-automatika-ve-shodné-měně).
+
+## P16-14b — volitelné zálohy a vratky (18. 10. 2026)
+
+Vlastní konzervativní návrh, nikoli potvrzený algoritmus iDokladu.
+`action=matching` přijímá `include_treasury` (výchozí false); stav vrací
+`matching_treasury`. Migrace 057 zachová běžné párování a nové rozšíření
+všem vypne. Revize a kontrola práv platí i pro změnu rozsahu.
+
+Při explicitním zapnutí worker zahrne zálohy a vratky dobropisů ve stejné
+měně účtu. Záloha používá vlastní VS, vratka VS původní faktury. Prázdný VS
+a nejednoznačné kombinace běžných faktur, záloh či dobropisů se vynechají.
+Vyžaduje přesnou částku; existující převodní úhrada má přednost před novou
+platbou téhož dokladu. Kandidáti jiných dokladů se tím neodstraňují.
+Společný treasury příkaz zachovává rezervace, DDPP a profilová oprávnění.
+Odpojená vazba se automaticky neobnovuje; původní připojená úhrada se nestornuje.
+
+Ruční návrhy a hromadný náhled nadále používají svůj dosavadní rozsah;
+rozšíření je nastavení workeru. Různé měny záloh a vratek zůstávají otevřené.
+Testy native_treasury pokrývají opt-in, existující úhradu, vratku, odpojení,
+nejednoznačnost a upgrade056. REST/MCP konfiguraci pokrývá automation.rs,
+CS/EN ovládání bank.spec.ts.

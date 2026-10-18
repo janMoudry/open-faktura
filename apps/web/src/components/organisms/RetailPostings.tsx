@@ -10,6 +10,7 @@ import {
 import {
   cashAccounts,
   retailPostings,
+  retailPostingPdfUrl,
   retailPostingPreview,
   retailPost,
   retailUnpost,
@@ -179,6 +180,14 @@ export function RetailPostings({
               {new Date(v.booked_on + "T12:00:00").toLocaleDateString(language)}{" "}
               · {t(v.cancelled ? "retailCancelled" : "retailPosted")} · #{v.id}
             </p>
+            <a
+              className="ui-button ui-button-secondary ui-button-sm"
+              href={retailPostingPdfUrl(apiUrl, companyId, v.id, language)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("retailPostingPdf")}
+            </a>
             {v.groups.map((g, i) => (
               <p className="text-sm text-muted" key={i}>
                 {t(

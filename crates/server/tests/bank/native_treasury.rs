@@ -450,3 +450,265 @@ async fn native_treasury_existing_advance_and_wrong_currency(p: PgPool) {
         .is_err());
     assert!(bank.get(&a, &c, &m.id).await.unwrap().matches.is_empty());
 }
+
+async fn enable_treasury(p: &PgPool, a: &str, c: &str, ac: &Account) {
+    use faktura_application::bank_connection::{self as bc, ConnectionStore};
+    let store = faktura_infrastructure::bank_connection::PgConnection::new(p.clone());
+    let status = store.status(a, c, &ac.id).await.unwrap();
+    let status = store
+        .execute(
+            a,
+            c,
+            bc::Command {
+                account_id: ac.id.clone(),
+                revision: status.revision,
+                request_id: key(),
+                action: bc::Action::Matching {
+                    enabled: true,
+                    include_treasury: true,
+                },
+            },
+        )
+        .await
+        .unwrap();
+    assert!(status.matching_treasury);
+    super::automation::due(p).await;
+}
+#[allow(clippy::too_many_arguments)]
+async fn reference_movement(
+    _p: &PgPool,
+    bank: &PgBank,
+    a: &str,
+    c: &str,
+    ac: &Account,
+    value: &str,
+    symbol: &str,
+) -> Movement {
+    result(
+        run(
+            bank,
+            a,
+            c,
+            Action::Manual {
+                account_id: ac.id.clone(),
+                data: MovementData {
+                    external_id: "".into(),
+                    booked_on: "2026-10-18".parse().unwrap(),
+                    amount: value.into(),
+                    currency: ac.data.currency.clone(),
+                    variable_symbol: symbol.into(),
+                    counterparty: "Synthetic".into(),
+                    description: "Treasury automatic matching".into(),
+                },
+            },
+        )
+        .await,
+    )
+}
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn treasury_worker_explicit_opt_in_and_existing_payment(p: PgPool) {
+    let (a, _, c, _) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::native_matching::eur(&bank, &a, &c).await;
+    let d = advance_case(&p, &a, &c, false).await;
+    let symbol = &d.data.invoice.payment.variable_symbol;
+    assert!(!symbol.is_empty());
+    let m = reference_movement(
+        &p,
+        &bank,
+        &a,
+        &c,
+        &ac,
+        &d.totals.as_ref().unwrap().payable,
+        symbol,
+    )
+    .await;
+    super::automation::enable(&p, &a, &c, &ac).await;
+    bank.process_matching_one().await.unwrap();
+    assert!(bank.get(&a, &c, &m.id).await.unwrap().matches.is_empty());
+    // An already recorded transfer must be linked, not inserted again.
+    advance::register(
+        &PgAdvance(p.clone()),
+        &a,
+        &c,
+        &d.id,
+        advance::Register {
+            request_id: key(),
+            revision: d.revision,
+            payment: faktura_domain::payment::PaymentInput {
+                amount: d.totals.as_ref().unwrap().payable.clone(),
+                paid_on: "2026-10-18".parse().unwrap(),
+                method: "bank_transfer".into(),
+                note: "Existing transfer".into(),
+            },
+        },
+    )
+    .await
+    .unwrap();
+    enable_treasury(&p, &a, &c, &ac).await;
+    bank.process_matching_one().await.unwrap();
+    let linked = bank.get(&a, &c, &m.id).await.unwrap();
+    assert_eq!(linked.matches.len(), 1);
+    assert!(!linked.matches[0].created_payment);
+    assert_eq!(
+        PgAdvance(p.clone())
+            .payments(&a, &c, &d.id)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+    unlink(&bank, &a, &c, &linked).await;
+    super::automation::due(&p).await;
+    bank.process_matching_one().await.unwrap();
+    assert!(bank.get(&a, &c, &m.id).await.unwrap().matches[0]
+        .detached_at
+        .is_some());
+    assert!(!PgAdvance(p).payments(&a, &c, &d.id).await.unwrap()[0].reversed);
+}
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn treasury_worker_credit_refund_uses_source_reference(p: PgPool) {
+    let (a, _, c, _) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::native_matching::eur(&bank, &a, &c).await;
+    let source = super::foreign_tests::foreign_invoice(&p, &a, &c).await;
+    let store = PgCredit(p.clone());
+    let d = credit_note::create(
+        &store,
+        &a,
+        &c,
+        credit_note::Create {
+            request_id: key(),
+            invoice_id: source.id.clone(),
+        },
+    )
+    .await
+    .unwrap();
+    let mut data = d.data.clone();
+    data.reason = "Synthetic return".into();
+    let d = credit_note::command(
+        &store,
+        &a,
+        &c,
+        &d.id,
+        credit_note::Command {
+            request_id: key(),
+            revision: d.revision,
+            action: credit_note::Action::Update { data },
+        },
+    )
+    .await
+    .unwrap();
+    let d = credit_note::command(
+        &store,
+        &a,
+        &c,
+        &d.id,
+        credit_note::Command {
+            request_id: key(),
+            revision: d.revision,
+            action: credit_note::Action::Issue,
+        },
+    )
+    .await
+    .unwrap();
+    let m = reference_movement(
+        &p,
+        &bank,
+        &a,
+        &c,
+        &ac,
+        &format!("-{}", d.remaining),
+        &source.data.payment.variable_symbol,
+    )
+    .await;
+    enable_treasury(&p, &a, &c, &ac).await;
+    bank.process_matching_one().await.unwrap();
+    let linked = bank.get(&a, &c, &m.id).await.unwrap();
+    assert_eq!(linked.matches.len(), 1);
+    assert!(linked.matches[0].created_payment);
+    assert_eq!(linked.matches[0].target_kind, "credit");
+    let audit_kind: String = sqlx::query_scalar("SELECT items->0->>'target_kind' FROM bank_matching_run WHERE company_id=$1::text::bigint ORDER BY id DESC LIMIT 1").bind(&c).fetch_one(&p).await.unwrap();
+    assert_eq!(audit_kind, "credit");
+    assert_eq!(store.get(&a, &c, &d.id).await.unwrap().remaining, "0.00");
+    unlink(&bank, &a, &c, &linked).await;
+    assert_eq!(store.get(&a, &c, &d.id).await.unwrap().refunded, "0.00");
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn treasury_worker_ambiguous_advances_are_not_paid(p: PgPool) {
+    let (a, _, c, _) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::native_matching::eur(&bank, &a, &c).await;
+    let one = advance_case(&p, &a, &c, false).await;
+    let two = advance_case(&p, &a, &c, false).await;
+    // A user's duplicate reference, not two different auto-generated numbers.
+    let mut data = two.data.clone();
+    data.invoice.payment.variable_symbol = one.data.invoice.payment.variable_symbol.clone();
+    sales::update(
+        &PgSales(p.clone()),
+        &a,
+        &c,
+        &two.id,
+        sales::Update {
+            archived: false,
+            revision: two.revision,
+            data,
+        },
+    )
+    .await
+    .unwrap();
+    let m = reference_movement(
+        &p,
+        &bank,
+        &a,
+        &c,
+        &ac,
+        &one.totals.as_ref().unwrap().payable,
+        &one.data.invoice.payment.variable_symbol,
+    )
+    .await;
+    enable_treasury(&p, &a, &c, &ac).await;
+    bank.process_matching_one().await.unwrap();
+    assert!(bank.get(&a, &c, &m.id).await.unwrap().matches.is_empty());
+    assert!(PgAdvance(p.clone())
+        .payments(&a, &c, &one.id)
+        .await
+        .unwrap()
+        .is_empty());
+    assert!(PgAdvance(p)
+        .payments(&a, &c, &two.id)
+        .await
+        .unwrap()
+        .is_empty());
+}
+#[sqlx::test(migrations = false)]
+#[ignore = "isolated PostgreSQL"]
+async fn upgrade056_keeps_treasury_matching_disabled(p: PgPool) {
+    use faktura_application::bank_connection::ConnectionStore;
+    let old = sqlx::migrate::Migrator {
+        migrations: std::borrow::Cow::Owned(
+            sqlx::migrate!("../../migrations")
+                .iter()
+                .filter(|m| m.version < 202610180057)
+                .cloned()
+                .collect(),
+        ),
+        ..sqlx::migrate::Migrator::DEFAULT
+    };
+    old.run(&p).await.unwrap();
+    let (a, _, c, _) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::native_matching::eur(&bank, &a, &c).await;
+    sqlx::query("INSERT INTO bank_connection(company_id,account_id,matching_enabled,matching_actor_id,matching_next_at) VALUES($1::text::bigint,$2::text::bigint,true,$3::text::bigint,now())").bind(&c).bind(&ac.id).bind(&a).execute(&p).await.unwrap();
+    sqlx::migrate!("../../migrations").run(&p).await.unwrap();
+    let status = faktura_infrastructure::bank_connection::PgConnection::new(p)
+        .status(&a, &c, &ac.id)
+        .await
+        .unwrap();
+    assert!(status.matching_enabled);
+    assert!(!status.matching_treasury);
+}

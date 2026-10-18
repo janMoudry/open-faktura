@@ -584,6 +584,7 @@ export interface components {
       matching_next_at: string | null;
       matching_error: string | null;
       matching_last: components["schemas"]["BankMatchingRun"] | null;
+      matching_treasury: boolean;
     };
     BankConnectionCommand:
       | {
@@ -645,6 +646,11 @@ export interface components {
           /** @enum {string} */
           action: "matching";
           enabled: boolean;
+          /**
+           * @description Explicitly include advances and credit refunds with the original invoice payment reference.
+           * @default false
+           */
+          include_treasury: boolean;
         };
     BankMatchingRun: {
       at: string;
