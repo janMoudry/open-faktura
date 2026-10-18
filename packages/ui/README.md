@@ -60,7 +60,7 @@ Rozsah pokrývá současný seznam a editor. Napojení Autocomplete na skutečn�
 
 ## Aktuální brandový základ
 
-Monochromatický základ, Manrope pro nadpisy i text, Lucide. Výjimkou jsou sémantické barvy: zelený success, jantarový warning a červený danger. Primary se nepoužívá jako náhrada success. Badge přidává vlastní stavovou ikonu podle tónu; volající ji znovu nevkládá. Tóny zachovávají sémantiku pro budoucí změnu brandu. Redesign řídí `.agents/skills/brand-redesign/SKILL.md`; vizuální identita se mění přes tokeny a sdílené komponenty, ne přes kopie stránek.
+Od 17. 10. 2026 používáme vlastní rumělkovou identitu Open Faktury, neutrální pracovní plochu, bílé panely, Manrope a Lucide. Logo je v lokálních SVG. Stavové barvy zůstávají nezávislé: zelený success, jantarový warning a červený danger. Primary má samostatné popředí `primary-foreground`, danger obdobně `danger-foreground`, pro správný kontrast v obou režimech. Badge přidává vlastní stavovou ikonu podle tónu; volající ji znovu nevkládá. Redesign mění tokeny a sdílené komponenty; [podrobnosti a ověření UI-REDESIGN-01](../../docs/design/redesign-2026-10-17/README.md). Starší monochromatický směr je historický.
 
 ## Grafy
 

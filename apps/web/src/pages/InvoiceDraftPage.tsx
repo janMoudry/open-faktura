@@ -57,6 +57,7 @@ import { IssuedInvoice } from "../components/organisms/IssuedInvoice";
 import { InvoiceSummary } from "../components/organisms/InvoiceSummary";
 import { InvoiceLines } from "../components/organisms/InvoiceLines";
 import { InvoiceCustomerPicker } from "../components/organisms/InvoiceCustomerPicker";
+import { InvoicePaymentDates } from "../components/molecules/InvoicePaymentDates";
 export function InvoiceDraftPage() {
   const { companyId = "", invoiceId = "" } = useParams();
   const [params] = useSearchParams();
@@ -260,6 +261,30 @@ function Editor({
       setContactBusy(false);
     }
   }
+  const editorActions = editable && (
+    <div className="page-heading-actions">
+      <Button
+        type="submit"
+        form="invoice-draft-editor"
+        variant={creating || dirty ? "primary" : "secondary"}
+        loading={busy}
+        disabled={contactBusy || ares.loading || (!creating && !dirty)}
+      >
+        {t("draftSave")}
+      </Button>
+      {!creating && (
+        <Button
+          type="button"
+          disabled={disabled || dirty || ares.loading}
+          title={dirty ? t("issueSaveFirst") : undefined}
+          onClick={() => setIssuing(true)}
+        >
+          {t("issueAction")}
+          <Icon name="arrow" />
+        </Button>
+      )}
+    </div>
+  );
   if (loading) return <p role="status">{t("draftLoading")}</p>;
   if ((!creating && !draft) || (creating && copy && error))
     return (
@@ -272,7 +297,7 @@ function Editor({
     );
   if (draft?.number) return <IssuedInvoice invoice={draft} canCopy={canEdit} />;
   return (
-    <div className="space-y-group">
+    <div className="invoice-editor space-y-group">
       <Link
         className="text-sm text-muted hover:underline"
         to={`/companies/${company.id}/invoices`}
@@ -300,6 +325,7 @@ function Editor({
             {t("draftCopy")}
           </Link>
         )}
+        {editorActions}
       </div>
       {error && (
         <Alert tone="danger" role="alert">
@@ -354,21 +380,22 @@ function Editor({
             label: t("invoiceDocumentTab"),
             content: (
               <form
-                className="invoice-sheet"
+                id="invoice-draft-editor"
+                className="invoice-sheet invoice-editor-sheet"
                 noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
                   void save();
                 }}
               >
-                <section className="invoice-section">
-                  <div className="invoice-party-summary max-w-3xl mx-auto space-y-field">
+                <section className="invoice-section invoice-editor-customer">
+                  <div className="invoice-party-summary space-y-field">
                     <Heading level={2} size="card">
                       {t("draftCustomer")}
                     </Heading>
                     <div className="space-y-field">
                       <div className="invoice-customer-picker">
-                        {editable && (
+                        {editable && (!customer.name || customerExpanded) && (
                           <InvoiceCustomerPicker
                             company={company.id}
                             disabled={disabled}
@@ -492,58 +519,61 @@ function Editor({
                         </div>
                       )}
                     </div>
-                    <div className="space-y-inline">
-                      <Field
-                        horizontal
-                        label={t("draftOrder")}
-                        value={data.order_number}
-                        readOnly={disabled}
-                        onChange={(e) =>
-                          change({ ...data, order_number: e.target.value })
-                        }
-                      />
-                      <TextareaField
-                        horizontal
-                        className="invoice-description"
-                        label={t("invoiceDescription")}
-                        rows={2}
-                        value={data.note}
-                        readOnly={disabled}
-                        onChange={(e) =>
-                          change({ ...data, note: e.target.value })
-                        }
-                      />
-                    </div>
+                    <details className="invoice-editor-additional">
+                      <summary className="contact-disclosure">
+                        <Icon name="chevronRight" />
+                        {t("draftOrder")} · {t("invoiceDescription")}
+                      </summary>
+                      <div className="space-y-inline">
+                        <Field
+                          horizontal
+                          label={t("draftOrder")}
+                          value={data.order_number}
+                          readOnly={disabled}
+                          onChange={(e) =>
+                            change({ ...data, order_number: e.target.value })
+                          }
+                        />
+                        <TextareaField
+                          horizontal
+                          className="invoice-description"
+                          label={t("invoiceDescription")}
+                          rows={2}
+                          value={data.note}
+                          readOnly={disabled}
+                          onChange={(e) =>
+                            change({ ...data, note: e.target.value })
+                          }
+                        />
+                      </div>
+                    </details>
                   </div>
                 </section>
-                <section className="invoice-section invoice-form-facts bg-sidebar grid gap-section md:grid-cols-2">
-                  <div className="space-y-field">
+                <section className="invoice-section invoice-form-facts invoice-editor-facts">
+                  <div className="invoice-editor-dates space-y-field">
                     <Heading level={2} size="card">
                       {t("invoiceDates")}
                     </Heading>
                     <div className="space-y-inline">
-                      {(
-                        [
-                          ["issued_on", "draftIssued"],
-                          ["due_on", "draftDue"],
-                          ...(data.calculation.tax_mode === "vat_payer"
-                            ? [["tax_on", "draftTaxDate"]]
-                            : []),
-                        ] as ["issued_on" | "due_on" | "tax_on", AppKey][]
-                      ).map(([key, label]) => (
+                      <InvoicePaymentDates
+                        issuedOn={data.issued_on}
+                        dueOn={data.due_on}
+                        disabled={disabled}
+                        onChange={(dates) => change({ ...data, ...dates })}
+                      />
+                      {data.calculation.tax_mode === "vat_payer" && (
                         <DatePicker
-                          key={key}
-                          label={t(label)}
-                          value={data[key] ?? ""}
+                          label={t("draftTaxDate")}
+                          value={data.tax_on ?? ""}
                           disabled={disabled}
                           onChange={(v) =>
-                            change({ ...data, [key]: v || null })
+                            change({ ...data, tax_on: v || null })
                           }
                         />
-                      ))}
+                      )}
                     </div>
                   </div>
-                  <div className="space-y-field">
+                  <div className="invoice-editor-payment space-y-field">
                     <Heading level={2} size="card">
                       {t("invoicePaymentDetails")}
                     </Heading>
@@ -571,7 +601,6 @@ function Editor({
                       {data.payment.method === "bank_transfer" && (
                         <>
                           <Field
-                            horizontal
                             label={t("contactBankAccount")}
                             value={data.payment.bank_account}
                             readOnly={disabled}
@@ -586,7 +615,6 @@ function Editor({
                             }
                           />
                           <Field
-                            horizontal
                             label={t("draftVariableSymbol")}
                             value={data.payment.variable_symbol}
                             maxLength={30}
@@ -602,7 +630,6 @@ function Editor({
                             }
                           />
                           <Field
-                            horizontal
                             label={t("iban")}
                             value={data.payment.iban}
                             readOnly={disabled}
@@ -622,7 +649,7 @@ function Editor({
                   </div>
                 </section>
                 <details
-                  className="invoice-section"
+                  className="invoice-section invoice-editor-settings"
                   open={
                     fields.some((f) => f.startsWith("supplier.")) || undefined
                   }
@@ -669,25 +696,27 @@ function Editor({
                     />
                   </div>
                 </details>
-                <DocumentCurrencyFields
-                  value={data.calculation}
-                  documentDate={data.issued_on}
-                  disabled={disabled || !!draft?.advances}
-                  onChange={(v) =>
-                    change({
-                      ...data,
-                      payment:
-                        v.currency !== "CZK"
-                          ? { ...data.payment, method: "bank_transfer" }
-                          : data.payment,
-                      calculation: {
-                        ...data.calculation,
-                        ...v,
-                        rounding: "none",
-                      },
-                    })
-                  }
-                />
+                <div className="invoice-section">
+                  <DocumentCurrencyFields
+                    value={data.calculation}
+                    documentDate={data.issued_on}
+                    disabled={disabled || !!draft?.advances}
+                    onChange={(v) =>
+                      change({
+                        ...data,
+                        payment:
+                          v.currency !== "CZK"
+                            ? { ...data.payment, method: "bank_transfer" }
+                            : data.payment,
+                        calculation: {
+                          ...data.calculation,
+                          ...v,
+                          rounding: "none",
+                        },
+                      })
+                    }
+                  />
+                </div>
                 <InvoiceLines
                   catalogPicker={
                     <CatalogLinePicker
@@ -755,35 +784,7 @@ function Editor({
                   loading={calc.loading}
                   failed={calc.failed}
                 />
-                {editable ? (
-                  <div className="profile-actions rounded-b-control">
-                    <Badge>{t("draftStatus")}</Badge>
-                    {(creating || dirty) && (
-                      <p className="text-sm text-muted">
-                        {t("issueSaveFirst")}
-                      </p>
-                    )}
-                    {!creating && (
-                      <Button
-                        type="button"
-                        disabled={disabled || dirty || ares.loading}
-                        onClick={() => setIssuing(true)}
-                      >
-                        {t("issueAction")}
-                      </Button>
-                    )}
-                    <Button
-                      type="submit"
-                      variant={creating || dirty ? "primary" : "secondary"}
-                      loading={busy}
-                      disabled={
-                        contactBusy || ares.loading || (!creating && !dirty)
-                      }
-                    >
-                      {t("draftSave")}
-                    </Button>
-                  </div>
-                ) : (
+                {!editable && (
                   <p className="p-group text-sm text-muted">
                     {t("draftReadOnly")}
                   </p>

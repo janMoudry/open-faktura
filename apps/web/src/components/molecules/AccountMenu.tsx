@@ -71,24 +71,31 @@ export function AccountMenu({
         aria-label={t("accountMenu")}
         aria-expanded={open}
         aria-controls={id}
-        onClick={() => setOpen(!open)}
-        className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-primary text-sm font-semibold uppercase text-surface"
+        onClick={(event) => {
+          event.currentTarget.focus({ preventScroll: true });
+          setOpen((value) => !value);
+        }}
+        className="workspace-account-trigger"
       >
-        {name?.trim()
-          ? name
-              .trim()
-              .split(/\s+/)
-              .map((part) => part[0])
-              .slice(0, 2)
-              .join("")
-          : email.slice(0, 2)}
+        <span className="workspace-account-avatar" aria-hidden="true">
+          {name?.trim()
+            ? name
+                .trim()
+                .split(/\s+/)
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join("")
+            : email.slice(0, 2)}
+        </span>
+        <span className="workspace-account-name">{name || email}</span>
+        <Icon name="chevronDown" />
       </button>
       {open && (
         <div
           id={id}
           role="region"
           aria-label={t("accountMenu")}
-          className="account-popover absolute right-0 top-full z-50 mt-inline w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-popover border border-border bg-surface shadow-paper"
+          className="account-popover w-72 max-w-[calc(100vw-2rem)] rounded-popover border border-border bg-surface shadow-paper"
         >
           <div className="border-b border-border p-field">
             <p className="text-sm font-semibold">{name || t("accountTitle")}</p>

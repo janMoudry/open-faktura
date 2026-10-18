@@ -48,6 +48,24 @@ získaný explicitním přihlášením je chráněný OS oprávněními; každé
 expiraci/revokaci. Nástroje companies_list a company_context(company_id) jsou pouze
 pro čtení, volají stejné aplikační operace jako REST. Vzdálené HTTP OAuth není P03.
 
+## INV-DEFAULT-DUE-01 — výchozí splatnost nových faktur (17. 10. 2026)
+
+Vlastní UX Open Faktury: vlastník nastaví v záložce Fakturační nastavení
+„Výchozí splatnost“. Společný výběr s editorem faktury nabízí Ihned,
+7/14/21/30/60 dní. „Vlastní počet dní“ umožní zadat jinou hodnotu 0–365,
+v souladu se stávající serverovou validací `settings.maturity_days`.
+Uložené vlastní hodnoty zůstávají dostupné, výchozí hodnota nového profilu je 14.
+
+Nová faktura nadále převezme uložený počet kalendářních dní od data vystavení;
+Ihned odpovídá nule. Nepředvolený odstup se v editoru označí „Vlastní datum“.
+Výběr kontaktu dál použije jeho `maturity_days`, případně výchozí nastavení firmy.
+Změna firmy nemění uložené návrhy ani vystavené doklady. API, revizní kontrola,
+oprávnění a uložení do databáze se nemění.
+
+UI regrese `tests/e2e/redesign.spec.ts` se syntetickým API ověřuje uložení 30 dní,
+Ihned a vlastních 19 dní, obnovení a správné datum/předvolbu v nové faktuře,
+v CS/EN na desktopu a mobilu. Nenahrazuje databázové regresní testy P03/P06.
+
 ## Akceptace
 
 Čistá a existující P02 DB přijme dopřednou migraci. Dva uživatelé/firmy nevidí

@@ -31,6 +31,34 @@ Odchod s neuloženými změnami používá společnou navigační ochranu. Konfl
 revize zachová uživatelovy vstupy; načtení serverové verze vyžaduje potvrzení.
 Automatické sloučení změn ani tiché přepsání nejsou součástí P06.
 
+## INV-DUE-DAYS-01 — zadání splatnosti ve dnech
+
+Vlastní UX pravidlo Open Faktury podle požadavku uživatele, 17. 10. 2026;
+nejde o tvrzení shody s iDokladem. Editor nabízí současně datum splatnosti
+a výběr předvoleb „Ihned“ (0 dní), 7, 14, 21, 30 a 60 kalendářních dní od vystavení.
+Volba předvolby dopočítá `due_on`. Ruční změna data přepne výběr na
+„Vlastní datum“, i když datum odpovídá předvolbě. Volba „Vlastní datum“
+ponechá aktuální datum a umožní jeho ruční úpravu. Změna data
+vystavení při vyplněných obou datech zachová jejich odstup. Výběr kontaktu
+nebo šablony dál použije jejich stávající předvolbu.
+
+„Ihned“ nastaví splatnost na den vystavení a zachová shodu i při změně vystavení.
+Jakýkoli jiný odstup se zadá vlastním datem.
+Datum lze vymazat a neúplný návrh nadále uložit. Bez data vystavení je
+výběr předvoleb nedostupný, datum lze stále zadat přímo.
+Předvolba je odvozená v UI; API, databáze i PDF používají dosavadní datum,
+serverová pravidla vystavení se nemění. Po načtení návrhu se předvolba znovu
+odvodí z uložených dat; při jiném odstupu je vybrané vlastní datum.
+Volba režimu se zvlášť neukládá. Počítají se kalendářní dny bez vlivu letního času.
+
+Akceptační regrese v `tests/e2e/redesign.spec.ts` se syntetickým API:
+CS/EN, nabídka šesti předvoleb a vlastní volby, „Ihned“ včetně změny vystavení a uložení,
+změny obou dat a přepnutí na vlastní
+datum, přechod měsíce/roku, přestupný rok a přechod letního času,
+zápis existujícího `due_on` a obnovení stránky.
+Ověřeno v Chromiu a WebKitu i mobilním viewportu; tato UI regrese nenahrazuje
+databázové testy návrhů P06.
+
 ## Persistence a oprávnění
 
 Migrace `202610110007_invoice_drafts.sql` přidává `invoice_draft` a

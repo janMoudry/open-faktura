@@ -222,6 +222,10 @@ for (const english of [false, true])
         }),
       ).toBeVisible();
       await page
+        .locator("summary")
+        .filter({ hasText: text("Číslo objednávky", "Order number") })
+        .click();
+      await page
         .getByLabel(text("Číslo objednávky", "Order number"), { exact: true })
         .fill("ORDER-UI");
       await page.screenshot({

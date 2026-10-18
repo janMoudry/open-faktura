@@ -107,7 +107,6 @@ export const ProductSidebar = memo(function ProductSidebar({
       ) : (
         unavailable("navOverview", "overview")
       )}
-      {group("navDirectory", "contacts", ["navContacts", "navMailHistory"])}
       {group("navSales", "invoice", [
         "navInvoices",
         "retailTitle",
@@ -126,6 +125,7 @@ export const ProductSidebar = memo(function ProductSidebar({
         "expensePayments",
         "expenseOverview",
       ])}
+      {group("navDirectory", "contacts", ["navContacts", "navMailHistory"])}
       {group("navCatalog", "catalog", ["catalogList", "catalogStock"])}
       {group("navBusiness", "wallet", ["navBank", "navCash", "navReports"])}
       {group("navSettings", "settings", ["companySettingsIntro", "navTeam"])}
@@ -134,7 +134,7 @@ export const ProductSidebar = memo(function ProductSidebar({
   );
   return (
     <aside className="workspace-sidebar">
-      <div className="px-inline py-group">
+      <div className="workspace-create px-inline py-field">
         {selected && canCreate ? (
           <Link
             className="ui-button ui-button-primary ui-button-md w-full"

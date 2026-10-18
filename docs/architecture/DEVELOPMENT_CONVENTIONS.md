@@ -104,9 +104,9 @@ V běžném UI používat tokeny a deklarované varianty. Nový významný token
 
 ## Typografie a ikony
 
-Aktuální rozhodnutí 10. 10. 2026: **monochromatický základ se sémantickými stavovými barvami** a **Manrope Variable** pro celé rozhraní včetně nadpisů. `font-display` je zachovaný sémantický token pro budoucí brand, nyní ukazuje na Manrope. Částky používají `tabular-nums`. Source Serif 4 již není součástí aktuálního UI; dřívější zeleno-krémový návrh je historická iterace.
+Aktuální rozhodnutí 17. 10. 2026: **vlastní značka Open Faktura s rumělkovými primárními akcemi**, světlou neutrální pracovní plochou a bílými panely. Logo tvoří otevřený rám a dvouřádkový slovní znak. Rozhraní včetně nadpisů používá **Manrope Variable**; částky mají `tabular-nums`. Starší monochromatický a patkový papírový směr jsou historické iterace. Podklady a ověření: [UI-REDESIGN-01](../design/redesign-2026-10-17/README.md).
 
-Primary zůstává neutrální. Success je zelený, warning jantarový a danger červený; mají vlastní tokeny nezávislé na brandové primární barvě. Stav navíc rozlišuje text a ikona (check / clock / warning), nikoli samotný odstín. Destruktivní akce musí mít jednoznačný popisek. Focus je kontrastní černý obrys; žádné lokální barevné výjimky.
+Primary a jeho popředí mají samostatné tokeny `primary`/`primary-foreground`, obdobně destruktivní akce `danger`/`danger-foreground`, aby kontrast fungoval i v tmavém režimu. Brandová barva symbolu není automaticky vhodná pro drobný text: akce mají tmavší rumělkový odstín. Success zůstává zelený, warning jantarový a danger červený; stavy navíc rozlišuje text a ikona. Destruktivní akce mají jednoznačný popisek. Focus je kontrastní obrys. Rozměry, zaoblení a barvy měnit centrálně přes tokeny, nikoli lokálně pro jednotlivé stránky.
 
 Font se distribuuje lokálně přes připnutý Fontsource balíček s rozšířenou latinkou, `font-display: swap` a unicode rozsahy. Bez externího fontového CDN. [Manrope, OFL-1.1](https://fontsource.org/fonts/manrope/about).
 
@@ -136,7 +136,7 @@ Autoritativní sada a její kontrakty: [packages/ui/README.md](../../packages/ui
 
 ## Redesign podle brandu
 
-Použij repo skill [.agents/skills/brand-redesign/SKILL.md](../../.agents/skills/brand-redesign/SKILL.md) při změně vizuální identity. Monochromatický základ je výchozí stav, nikoli zákaz budoucího barevného brandu. Zadání konkrétního redesignu má přednost.
+Použij repo skill [.agents/skills/brand-redesign/SKILL.md](../../.agents/skills/brand-redesign/SKILL.md) při změně vizuální identity. Aktuální schválený základ popisuje oddíl Typografie a ikony; starší monochromatické podklady jsou historické. Zadání konkrétního redesignu má přednost.
 
 ## Grafy a datové přehledy
 
@@ -173,7 +173,6 @@ kompozice ProductWorkspace je oddělená od sandboxového WorkspaceLayout.
 Profilový ovladač předává trvalý ProductRouteLayout přímo do AppLayout jako prop;
 bez DOM portálu. API a stav profilu vlastní layoutový hook useCompanyWorkspace,
 CompanyPage vykresluje pouze obsah. Značka, font a sémantické barvy se nemění.
-
 
 ## Routing a životnost layoutů — 11. 10. 2026
 

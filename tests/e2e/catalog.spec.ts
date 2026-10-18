@@ -585,6 +585,12 @@ for (const english of [false, true])
         ),
       ).toBeVisible();
       await page.goto(`/#/companies/${alpha.id}/invoices/new`);
+      await page
+        .getByRole("button", {
+          name: text("Přidat z ceníku", "Add from price list"),
+          exact: true,
+        })
+        .click();
       const picker = page.getByRole("combobox", {
         name: text("Přidat z ceníku", "Add from price list"),
         exact: true,

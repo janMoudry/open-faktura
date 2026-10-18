@@ -1,4 +1,6 @@
 import { Link } from "react-router";
+import { BrandLogo } from "../atoms/BrandLogo";
+import { WorkspaceBreadcrumb } from "../molecules/WorkspaceBreadcrumb";
 import { AccountMenu } from "../molecules/AccountMenu";
 import { Button } from "@open-faktura/ui";
 import { useAppTranslation } from "../../locales";
@@ -7,6 +9,7 @@ export function AppLayout({
   children,
   profileSwitcher,
   workspace = false,
+  homeTo = "/workspace",
   actions,
   email,
   name,
@@ -16,6 +19,7 @@ export function AppLayout({
   children: ReactNode;
   profileSwitcher?: ReactNode;
   workspace?: boolean;
+  homeTo?: string;
   actions?: ReactNode;
   email?: string;
   name?: string;
@@ -23,6 +27,48 @@ export function AppLayout({
   onSmtp?: () => void;
 }) {
   const { t, language, setLanguage } = useAppTranslation();
+  const accountControls = (
+    <div
+      className={`flex flex-wrap items-center gap-inline ${workspace ? "workspace-account ml-auto px-field py-inline" : ""}`}
+    >
+      {workspace && email ? (
+        <AccountMenu
+          email={email}
+          name={name}
+          actions={actions}
+          onSettings={onAccountSettings}
+          onSmtp={onSmtp}
+        />
+      ) : (
+        <>
+          <div
+            role="group"
+            aria-label="Čeština / English"
+            className="flex gap-inline"
+          >
+            {(["cs", "en"] as const).map((code) => (
+              <Button
+                key={code}
+                size="sm"
+                variant={language === code ? "secondary" : "ghost"}
+                aria-pressed={language === code}
+                lang={code}
+                onClick={() => setLanguage(code)}
+              >
+                {code === "cs" ? "Čeština" : "English"}
+              </Button>
+            ))}
+          </div>
+          {actions}
+        </>
+      )}
+      {!workspace && (
+        <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
+          {t("version")}
+        </span>
+      )}
+    </div>
+  );
   return (
     <div className={workspace ? "workspace-root" : "min-h-screen"}>
       <header
@@ -36,60 +82,24 @@ export function AppLayout({
           }
         >
           <Link
-            to="/workspace"
+            to={homeTo}
+            aria-label={t("brandName")}
             className={
               workspace ? "workspace-brand" : "text-lg font-bold tracking-tight"
             }
           >
-            open<span className="text-primary">faktura</span>
+            <BrandLogo />
           </Link>
           {workspace && (
-            <div className="min-w-0 px-inline lg:px-field">
+            <div className="workspace-profile min-w-0 px-inline lg:px-field">
               {profileSwitcher}
             </div>
           )}
-          <div
-            className={`flex flex-wrap items-center gap-inline ${workspace ? "ml-auto px-field py-inline" : ""}`}
-          >
-            {workspace && email ? (
-              <AccountMenu
-                email={email}
-                name={name}
-                actions={actions}
-                onSettings={onAccountSettings}
-                onSmtp={onSmtp}
-              />
-            ) : (
-              <>
-                <div
-                  role="group"
-                  aria-label="Čeština / English"
-                  className="flex gap-inline"
-                >
-                  {(["cs", "en"] as const).map((code) => (
-                    <Button
-                      key={code}
-                      size="sm"
-                      variant={language === code ? "secondary" : "ghost"}
-                      aria-pressed={language === code}
-                      lang={code}
-                      onClick={() => setLanguage(code)}
-                    >
-                      {code === "cs" ? "Čeština" : "English"}
-                    </Button>
-                  ))}
-                </div>
-                {actions}
-              </>
-            )}
-            {!workspace && (
-              <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-                {t("version")}
-              </span>
-            )}
-          </div>
+          {workspace && <WorkspaceBreadcrumb homeTo={homeTo} />}
+          {!workspace && accountControls}
         </div>
       </header>
+      {workspace && accountControls}
       <main
         className={
           workspace ? "" : "mx-auto max-w-6xl px-group py-page md:py-20"

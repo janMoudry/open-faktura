@@ -43,7 +43,7 @@ export function PaymentStatus({
         tone={
           value.status === "paid"
             ? "success"
-            : value.status === "partial"
+            : value.status === "partial" || value.status === "unpaid"
               ? "warning"
               : "neutral"
         }

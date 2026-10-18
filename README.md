@@ -14,6 +14,8 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Založení správce, přihlášení, nastavení účtu a více oddělených fakturačních profilů.
 - Adresář odběratelů s doplněním údajů z ARES.
 - Návrh faktury → vystavení a číslování → PDF s QR platbou → e-mail → ruční úhrada.
+- Splatnost faktury ihned, výběrem 7, 14, 21, 30 nebo 60 dní od vystavení, případně vlastním datem.
+- Výchozí splatnost v nastavení firmy, automaticky předvyplněná na nové faktuře.
 - Ceník, opakovaně použitelné šablony a cenové nabídky s převodem na fakturu.
 - Veřejné odkazy na nabídky i faktury, odvolání odkazu a historie zobrazení.
 - Bankovní účty v CZK i cizích měnách, import CSV s kontrolou duplicit a ruční párování úhrad.
@@ -30,6 +32,7 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Měsíční, kvartální, roční i kumulativní přehled prodeje/nákupu, meziroční srovnání a zdrojové doklady.
 - Bilance prodeje/nákupu, TOP 3 odběratelé a dlužníci a přehled prodlení v CZK.
 - Čeština a angličtina, světlý/tmavý/systémový vzhled, REST API a lokální MCP.
+- Vlastní vizuální identita Open Faktury, nové logo, Přehled a seznam/editor faktur — [UI-REDESIGN-01](docs/design/redesign-2026-10-17/README.md).
 
 Aktuální fakturační rozsah je tuzemská agenda v CZK. Výpočty mají dokumentovaná vlastní pravidla; numerická shoda s externími systémy není kompletně ověřená. Importní předvolby **pro konkrétní služby nejsou ověřené adaptéry**. CSV/XLSX export je tabulkový přehled, ne úplná záloha ani účetní export.
 

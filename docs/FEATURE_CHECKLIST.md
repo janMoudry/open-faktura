@@ -4,6 +4,16 @@ Stav k 14. 10. 2026. [Zpět na README](../README.md) · [Implementační plán](
 
 Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s iDokladem nebo připravenost celého produktu pro produkci. Nezaškrtnuté položky chybí nebo vyžadují dokončení a ověření. Podrobné podmínky a testy uvádějí odkazované specifikace. Checklist aktualizujte s každou dodávkou; nenahrazuje úplný soupis FEATURES.
 
+## Vzhled — UI-REDESIGN-01
+
+- [x] Vlastní logo a rumělková vizuální identita, společné tokeny a komponenty.
+- [x] Responzivní shell, Přehled a seznam/editor faktur; CS/EN, světlý a tmavý režim.
+- [x] INV-DUE-DAYS-01: splatnost faktury ihned, výběrem 7/14/21/30/60 dní nebo vlastním datem, zachování odstupu při změně vystavení ([pravidla](specs/invoice-drafts.md#inv-due-days-01--zadání-splatnosti-ve-dnech)).
+- [x] INV-DEFAULT-DUE-01: výchozí splatnost firmy stejnými předvolbami včetně Ihned a vlastního počtu dní; automatické předvyplnění nové faktury ([pravidla](specs/company-setup.md#inv-default-due-01--výchozí-splatnost-nových-faktur-17-10-2026)).
+- [x] Přehled používá existující API; chybějící data nenahrazuje ukázkovými hodnotami.
+
+[Rozsah, snímky a limity ověření](design/redesign-2026-10-17/README.md)
+
 ## Instalace, účty a profily — P01–P03, P11
 
 - [x] Produkt oddělený od vývojového sandboxu.
