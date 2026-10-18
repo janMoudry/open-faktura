@@ -18,7 +18,10 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Výchozí splatnost v nastavení firmy, automaticky předvyplněná na nové faktuře.
 - Ceník, opakovaně použitelné šablony a cenové nabídky s převodem na fakturu.
 - Veřejné odkazy na nabídky i faktury, odvolání odkazu a historie zobrazení.
-- Bankovní účty v CZK i cizích měnách, import CSV s kontrolou duplicit a ruční párování úhrad.
+- Bankovní účty v CZK i cizích měnách, [import výpisů](docs/specs/bank-statements.md), kontrola duplicit a ruční i dávkové párování úhrad.
+- [Cizoměnové doklady a přehledy](docs/specs/report-currencies.md), uložené kurzy a návrh kurzu ČNB na vyžádání.
+- [Párování rozdílných měn](docs/specs/bank-foreign-matching.md) u běžných faktur a přehled uložených kurzových rozdílů bez účetního zaúčtování.
+- [Evidence DPH a orientační obrat](docs/specs/tax-dashboard.md) včetně samostatných pokladních plnění; nejde o daňové přiznání ani zákonný obrat.
 - Přijaté faktury a účtenky, originální přílohy, výdajové úhrady a přehled nákladů.
 - Zálohové faktury s vlastní číselnou řadou, PDF a ručními úhradami.
 - Vlastní SMTP, testovací odeslání, historie e-mailů a souborové přílohy.
@@ -34,7 +37,7 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Čeština a angličtina, světlý/tmavý/systémový vzhled, REST API a lokální MCP.
 - Vlastní vizuální identita Open Faktury, nové logo, Přehled a seznam/editor faktur — [UI-REDESIGN-01](docs/design/redesign-2026-10-17/README.md).
 
-Aktuální fakturační rozsah je tuzemská agenda v CZK. Výpočty mají dokumentovaná vlastní pravidla; numerická shoda s externími systémy není kompletně ověřená. Importní předvolby **pro konkrétní služby nejsou ověřené adaptéry**. CSV/XLSX export je tabulkový přehled, ne úplná záloha ani účetní export.
+Aplikace podporuje CZK i vybrané cizoměnové postupy; konkrétní omezení uvádí [checklist funkcí](docs/FEATURE_CHECKLIST.md). Výpočty mají dokumentovaná vlastní pravidla; numerická shoda s externími systémy není kompletně ověřená. Importní předvolby **pro konkrétní služby nejsou ověřené adaptéry**. CSV/XLSX export je tabulkový přehled, ne úplná záloha ani účetní export.
 
 Daňové doklady k přijaté platbě mají náhled DPH, samostatné číslování DDPP, uložené PDF a seznam/detail; vystavují se z úhrady zálohy plátce DPH. [Rozsah P13-02](docs/specs/advance-tax-receipts.md).
 
@@ -48,11 +51,11 @@ Upomínky a poděkování mají ruční náhled, PDF přílohu a historii. Autom
 
 Fakturu lze poslat také odkazem: příjemce bez přihlášení otevře původní PDF a uvidí aktuální stav úhrady. Odkazy mají expiraci, možnost odvolání a technickou historii zobrazení. [Rozsah P14-03](docs/specs/invoice-sharing.md).
 
-Přijaté faktury mají vlastní řadu PF, dodavatele, částky přepsané z originálu a oddělené závazky. Jejich platby nevstupují do příjmů. Zatím jde o CZK bez přeplatků a výpočtu nároku na odpočet DPH. [Rozsah P15-01](docs/specs/received-invoices.md).
+Přijaté faktury mají vlastní řadu PF, dodavatele, částky přepsané z originálu a oddělené závazky. Jejich platby nevstupují do příjmů. Podporují také cizí měny s uloženým kurzem; přeplatky a výpočet nároku na odpočet DPH zatím chybí. [Rozsah P15-01](docs/specs/received-invoices.md).
 
 Účtenky mají vlastní řadu UC, nepovinného dodavatele a platbu hotově nebo kartou. Společný seznam úhrad a přehled v CZK odděluje nákupy, zaplacené výdaje a aktuální závazky. [Rozsah P15-02](docs/specs/purchase-receipts.md).
 
-Banka pracuje s [dokumentovaným CSV Open Faktury](docs/specs/banking.md), nikoli s libovolným exportem banky. Umí propojit existující platbu bez dvojí úhrady; odpojení stornuje jen platbu vytvořenou párováním.
+Banka pracuje s [dokumentovaným CSV Open Faktury](docs/specs/banking.md) a vybranými [bankovními formáty](docs/specs/bank-statements.md), nikoli s libovolným exportem banky. Ověření adaptérů na skutečných exportech zůstává otevřené. Umí propojit existující platbu bez dvojí úhrady; odpojení stornuje jen platbu vytvořenou párováním.
 
 **Co chybí:** pravidelné zálohy a rozšířené nákladové přehledy, ověření bankovních adaptérů na skutečných exportech a cizí měny, dokončení návazných výstupů prodejek, příjmu dokumentů a automatického pořizovacího ocenění, daňové výstupy a další moduly. [Celý checklist s hranicemi jednotlivých funkcí →](docs/FEATURE_CHECKLIST.md)
 
@@ -126,42 +129,3 @@ Open Faktura je svobodný a open-source software pod **GNU Affero General Public
 Copyright (C) 2026 přispěvatelé Open Faktury. Software je poskytován bez záruky v rozsahu dovoleném právem. Úplné znění je v [LICENSE](LICENSE), praktické vysvětlení v [licencování](docs/LICENSING.md).
 
 Licence použitých fontů a knihoven zůstávají zachované u příslušných součástí. Referenční zdroje a původ požadavků jsou dohledatelné ve [výzkumné dokumentaci](docs/README.md#výzkumné-podklady).
-
-P16-02 přidává importní adaptéry XML camt.053, Fio JSON, MONETA XML a RB ABO,
-náhled s kontrolou účtu a ručně potvrzované návrhy shod. Adaptéry vycházejí z
-veřejných kontraktů; ověření na skutečných exportech zůstává otevřené.
-[Rozsah a bankovní varianty](docs/specs/bank-statements.md).
-
-P16-03 umožňuje hromadně potvrdit jednoznačné bankovní shody z aktuální stránky.
-Náhled ukáže cílové doklady a důvody přeskočení; změněná data vyžadují nový náhled.
-Zápis celé dávky je atomický. [Rozsah párování](docs/specs/bank-batch-matching.md).
-
-P19-01e: [Evidence DPH a orientační obrat](docs/specs/tax-dashboard.md) nabízí měsíční/kvartální součty, DDPP a zdrojové doklady v CS/EN. Nejde o daňové přiznání ani zákonný obrat.
-
-P19-01f: přehled DPH a orientačního obratu zahrnuje i samostatná pokladní plnění s uloženým daňovým rozpisem.
-
-P19-01g: měna a uložený kurz běžných vydaných/přijatých faktur, ruční bankovní úhrady v měně dokladu a přepočty přehledů do CZK. Rozsah a zbývající měnové moduly: [specifikace](docs/specs/report-currencies.md).
-
-P19-01h: cizoměnové dobropisy, zápočty a ruční bankovní vratky se snapshotem původního kurzu, přepočty přehledů a CS/EN. [Rozsah a omezení](docs/specs/credit-notes.md).
-
-P19-01i: cizoměnové zálohy, ruční bankovní úhrady, DDPP a vyúčtování se shodným uloženým kurzem. Rozdílné kurzy zůstávají nepodporované. [Pravidla a rozsah](docs/specs/advance-settlement.md).
-
-P19-01j: návrh kurzu ČNB na vyžádání v editoru, REST/MCP, kontrola profilu a CS/EN. Ukládá se vybraný kurz; automatika pravidelných dokladů a kurzové rozdíly zbývají. [Rozsah a omezení](docs/specs/exchange-rates.md).
-
-P16-13a / P19-01k: ruční párování CZK pohybu s běžnou cizoměnovou vydanou/přijatou fakturou, oddělené částky a uložený rozdíl vůči kurzu dokladu. Bez automatického odhadu a účetního zápisu. Cizoměnové účty, existující úhrady a širší měnové návaznosti zbývají. [Specifikace](docs/specs/bank-foreign-matching.md).
-
-P16-13b / P19-01l: připojení existujících cizoměnových převodních úhrad běžných faktur bez duplikace; odpojení zachová původní platbu. CS/EN, REST/MCP a migrace 053. [Pravidla a zbývající rozsah](docs/specs/bank-foreign-matching.md).
-
-P19-01m: souhrnný přehled uložených kurzových rozdílů z aktivních bankovních vazeb, zisky/ztráty/netto, období a stránkované zdroje s odkazy. CS/EN, REST/MCP; bez účetních zápisů a nové migrace. [Specifikace](docs/specs/exchange-difference-report.md).
-
-Bankovní účty a importy podporují i cizí měny; saldo zůstává v měně účtu.
-Ruční párování a rozdělení s fakturami ve stejné měně je dostupné, včetně
-připojení existujících úhrad bez duplikace. Dostupné je také dávkové a volitelně automatické párování ve stejné měně. [Rozsah a omezení](docs/specs/bank-currencies.md).
-
-P16-13f: zálohy a vratky dobropisů lze ručně párovat a dělit také z cizoměnových
-účtů ve shodné měně. Existující převodní úhrady se nezdvojují; DDPP a rezervace
-chrání odpojení. [Rozsah a omezení](docs/specs/bank-currencies.md).
-
-P16-13g: ruční párování rozdílných měn z cizoměnových účtů s běžnými fakturami.
-Vlastní bankovní kurz do CZK, oddělené částky, existující úhrady bez duplicity
-a historie v CS/EN. [Rozsah a omezení](docs/specs/bank-foreign-matching.md).
