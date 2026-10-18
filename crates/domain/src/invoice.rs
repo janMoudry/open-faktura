@@ -94,10 +94,25 @@ pub struct PaymentSnapshot {
     pub iban: String,
     pub variable_symbol: String,
 }
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum QrFormat {
+    #[default]
+    Payment,
+    Invoice,
+    PaymentInvoice,
+}
+impl QrFormat {
+    pub fn is_payment(&self) -> bool {
+        *self == Self::Payment
+    }
+}
 /// Draft persistence, date and issue validation are implemented in P06/P07.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DraftData {
+    #[serde(default, skip_serializing_if = "QrFormat::is_payment")]
+    pub qr_format: QrFormat,
     pub contact_id: Option<String>,
     pub supplier: PartySnapshot,
     pub customer: Option<PartySnapshot>,

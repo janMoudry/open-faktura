@@ -1,3 +1,4 @@
+import { DocumentTagFilter } from "../components/organisms/DocumentTagFilter";
 import { RegisterExport } from "../components/organisms/RegisterExport";
 import { RegisterPagination } from "../components/molecules/RegisterPagination";
 import { useEffect, useState } from "react";
@@ -29,6 +30,7 @@ export function ContactsPage() {
   const { company, onExpired } = useWorkspace();
   const { t } = useAppTranslation();
   const [params, setParams] = useSearchParams();
+  const tagId = params.get("tag") ?? "";
   const query = params.get("q") ?? "";
   const archived = params.get("archived") === "true";
   const page = Math.max(
@@ -45,6 +47,7 @@ export function ContactsPage() {
   const [error, setError] = useState<AppKey | "">("");
   const [attempt, setAttempt] = useState(0);
   const key = JSON.stringify([
+    tagId,
     companyId,
     query,
     archived,
@@ -62,7 +65,7 @@ export function ContactsPage() {
     listContacts(
       apiUrl,
       companyId,
-      { query, archived, page, page_size: pageSize },
+      { query, archived, page, page_size: pageSize, tag_id: tagId },
       controller.signal,
     )
       .then((value) => {
@@ -82,7 +85,7 @@ export function ContactsPage() {
         }
       });
     return () => controller.abort();
-  }, [key, companyId, query, archived, page, pageSize, onExpired]);
+  }, [key, companyId, query, archived, page, pageSize, onExpired, tagId]);
   const canWrite = company?.id === companyId && company.role !== "viewer";
   return (
     <div className="space-y-group">
@@ -98,10 +101,17 @@ export function ContactsPage() {
           onExpired={onExpired}
           selection={{
             kind: "contacts",
-            search: { query, archived, page: 1, page_size: 100 },
+            search: { query, archived, page: 1, page_size: 100, tag_id: tagId },
           }}
         />
       </div>
+      <DocumentTagFilter
+        company={companyId}
+        value={tagId}
+        onChange={(tag) =>
+          setParams({ ...Object.fromEntries(params), tag, page: "1" })
+        }
+      />
       <div className="workspace-panel register-sheet">
         <div className="invoice-list-tabs">
           <FilterTabs

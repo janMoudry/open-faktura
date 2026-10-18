@@ -1,0 +1,19 @@
+[
+  {
+    "name": "vat_registry_lookup",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["company_id", "vat_number"],
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "vat_number": {
+          "type": "string",
+          "pattern": "^CZ[0-9]{1,10}$"
+        }
+      }
+    }
+  }
+]

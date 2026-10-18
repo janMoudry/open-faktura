@@ -17,10 +17,7 @@
           "default": 1
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -68,10 +65,7 @@
         },
         "purpose": {
           "type": "string",
-          "enum": [
-            "reminder",
-            "thanks"
-          ]
+          "enum": ["reminder", "thanks"]
         },
         "settlement_revision": {
           "type": "integer",
@@ -116,11 +110,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "delivery"
-      ],
+      "required": ["company_id", "id", "delivery"],
       "additionalProperties": false
     }
   }

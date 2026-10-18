@@ -359,6 +359,16 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
                 onChange={(e) => setAgenda(e.target.value)}
               />
             </div>
+            <p className="text-sm">
+              <a
+                className="underline underline-offset-4"
+                href="https://github.com/janMoudry/open-faktura/blob/main/docs/INTEGRATION_ADAPTERS.md"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("importAdapterGuide")}
+              </a>
+            </p>
             <Alert>
               {t(
                 source === "money_s3"

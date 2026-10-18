@@ -5,6 +5,7 @@ import {
   createReceived,
   inboxExecute,
   inboxExtract,
+  inboxExtractProvider,
   commandReceived,
   previewReceived,
   SalesFailure,
@@ -175,12 +176,18 @@ export function useReceivedInvoice(
       setBusy(false);
     }
   }
-  async function extractInbox() {
+  async function extractInbox(provider = false) {
     if (!inboxId || busy) return;
     setBusy(true);
     setError("");
     try {
-      setData(await inboxExtract(apiUrl, company, inboxId));
+      setData(
+        await (provider ? inboxExtractProvider : inboxExtract)(
+          apiUrl,
+          company,
+          inboxId,
+        ),
+      );
     } catch (e) {
       if (e instanceof SalesFailure && e.status === 401) onExpired();
       else setError("inboxExtractFailed");

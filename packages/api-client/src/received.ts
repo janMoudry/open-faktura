@@ -57,11 +57,12 @@ export async function listReceived(
   page: number,
   signal?: AbortSignal,
   kind: "invoice" | "receipt" = "invoice",
+  tag_id = "",
 ): Promise<ReceivedPage> {
   const v = await request(
     b,
     c,
-    `?${new URLSearchParams({ query, status, page: String(page), kind })}`,
+    `?${new URLSearchParams({ query, status, page: String(page), kind, tag_id })}`,
     undefined,
     signal,
   );

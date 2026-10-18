@@ -133,7 +133,7 @@ export function ExchangeDifferenceReport({
                     <TableCell className="whitespace-nowrap">
                       <Link
                         className="underline"
-                        to={`/companies/${companyId}/${row.target_kind === "invoice" ? "invoices" : "received-invoices"}/${row.document_id}`}
+                        to={`/companies/${companyId}/${row.target_kind === "invoice" ? "invoices" : row.target_kind === "advance" ? "advances" : row.target_kind === "credit" ? "credit-notes" : "received-invoices"}/${row.document_id}`}
                       >
                         {row.document_number}
                       </Link>

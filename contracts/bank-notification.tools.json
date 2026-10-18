@@ -1,0 +1,106 @@
+[
+  {
+    "name": "bank_notification_receive",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "message_id": {
+          "type": "string",
+          "maxLength": 998
+        },
+        "sender": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "file": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "account_id": {
+              "type": "string"
+            },
+            "format": {
+              "type": "string",
+              "enum": ["camt053", "fio_json", "moneta_xml", "rb_abo"]
+            },
+            "filename": {
+              "type": "string"
+            },
+            "content_base64": {
+              "type": "string"
+            }
+          },
+          "required": ["account_id", "format", "filename", "content_base64"]
+        }
+      },
+      "required": ["company_id", "request_id", "message_id", "sender", "file"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "bank_notification_settings",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "account_id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id", "account_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "bank_notification_configure",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "account_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["camt053", "fio_json", "moneta_xml", "rb_abo"]
+        }
+      },
+      "required": ["company_id", "account_id", "revision", "enabled", "format"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "bank_notification_history",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "account_id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id", "account_id"],
+      "additionalProperties": false
+    }
+  }
+]

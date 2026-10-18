@@ -20,6 +20,8 @@ pub struct Data {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Document {
+    #[serde(skip)]
+    pub document_style: Option<crate::document_style::Style>,
     pub id: String,
     pub company_id: String,
     pub kind: Kind,
@@ -62,6 +64,7 @@ pub struct Convert {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Search {
+    pub tag_id: String,
     pub kind: Kind,
     pub query: String,
     pub status: String,
@@ -72,6 +75,7 @@ pub struct Search {
 impl Default for Search {
     fn default() -> Self {
         Self {
+            tag_id: String::new(),
             kind: Kind::Quote,
             query: String::new(),
             status: "all".into(),

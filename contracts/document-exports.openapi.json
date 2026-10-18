@@ -1,0 +1,384 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Versioned document exports and explicit content locks",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/document-exports": {
+      "get": {
+        "operationId": "document_export_history",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "sales",
+                "received"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/History"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "document_export",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON snapshot download",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/document-exports/unlock": {
+      "post": {
+        "operationId": "document_export_unlock",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/History"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Unlock"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/document-exports/{id}": {
+      "get": {
+        "operationId": "document_export_file",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON snapshot download",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Request": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targets": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "invoice",
+                    "sales",
+                    "received"
+                  ]
+                },
+                "id": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "kind",
+                "id",
+                "revision"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "lock": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "request_id",
+          "targets",
+          "lock"
+        ],
+        "additionalProperties": false
+      },
+      "Unlock": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "invoice",
+                  "sales",
+                  "received"
+                ]
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id"
+            ],
+            "additionalProperties": false
+          },
+          "export_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "target",
+          "export_id",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "History": {
+        "type": "object",
+        "properties": {
+          "exports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "actor_id": {
+                  "type": "string"
+                },
+                "sha256": {
+                  "type": "string"
+                },
+                "created_at": {
+                  "type": "string"
+                },
+                "targets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "invoice",
+                          "sales",
+                          "received"
+                        ]
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "id",
+                      "revision"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "actor_id",
+                "sha256",
+                "created_at",
+                "targets"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "locked_by_export": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "exports",
+          "locked_by_export"
+        ],
+        "additionalProperties": false
+      },
+      "Target": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "sales",
+              "received"
+            ]
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "Version": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "sales",
+              "received"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "revision"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

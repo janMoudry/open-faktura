@@ -2143,3 +2143,129 @@ async fn item_sales_pagination_units_totals_and_export_all_pages(p: PgPool) {
         .unwrap();
     assert_eq!(String::from_utf8(file.bytes).unwrap().lines().count(), 29);
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "requires isolated PostgreSQL"]
+async fn foreign_purchase_physical_receipt_keeps_explicit_czk_valuation(p: PgPool) {
+    use faktura_application::{
+        received,
+        stock_report::{Search, StockReportStore, Valuation},
+    };
+    use faktura_infrastructure::{received::PgReceived, stock_report::PgStockReport};
+    let (a, _, c, other) = setup(&p).await;
+    let item = catalog::create(
+        &PgCatalog(p.clone()),
+        &a,
+        &c,
+        create("Foreign purchased goods", &key()),
+    )
+    .await
+    .unwrap();
+    PgStock(p.clone())
+        .execute(
+            &a,
+            &c,
+            cmd(
+                &item.id,
+                stock::Action::Open {
+                    quantity: "0".into(),
+                    booked_on: "2026-10-01".parse().unwrap(),
+                    reason: "Synthetic empty stock".into(),
+                },
+            ),
+        )
+        .await
+        .unwrap();
+    let mut purchase:faktura_domain::received::Data=serde_json::from_value(serde_json::json!({"supplier_contact_id":null,"supplier":{"name":"Foreign synthetic vendor","registration_number":"","vat_number":"","email":"","phone":"","address":{"street":"","city":"","postal_code":"","country":"DE"}},"external_number":"EUR-SYNTHETIC","variable_symbol":"","bank_account":"","issued_on":"2026-10-01","received_on":"2026-10-01","due_on":"2026-10-31","tax_on":null,"currency":"EUR","exchange_rate":{"rate":"25","units":"1"},"description":"Foreign purchase","note":"","rounding":"0","stock_incidental_cost":"10.00","lines":[{"description":"Goods","rate":"0","net":"100.00","vat":"0","stock":{"catalog_id":item.id,"quantity":"2","unit":item.data.unit,"acquisition_unit_cost":"20.00"}}]})).unwrap();
+    let request = key();
+    let store = PgReceived(p.clone());
+    let doc = received::create(
+        &store,
+        &a,
+        &c,
+        received::Create {
+            request_id: request.clone(),
+            data: purchase.clone(),
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(doc.totals.total, "100.00");
+    assert_eq!(doc.data.currency, "EUR");
+    assert_eq!(
+        received::create(
+            &store,
+            &a,
+            &c,
+            received::Create {
+                request_id: request,
+                data: purchase.clone()
+            }
+        )
+        .await
+        .unwrap()
+        .id,
+        doc.id
+    );
+    let report = PgStockReport(p.clone())
+        .report(
+            &a,
+            &c,
+            Search {
+                valuation: Valuation::Automatic,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(report.items[0].quantity, "2");
+    assert_eq!(report.items[0].unit_cost.as_deref(), Some("25"));
+    assert_eq!(report.known_value, "50.00");
+    assert!(received::create(
+        &store,
+        &a,
+        &other,
+        received::Create {
+            request_id: key(),
+            data: purchase.clone()
+        }
+    )
+    .await
+    .is_err());
+    purchase.exchange_rate = Some(faktura_domain::exchange::ExchangeRate {
+        rate: "30".into(),
+        units: "1".into(),
+    });
+    purchase.external_number = "EUR-SYNTHETIC-2".into();
+    purchase.stock_incidental_cost = None;
+    purchase.lines[0]
+        .stock
+        .as_mut()
+        .unwrap()
+        .acquisition_unit_cost = None;
+    received::create(
+        &store,
+        &a,
+        &c,
+        received::Create {
+            request_id: key(),
+            data: purchase,
+        },
+    )
+    .await
+    .unwrap();
+    let report = PgStockReport(p.clone())
+        .report(
+            &a,
+            &c,
+            Search {
+                valuation: Valuation::Automatic,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(report.items[0].quantity, "4");
+    assert_eq!(report.items[0].unit_cost, None);
+    assert_eq!(report.unvalued_count, 1);
+}

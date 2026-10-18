@@ -1,3 +1,4 @@
+import { DocumentTags } from "../components/organisms/DocumentTags";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import {
@@ -17,6 +18,7 @@ import {
   type Contact,
   type ContactData,
 } from "@open-faktura/api-client";
+import { VatRegistryLookup } from "../components/organisms/VatRegistryLookup";
 import { ContactOverview } from "../components/organisms/ContactOverview";
 import { ContactFields } from "../components/organisms/ContactFields";
 import { useWorkspace } from "../hooks/useCompanyWorkspace";
@@ -234,6 +236,12 @@ function ContactEditor({
           {t("contactSnapshotHint")}
         </p>
       )}
+      <VatRegistryLookup
+        key={`${companyId}:${data.vat_number}`}
+        company={companyId}
+        vatNumber={data.vat_number}
+        onExpired={onExpired}
+      />
       {!editing && contact && <ContactOverview data={contact.data} />}
       {!canWrite && contact && (
         <p className="text-sm text-muted">{t("contactReadOnly")}</p>
@@ -368,6 +376,14 @@ function ContactEditor({
           </Button>
         </div>
       </Dialog>
+      {contact && (
+        <DocumentTags
+          key={`contact-tags-${contact.id}`}
+          company={companyId}
+          editable={company?.role !== "viewer"}
+          target={{ kind: "contact", id: contact.id }}
+        />
+      )}
     </div>
   );
 }

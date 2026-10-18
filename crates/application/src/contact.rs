@@ -21,6 +21,7 @@ pub struct ContactPage {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Search {
+    pub tag_id: String,
     pub query: String,
     pub archived: bool,
     pub page: i64,
@@ -29,6 +30,7 @@ pub struct Search {
 impl Default for Search {
     fn default() -> Self {
         Self {
+            tag_id: String::new(),
             query: String::new(),
             archived: false,
             page: 1,

@@ -84,6 +84,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/companies/{company}/inbox/settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["inbox_settings"];
+    put?: never;
+    /** @description Explicit opt-in with revision conflict. Provider names reference trusted installation config; never accepts a URL or secret. */
+    post: operations["inbox_configure"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/companies/{company}/inbox/mail": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["inbox_mail_history"];
+    put?: never;
+    /** @description Authenticated custom gateway intake, opt-in required. Atomic attachment ingestion. Message-ID plus payload digest deduplicate; conflicts return 409. Sender is unverified metadata. No automatic accounting. */
+    post: operations["inbox_mail"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/companies/{company}/inbox/{id}/extract-provider": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description External action: sends original to company enabled trusted provider. Editor role and explicit POST required. Output is untrusted editable proposal, never a saved document. */
+    post: operations["inbox_extract_provider"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -318,6 +369,33 @@ export interface components {
       action: string;
       created_at: string;
     };
+    InboxSettings: {
+      revision: number;
+      email_enabled: boolean;
+      extraction_provider: string | null;
+    };
+    InboxMailIntake: {
+      /** Format: uuid */
+      request_id: string;
+      message_id: string;
+      sender: string;
+      subject: string;
+      attachments: components["schemas"]["InboxUpload"][];
+    };
+    InboxMailResult: {
+      message_id: string;
+      documents: components["schemas"]["InboxDocument"][];
+    };
+    InboxMailDiagnostic: {
+      message_id: string;
+      sender: string;
+      subject: string;
+      /** @enum {string} */
+      status: "completed";
+      attachment_count: number;
+      /** Format: date-time */
+      created_at: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -470,6 +548,125 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["InboxAudit"][];
+        };
+      };
+    };
+  };
+  inbox_settings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        company: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InboxSettings"];
+        };
+      };
+    };
+  };
+  inbox_configure: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        company: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InboxSettings"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InboxSettings"];
+        };
+      };
+    };
+  };
+  inbox_mail_history: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        company: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InboxMailDiagnostic"][];
+        };
+      };
+    };
+  };
+  inbox_mail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        company: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InboxMailIntake"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InboxMailResult"];
+        };
+      };
+    };
+  };
+  inbox_extract_provider: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        company: string;
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReceivedData"];
         };
       };
     };

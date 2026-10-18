@@ -19,16 +19,16 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "receipt"
-          ],
+          "enum": ["invoice", "receipt"],
           "default": "invoice"
+        },
+        "tag_id": {
+          "type": "string",
+          "default": "",
+          "maxLength": 40
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -104,12 +104,7 @@
                 "address": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "street",
-                    "city",
-                    "postal_code",
-                    "country"
-                  ],
+                  "required": ["street", "city", "postal_code", "country"],
                   "properties": {
                     "street": {
                       "type": "string"
@@ -188,12 +183,7 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "description",
-                  "rate",
-                  "net",
-                  "vat"
-                ],
+                "required": ["description", "rate", "net", "vat"],
                 "properties": {
                   "description": {
                     "type": "string"
@@ -212,11 +202,7 @@
                       {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": [
-                          "catalog_id",
-                          "quantity",
-                          "unit"
-                        ],
+                        "required": ["catalog_id", "quantity", "unit"],
                         "properties": {
                           "catalog_id": {
                             "type": "string"
@@ -228,10 +214,7 @@
                             "type": "string"
                           },
                           "acquisition_unit_cost": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
+                            "type": ["string", "null"],
                             "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
                           }
                         }
@@ -249,20 +232,14 @@
             },
             "kind": {
               "type": "string",
-              "enum": [
-                "invoice",
-                "receipt"
-              ],
+              "enum": ["invoice", "receipt"],
               "default": "invoice"
             },
             "receipt_method": {
               "anyOf": [
                 {
                   "type": "string",
-                  "enum": [
-                    "cash",
-                    "card"
-                  ]
+                  "enum": ["cash", "card"]
                 },
                 {
                   "type": "null"
@@ -270,19 +247,13 @@
               ]
             },
             "stock_incidental_cost": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
             },
             "exchange_rate": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "rate",
-                "units"
-              ],
+              "required": ["rate", "units"],
               "properties": {
                 "rate": {
                   "type": "string",
@@ -297,11 +268,7 @@
           }
         }
       },
-      "required": [
-        "company_id",
-        "request_id",
-        "data"
-      ],
+      "required": ["company_id", "request_id", "data"],
       "additionalProperties": false
     }
   },
@@ -317,10 +284,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -345,12 +309,7 @@
         },
         "action": {
           "type": "string",
-          "enum": [
-            "update",
-            "pay",
-            "reverse",
-            "cancel"
-          ]
+          "enum": ["update", "pay", "reverse", "cancel"]
         },
         "data": {
           "type": "object",
@@ -412,12 +371,7 @@
                 "address": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "street",
-                    "city",
-                    "postal_code",
-                    "country"
-                  ],
+                  "required": ["street", "city", "postal_code", "country"],
                   "properties": {
                     "street": {
                       "type": "string"
@@ -496,12 +450,7 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "description",
-                  "rate",
-                  "net",
-                  "vat"
-                ],
+                "required": ["description", "rate", "net", "vat"],
                 "properties": {
                   "description": {
                     "type": "string"
@@ -520,11 +469,7 @@
                       {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": [
-                          "catalog_id",
-                          "quantity",
-                          "unit"
-                        ],
+                        "required": ["catalog_id", "quantity", "unit"],
                         "properties": {
                           "catalog_id": {
                             "type": "string"
@@ -536,10 +481,7 @@
                             "type": "string"
                           },
                           "acquisition_unit_cost": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
+                            "type": ["string", "null"],
                             "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
                           }
                         }
@@ -557,20 +499,14 @@
             },
             "kind": {
               "type": "string",
-              "enum": [
-                "invoice",
-                "receipt"
-              ],
+              "enum": ["invoice", "receipt"],
               "default": "invoice"
             },
             "receipt_method": {
               "anyOf": [
                 {
                   "type": "string",
-                  "enum": [
-                    "cash",
-                    "card"
-                  ]
+                  "enum": ["cash", "card"]
                 },
                 {
                   "type": "null"
@@ -578,19 +514,13 @@
               ]
             },
             "stock_incidental_cost": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
             },
             "exchange_rate": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "rate",
-                "units"
-              ],
+              "required": ["rate", "units"],
               "properties": {
                 "rate": {
                   "type": "string",
@@ -607,12 +537,7 @@
         "payment": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "amount",
-            "paid_on",
-            "method",
-            "note"
-          ],
+          "required": ["amount", "paid_on", "method", "note"],
           "properties": {
             "amount": {
               "type": "string",
@@ -624,10 +549,7 @@
             },
             "method": {
               "type": "string",
-              "enum": [
-                "cash",
-                "bank_transfer"
-              ]
+              "enum": ["cash", "bank_transfer"]
             },
             "note": {
               "type": "string",
@@ -642,63 +564,40 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "request_id",
-        "revision",
-        "action"
-      ],
+      "required": ["company_id", "id", "request_id", "revision", "action"],
       "additionalProperties": false,
       "oneOf": [
         {
           "properties": {
             "action": {
-              "enum": [
-                "update"
-              ]
+              "enum": ["update"]
             }
           },
-          "required": [
-            "data"
-          ]
+          "required": ["data"]
         },
         {
           "properties": {
             "action": {
-              "enum": [
-                "pay"
-              ]
+              "enum": ["pay"]
             }
           },
-          "required": [
-            "payment"
-          ]
+          "required": ["payment"]
         },
         {
           "properties": {
             "action": {
-              "enum": [
-                "reverse"
-              ]
+              "enum": ["reverse"]
             }
           },
-          "required": [
-            "payment_id",
-            "reason"
-          ]
+          "required": ["payment_id", "reason"]
         },
         {
           "properties": {
             "action": {
-              "enum": [
-                "cancel"
-              ]
+              "enum": ["cancel"]
             }
           },
-          "required": [
-            "reason"
-          ]
+          "required": ["reason"]
         }
       ]
     }
@@ -751,12 +650,7 @@
             "address": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "street",
-                "city",
-                "postal_code",
-                "country"
-              ],
+              "required": ["street", "city", "postal_code", "country"],
               "properties": {
                 "street": {
                   "type": "string"
@@ -835,12 +729,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "description",
-              "rate",
-              "net",
-              "vat"
-            ],
+            "required": ["description", "rate", "net", "vat"],
             "properties": {
               "description": {
                 "type": "string"
@@ -859,11 +748,7 @@
                   {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": [
-                      "catalog_id",
-                      "quantity",
-                      "unit"
-                    ],
+                    "required": ["catalog_id", "quantity", "unit"],
                     "properties": {
                       "catalog_id": {
                         "type": "string"
@@ -875,10 +760,7 @@
                         "type": "string"
                       },
                       "acquisition_unit_cost": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
                       }
                     }
@@ -896,20 +778,14 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "receipt"
-          ],
+          "enum": ["invoice", "receipt"],
           "default": "invoice"
         },
         "receipt_method": {
           "anyOf": [
             {
               "type": "string",
-              "enum": [
-                "cash",
-                "card"
-              ]
+              "enum": ["cash", "card"]
             },
             {
               "type": "null"
@@ -917,19 +793,13 @@
           ]
         },
         "stock_incidental_cost": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
         },
         "exchange_rate": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "rate",
-            "units"
-          ],
+          "required": ["rate", "units"],
           "properties": {
             "rate": {
               "type": "string",
@@ -983,20 +853,11 @@
         },
         "method": {
           "type": "string",
-          "enum": [
-            "all",
-            "cash",
-            "card",
-            "bank_transfer"
-          ]
+          "enum": ["all", "cash", "card", "bank_transfer"]
         },
         "status": {
           "type": "string",
-          "enum": [
-            "active",
-            "reversed",
-            "all"
-          ]
+          "enum": ["active", "reversed", "all"]
         },
         "page": {
           "type": "integer",
@@ -1004,11 +865,7 @@
           "maximum": 10000
         }
       },
-      "required": [
-        "company_id",
-        "from",
-        "to"
-      ],
+      "required": ["company_id", "from", "to"],
       "additionalProperties": false
     }
   },
@@ -1029,11 +886,7 @@
           "format": "date"
         }
       },
-      "required": [
-        "company_id",
-        "from",
-        "to"
-      ],
+      "required": ["company_id", "from", "to"],
       "additionalProperties": false
     }
   }

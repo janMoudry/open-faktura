@@ -63,6 +63,7 @@ export async function listSales(
   company: string,
   search: {
     kind: SalesKind;
+    tag_id?: string;
     query?: string;
     status?: string;
     archived?: boolean;

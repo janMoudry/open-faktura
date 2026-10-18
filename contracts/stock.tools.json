@@ -8,9 +8,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -37,9 +35,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -81,9 +77,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "open"
-              ]
+              "enum": ["open"]
             },
             "quantity": {
               "type": "string"
@@ -125,9 +119,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "move"
-              ]
+              "enum": ["move"]
             },
             "quantity": {
               "type": "string"
@@ -169,9 +161,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "count"
-              ]
+              "enum": ["count"]
             },
             "quantity": {
               "type": "string"
@@ -211,9 +201,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "reverse"
-              ]
+              "enum": ["reverse"]
             },
             "movement_id": {
               "type": "string"
@@ -249,16 +237,11 @@
         },
         "valuation": {
           "type": "string",
-          "enum": [
-            "manual",
-            "automatic"
-          ],
+          "enum": ["manual", "automatic"],
           "default": "manual"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -321,10 +304,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "catalog_id"
-      ],
+      "required": ["company_id", "catalog_id"],
       "additionalProperties": false
     }
   },
@@ -346,11 +326,7 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "retail",
-            "credit_note"
-          ]
+          "enum": ["invoice", "retail", "credit_note"]
         },
         "catalog_id": {
           "type": "string"
@@ -369,9 +345,7 @@
           "maximum": 10000
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -397,11 +371,7 @@
             },
             "kind": {
               "type": "string",
-              "enum": [
-                "invoice",
-                "retail",
-                "credit_note"
-              ]
+              "enum": ["invoice", "retail", "credit_note"]
             },
             "catalog_id": {
               "type": "string"
@@ -423,25 +393,14 @@
         },
         "format": {
           "type": "string",
-          "enum": [
-            "csv",
-            "xlsx"
-          ]
+          "enum": ["csv", "xlsx"]
         },
         "language": {
           "type": "string",
-          "enum": [
-            "cs",
-            "en"
-          ]
+          "enum": ["cs", "en"]
         }
       },
-      "required": [
-        "company_id",
-        "search",
-        "format",
-        "language"
-      ],
+      "required": ["company_id", "search", "format", "language"],
       "additionalProperties": false
     }
   }

@@ -30,3 +30,7 @@ csv = "=1.4.0"
 calamine = "=0.36.1"
 rust_decimal = { version = "1", default-features = false, features = ["std"] }
 uuid = { version = "1", features = ["v4"] }
+
+zip = { version = "8.6", default-features = false, features = ["deflate"] }
+
+lopdf = "=0.26.0"

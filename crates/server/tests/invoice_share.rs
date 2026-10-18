@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{
     auth, company,
     draft::{self, Create, Error, Issue},
@@ -506,11 +508,8 @@ async fn upgrade_023_preserves_issued_pdf_and_mail_replay(pool: PgPool) {
     };
     previous.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
-    let invoice = issued(&pool, &a, &c).await;
-    let bytes = PgDraft(pool.clone())
-        .pdf(&a, &c, &invoice.id)
-        .await
-        .unwrap();
+    let (invoice, historical_pdf) = historical_documents::invoice(&pool, &a, &c, create(KEY)).await;
+    let bytes = historical_pdf;
     let cmd = command(invoice.revision, KEY);
     sqlx::query("INSERT INTO invoice_delivery(company_id,document_id,actor_id,request_id,command,revision,snapshot,pdf,sender,reply_to,recipient,subject,body,message_id,status) VALUES($1,$2,$3,$4::text::uuid,$5,$6,'{}',$7,'sender@example.test','','customer@example.test','Old mail','Old body','old-share@example.test','sent')").bind(c.parse::<i64>().unwrap()).bind(invoice.id.parse::<i64>().unwrap()).bind(a.parse::<i64>().unwrap()).bind(KEY).bind(serde_json::to_value(&cmd).unwrap()).bind(invoice.revision).bind(&bytes).execute(&pool).await.unwrap();
     faktura_infrastructure::migrate(&pool).await.unwrap();

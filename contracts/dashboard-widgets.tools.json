@@ -1,0 +1,44 @@
+[
+  {
+    "name": "dashboard_widgets_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "dashboard_widgets_set",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "widgets"],
+      "properties": {
+        "revision": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "widgets": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "variant"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["finance", "tax"]
+              },
+              "variant": {
+                "type": "string",
+                "enum": ["detailed", "compact"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

@@ -11,7 +11,7 @@ P16-13h doplňuje zahraniční IBAN bankovní evidence bez migrace: normalizace,
 validace formátu/checksumu, profilová unikátnost a zachování kontroly účtu/měny
 importu. [Rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů).
 P16-13i doplňuje zahraniční IBAN dokladů a P16-14b opt-in automatiku záloh
-a vratek. Nadále zbývá jejich párování mezi různými měnami a širší QR formáty. Historické záznamy níže popisují stav v době dodání.
+a vratek. P16-13j nyní doplňuje i jejich párování mezi různými měnami (058), včetně připojení existující úhrady a ochrany DDPP. QR Faktura/Platba+F se řeší ve společném dokumentovém výstupu. Historické záznamy níže popisují stav v době dodání.
 
 ## Akceptační celky
 
@@ -33,7 +33,7 @@ a vratek. Nadále zbývá jejich párování mezi různými měnami a širší Q
 - [x] P16-12 Zálohy/dobropisy: bankovní a pokladní vazby přes jejich vlastní
   platební operace; bez obcházení rezervací DDPP a vyúčtování.
   [Pravidla a ověření](specs/treasury-documents.md).
-- [ ] P16-13 Cizí měny: měna účtu/pohybu, uložený kurz a datum, přesná částka
+- [x] P16-13 Cizí měny: měna účtu/pohybu, uložený kurz a datum, přesná částka
   v měně dokladu; explicitní omezení při chybějícím více-měnovém doménovém základu.
 - [x] P16-14 Průběžné párování: opt-in, omezení přesných shod, oprávnění
   aktivujícího uživatele, idempotence, audit, chyby a vypnutí; externí vstupy

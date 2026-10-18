@@ -25,6 +25,7 @@ pub struct DraftPage {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Search {
+    pub tag_id: String,
     pub status: String,
     pub query: String,
     pub page: i64,
@@ -40,6 +41,7 @@ pub struct Search {
 impl Default for Search {
     fn default() -> Self {
         Self {
+            tag_id: String::new(),
             status: "all".into(),
             query: String::new(),
             page: 1,

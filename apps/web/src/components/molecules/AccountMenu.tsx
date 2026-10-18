@@ -1,4 +1,4 @@
-import { useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Button, Icon, Select } from "@open-faktura/ui";
 import { useAppTranslation } from "../../locales";
@@ -114,6 +114,16 @@ export function AccountMenu({
               <Icon name="settings" />
               <span>{t("accountSettings")}</span>
             </Button>
+          </div>
+          <div className="px-inline pb-inline">
+            <Link
+              to="/help"
+              className="account-menu-item"
+              onClick={() => setOpen(false)}
+            >
+              <Icon name="info" />
+              <span>{t("helpTitle")}</span>
+            </Link>
           </div>
           {onSmtp && (
             <div className="px-inline pb-inline">

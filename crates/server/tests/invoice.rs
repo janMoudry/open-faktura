@@ -980,54 +980,69 @@ async fn qr_payment_pdf_uses_exact_issued_snapshot(pool: PgPool) {
     let (actor, _, company, other) = setup(&pool).await;
     let store = PgDraft(pool.clone());
     for language in ["cs", "en"] {
-        let mut input = issuable();
-        input.language = language.into();
-        input.payment.method = "bank_transfer".into();
-        input.payment.iban = "CZ6508000000192000145399".into();
-        input.payment.variable_symbol = "001234".into();
-        let saved = draft::create(
-            &store,
-            &actor,
-            &company,
-            Create {
-                request_id: uuid::Uuid::new_v4().to_string(),
-                data: input,
-            },
-        )
-        .await
-        .unwrap();
-        let issued = draft::issue(
-            &store,
-            &actor,
-            &company,
-            &saved.id,
-            issue_command(&uuid::Uuid::new_v4().to_string(), saved.revision),
-        )
-        .await
-        .unwrap();
-        let pdf = draft::pdf(&store, &actor, &company, &issued.id)
+        for format in [
+            faktura_domain::invoice::QrFormat::Payment,
+            faktura_domain::invoice::QrFormat::Invoice,
+            faktura_domain::invoice::QrFormat::PaymentInvoice,
+        ] {
+            let mut input = issuable();
+            input.language = language.into();
+            input.qr_format = format;
+            input.payment.method = "bank_transfer".into();
+            input.payment.iban = "CZ6508000000192000145399".into();
+            input.payment.variable_symbol = "001234".into();
+            let saved = draft::create(
+                &store,
+                &actor,
+                &company,
+                Create {
+                    request_id: uuid::Uuid::new_v4().to_string(),
+                    data: input,
+                },
+            )
             .await
             .unwrap();
-        assert!(pdf.starts_with(b"%PDF-"));
-        assert_eq!(
-            pdf,
-            draft::pdf(&store, &actor, &company, &issued.id)
-                .await
-                .unwrap()
-        );
-        assert!(draft::pdf(&store, &actor, &other, &issued.id)
+            let issued = draft::issue(
+                &store,
+                &actor,
+                &company,
+                &saved.id,
+                issue_command(&uuid::Uuid::new_v4().to_string(), saved.revision),
+            )
             .await
-            .is_err());
-        std::fs::create_dir_all("../../tmp/pdfs").unwrap();
-        std::fs::write(format!("../../tmp/pdfs/qr-{language}.pdf"), pdf).unwrap();
-        let expected = faktura_domain::payment_qr::payload(
-            &issued.data.payment,
-            &issued.totals.as_ref().unwrap().payable,
-            "CZK",
-            issued.data.due_on,
-        )
-        .unwrap();
-        std::fs::write(format!("../../tmp/pdfs/qr-{language}.txt"), expected).unwrap();
+            .unwrap();
+            let pdf = draft::pdf(&store, &actor, &company, &issued.id)
+                .await
+                .unwrap();
+            assert!(pdf.starts_with(b"%PDF-"));
+            assert_eq!(
+                pdf,
+                draft::pdf(&store, &actor, &company, &issued.id)
+                    .await
+                    .unwrap()
+            );
+            assert!(draft::pdf(&store, &actor, &other, &issued.id)
+                .await
+                .is_err());
+            std::fs::create_dir_all("../../tmp/pdfs").unwrap();
+            let suffix = match format {
+                faktura_domain::invoice::QrFormat::Payment => "",
+                faktura_domain::invoice::QrFormat::Invoice => "-invoice",
+                faktura_domain::invoice::QrFormat::PaymentInvoice => "-combined",
+            };
+            std::fs::write(format!("../../tmp/pdfs/qr-{language}{suffix}.pdf"), pdf).unwrap();
+            let expected = faktura_domain::invoice_qr::payload(
+                &issued.data,
+                issued.totals.as_ref().unwrap(),
+                issued.number.as_deref().unwrap(),
+            )
+            .unwrap();
+            std::fs::write(
+                format!("../../tmp/pdfs/qr-{language}{suffix}.txt"),
+                expected,
+            )
+            .unwrap();
+        }
     }
 }
 

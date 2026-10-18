@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic user-configured format; NOT a native Money S4/S5 export. -->
+<UserDefinedCatalog><Items>
+<Item stableId="00001"><Title>Syntetická služba &amp; konzultace</Title><Price>19,995</Price><Vat>21</Vat><Code>00005</Code><Unit>h</Unit></Item>
+<Item stableId="00002"><Title>Bezplatná položka</Title><Price>0</Price><Vat>0</Vat><Code>00006</Code><Unit>ks</Unit></Item>
+</Items></UserDefinedCatalog>

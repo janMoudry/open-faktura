@@ -202,6 +202,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             tokio::select! { _=bank_shutdown.changed()=>{}, _=tokio::time::sleep(std::time::Duration::from_secs(5))=>{} }
         }
     });
+    let mailbox_store = faktura_infrastructure::inbox_mailbox::PgMailbox::new(pool.clone());
+    let mut mailbox_shutdown = delivery_shutdown.clone();
+    let mailbox_worker = tokio::spawn(async move {
+        loop {
+            if *mailbox_shutdown.borrow() {
+                break;
+            }
+            if mailbox_store.run_scheduled().await.is_err() {
+                tracing::warn!("Mailbox synchronization worker unavailable");
+            }
+            tokio::select! {_=mailbox_shutdown.changed()=>{},_=tokio::time::sleep(std::time::Duration::from_secs(15))=>{}}
+        }
+    });
     let invoice_worker = invoice_delivery.clone();
     let worker_store = delivery.clone();
     let delivery_worker = tokio::spawn(async move {
@@ -261,6 +274,76 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             secure,
         ))
         .merge(faktura_server::preferences::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::dashboard_widgets::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::document_output::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::document_style::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::inbox_mailbox::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::vies::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::document_exports::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::taxpayer_filing_profile::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::tax_classification::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::draft_trash::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::bank_notification::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::document_tags::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::vat_registry::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::isdoc::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::company_admin::router(
             pool.clone(),
             origins.clone(),
             secure,
@@ -416,6 +499,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = delivery_worker.await;
     let _ = recurring_worker.await;
     let _ = bank_worker.await;
+    let _ = mailbox_worker.await;
     pool.close().await;
     Ok(())
 }

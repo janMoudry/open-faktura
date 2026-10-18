@@ -1,0 +1,37 @@
+{
+  "request_id": "00000000-0000-4000-8000-000000000001",
+  "source": "generic",
+  "agenda": "user-defined-test",
+  "records": [
+    {
+      "kind": "catalog",
+      "key": "00001",
+      "data": {
+        "code": "00005",
+        "barcode": "",
+        "unit": "h",
+        "quantity": "1",
+        "price_mode": "net",
+        "name": "Syntetická služba & konzultace",
+        "unit_price": "19.995",
+        "vat_percent": "21",
+        "currency": "CZK"
+      }
+    },
+    {
+      "kind": "catalog",
+      "key": "00002",
+      "data": {
+        "code": "00006",
+        "barcode": "",
+        "unit": "ks",
+        "quantity": "1",
+        "price_mode": "net",
+        "name": "Bezplatná položka",
+        "unit_price": "0",
+        "vat_percent": "0",
+        "currency": "CZK"
+      }
+    }
+  ]
+}

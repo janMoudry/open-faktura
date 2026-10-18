@@ -757,3 +757,47 @@ async fn foreign_invoice_issue_payment_and_report_snapshot(p: PgPool) {
     .await;
     assert!(bad.is_err());
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "requires isolated PostgreSQL"]
+async fn tax_evidence_exports_all_sources_from_one_snapshot(p: PgPool) {
+    use faktura_application::{
+        export::{Format, Language},
+        tax_report::{ExportRequest, Search as TaxSearch, TaxExportStore},
+    };
+    let (a, _, c, other) = setup(&p).await;
+    sqlx::query("INSERT INTO received_invoice(company_id,number,data,total,received_on,due_on) SELECT $1,'=SYNTHETIC-'||i,'{\"issued_on\":\"2026-01-01\",\"tax_on\":\"2026-01-01\",\"lines\":[{\"net\":\"100.01\",\"vat\":\"21.02\"}]}',121.03,'2026-01-01','2026-01-15' FROM generate_series(1,30) i").bind(c.parse::<i64>().unwrap()).execute(&p).await.unwrap();
+    let request = |format| ExportRequest {
+        search: TaxSearch {
+            year: Some(2026),
+            page: Some(9999),
+            ..Default::default()
+        },
+        format,
+        language: Language::En,
+    };
+    let store = faktura_infrastructure::tax_report::PgTaxReport(p.clone());
+    let f = store.export(&a, &c, request(Format::Csv)).await.unwrap();
+    let mut reader = csv::ReaderBuilder::new()
+        .delimiter(b';')
+        .from_reader(&f.bytes[3..]);
+    let rows: Vec<_> = reader.records().map(Result::unwrap).collect();
+    assert_eq!(rows.len(), 30);
+    assert!(rows[0][2].starts_with("'=SYNTHETIC-"));
+    assert_eq!(&rows[0][5], "21.02");
+    assert!(rows[0][6].contains("not a tax return"));
+    let f = store.export(&a, &c, request(Format::Xlsx)).await.unwrap();
+    assert!(f.bytes.starts_with(b"PK"));
+    let f = store
+        .export(&a, &other, request(Format::Csv))
+        .await
+        .unwrap();
+    let mut reader = csv::ReaderBuilder::new()
+        .delimiter(b';')
+        .from_reader(&f.bytes[3..]);
+    assert_eq!(reader.records().count(), 0);
+    assert!(store
+        .export(&a, "999999", request(Format::Csv))
+        .await
+        .is_err());
+}

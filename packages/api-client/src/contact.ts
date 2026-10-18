@@ -100,11 +100,13 @@ export async function listContacts(
     archived: boolean;
     page: number;
     page_size?: number;
+    tag_id?: string;
   },
   signal?: AbortSignal,
 ): Promise<ContactPage> {
   const params = new URLSearchParams({
     query: search.query,
+    tag_id: search.tag_id ?? "",
     archived: String(search.archived),
     page: String(search.page),
     page_size: String(search.page_size ?? 25),

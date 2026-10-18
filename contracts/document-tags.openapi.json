@@ -1,0 +1,357 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Company document tags",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/tags": {
+      "get": {
+        "operationId": "tags_list",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "tags_execute",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/tags/target": {
+      "post": {
+        "operationId": "tags_for_target",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Target"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Command": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "create"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "rename"
+                ]
+              },
+              "tag_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "tag_id",
+              "revision",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "delete"
+                ]
+              },
+              "tag_id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "tag_id",
+              "revision"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "attach"
+                ]
+              },
+              "tag_id": {
+                "type": "string"
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "invoice",
+                      "sales",
+                      "received",
+                      "contact"
+                    ]
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "tag_id",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "detach"
+                ]
+              },
+              "tag_id": {
+                "type": "string"
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "invoice",
+                      "sales",
+                      "received",
+                      "contact"
+                    ]
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "request_id",
+              "action",
+              "tag_id",
+              "target"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Target": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "sales",
+              "received",
+              "contact"
+            ]
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "usage_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "revision",
+          "usage_count"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

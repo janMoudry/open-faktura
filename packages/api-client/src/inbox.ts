@@ -102,3 +102,56 @@ export async function inboxHistory(
   if (!Array.isArray(v)) throw new SalesFailure(502, "invalid_response");
   return v;
 }
+
+export type InboxSettings = components["schemas"]["InboxSettings"];
+export type InboxMailDiagnostic = components["schemas"]["InboxMailDiagnostic"];
+export async function inboxSettings(
+  b: string,
+  c: string,
+): Promise<InboxSettings> {
+  const v = await request(b, c, "/settings");
+  if (
+    !Number.isSafeInteger(v?.revision) ||
+    typeof v.email_enabled !== "boolean" ||
+    !(
+      v.extraction_provider === null ||
+      typeof v.extraction_provider === "string"
+    )
+  )
+    throw new SalesFailure(502, "invalid_response");
+  return v;
+}
+export async function inboxConfigure(
+  b: string,
+  c: string,
+  v: InboxSettings,
+): Promise<InboxSettings> {
+  return request(b, c, "/settings", v);
+}
+export async function inboxMailHistory(
+  b: string,
+  c: string,
+): Promise<InboxMailDiagnostic[]> {
+  const v = await request(b, c, "/mail");
+  if (!Array.isArray(v)) throw new SalesFailure(502, "invalid_response");
+  return v;
+}
+export async function inboxExtractProvider(
+  b: string,
+  c: string,
+  id: string,
+): Promise<components["schemas"]["ReceivedData"]> {
+  const v = await request(
+    b,
+    c,
+    `/${encodeURIComponent(id)}/extract-provider`,
+    {},
+  );
+  if (
+    !v?.supplier ||
+    !Array.isArray(v.lines) ||
+    !isDocumentCurrency(v.currency)
+  )
+    throw new SalesFailure(502, "invalid_response");
+  return v;
+}

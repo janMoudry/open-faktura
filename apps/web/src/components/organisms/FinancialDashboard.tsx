@@ -21,11 +21,13 @@ import { apiUrl } from "../../services/status";
 import { moneyText } from "../../utils/invoice";
 export function FinancialDashboard({
   company,
+  compact = false,
   today,
   refresh,
   onExpired,
 }: {
   company: string;
+  compact?: boolean;
   today: string;
   refresh: number;
   onExpired: () => void;
@@ -145,101 +147,111 @@ export function FinancialDashboard({
             ))}
           </div>
           <p className="text-sm text-muted">{t("dashboardSettlementHint")}</p>
-          <div className="grid gap-field lg:grid-cols-2">
-            {(["sales", "purchases"] as const).map((side) => (
-              <section key={side} className="workspace-panel overflow-hidden">
-                <Heading level={3} size="card" className="p-field">
-                  {t(
-                    side === "sales"
-                      ? "dashboardReceivables"
-                      : "dashboardPayables",
-                  )}
-                </Heading>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("dashboardDelay")}</TableHead>
-                      <TableHead className="text-right">
-                        {t("reportAmount")}
-                      </TableHead>
-                      <TableHead className="text-right">
-                        {t("dashboardCount")}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <tbody>
-                    {value.aging
-                      .filter((r) => r.side === side)
-                      .map((r) => (
-                        <TableRow key={r.bucket}>
-                          <TableCell>
-                            {t(("dashboard_" + r.bucket) as AppKey)}
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums whitespace-nowrap">
-                            {moneyText(r.amount, language)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {r.count}
-                          </TableCell>
+          {!compact && (
+            <>
+              <div className="grid gap-field lg:grid-cols-2">
+                {(["sales", "purchases"] as const).map((side) => (
+                  <section
+                    key={side}
+                    className="workspace-panel overflow-hidden"
+                  >
+                    <Heading level={3} size="card" className="p-field">
+                      {t(
+                        side === "sales"
+                          ? "dashboardReceivables"
+                          : "dashboardPayables",
+                      )}
+                    </Heading>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("dashboardDelay")}</TableHead>
+                          <TableHead className="text-right">
+                            {t("reportAmount")}
+                          </TableHead>
+                          <TableHead className="text-right">
+                            {t("dashboardCount")}
+                          </TableHead>
                         </TableRow>
-                      ))}
-                  </tbody>
-                </Table>
-              </section>
-            ))}
-          </div>
-          <Heading level={3} size="card">
-            {t("dashboardPartners")}
-          </Heading>
-          <p className="text-sm text-muted">{t("dashboardPartnersHint")}</p>
-          <div className="grid gap-field lg:grid-cols-2">
-            {(["customers", "debtors"] as const).map((kind) => (
-              <section key={kind} className="workspace-panel overflow-hidden">
-                <Heading level={4} size="card" className="p-field">
-                  {t(
-                    kind === "customers"
-                      ? "dashboardCustomers"
-                      : "dashboardDebtors",
-                  )}
-                </Heading>
-                {value[kind].length ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("dashboardPartner")}</TableHead>
-                        <TableHead className="text-right">
-                          {t("reportAmount")}
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <tbody>
-                      {value[kind].map((r, i) => (
-                        <TableRow key={i}>
-                          <TableCell>
-                            {r.contact_id ? (
-                              <Link
-                                className="underline underline-offset-4"
-                                to={`/companies/${company}/contacts/${r.contact_id}`}
-                              >
-                                {r.name || t("dashboardUnknown")}
-                              </Link>
-                            ) : (
-                              r.name || t("dashboardUnknown")
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right whitespace-nowrap tabular-nums">
-                            {moneyText(r.amount, language)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </tbody>
-                  </Table>
-                ) : (
-                  <p className="p-field text-muted">{t("reportEmpty")}</p>
-                )}
-              </section>
-            ))}
-          </div>
+                      </TableHeader>
+                      <tbody>
+                        {value.aging
+                          .filter((r) => r.side === side)
+                          .map((r) => (
+                            <TableRow key={r.bucket}>
+                              <TableCell>
+                                {t(("dashboard_" + r.bucket) as AppKey)}
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums whitespace-nowrap">
+                                {moneyText(r.amount, language)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {r.count}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </tbody>
+                    </Table>
+                  </section>
+                ))}
+              </div>
+              <Heading level={3} size="card">
+                {t("dashboardPartners")}
+              </Heading>
+              <p className="text-sm text-muted">{t("dashboardPartnersHint")}</p>
+              <div className="grid gap-field lg:grid-cols-2">
+                {(["customers", "debtors"] as const).map((kind) => (
+                  <section
+                    key={kind}
+                    className="workspace-panel overflow-hidden"
+                  >
+                    <Heading level={4} size="card" className="p-field">
+                      {t(
+                        kind === "customers"
+                          ? "dashboardCustomers"
+                          : "dashboardDebtors",
+                      )}
+                    </Heading>
+                    {value[kind].length ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{t("dashboardPartner")}</TableHead>
+                            <TableHead className="text-right">
+                              {t("reportAmount")}
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <tbody>
+                          {value[kind].map((r, i) => (
+                            <TableRow key={i}>
+                              <TableCell>
+                                {r.contact_id ? (
+                                  <Link
+                                    className="underline underline-offset-4"
+                                    to={`/companies/${company}/contacts/${r.contact_id}`}
+                                  >
+                                    {r.name || t("dashboardUnknown")}
+                                  </Link>
+                                ) : (
+                                  r.name || t("dashboardUnknown")
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right whitespace-nowrap tabular-nums">
+                                {moneyText(r.amount, language)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </tbody>
+                      </Table>
+                    ) : (
+                      <p className="p-field text-muted">{t("reportEmpty")}</p>
+                    )}
+                  </section>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </section>

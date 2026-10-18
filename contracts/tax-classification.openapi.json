@@ -1,0 +1,388 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura explicit tax evidence inputs",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/reports/tax/classifications": {
+      "get": {
+        "operationId": "tax_classification_summary",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1900
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit taxpayer evidence; not a tax return or eligibility decision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Summary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "404": {
+            "description": "No membership or source"
+          },
+          "409": {
+            "description": "Stale fingerprint, revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid classification input"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/reports/tax/classifications/{kind}/{id}": {
+      "get": {
+        "operationId": "tax_classification_get",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "credit_note",
+                "tax_receipt",
+                "retail",
+                "received",
+                "purchase_receipt",
+                "cash"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit taxpayer evidence; not a tax return or eligibility decision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Source"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "404": {
+            "description": "No membership or source"
+          },
+          "409": {
+            "description": "Stale fingerprint, revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid classification input"
+          }
+        }
+      },
+      "post": {
+        "operationId": "tax_classification_set",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "credit_note",
+                "tax_receipt",
+                "retail",
+                "received",
+                "purchase_receipt",
+                "cash"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Explicit taxpayer evidence; not a tax return or eligibility decision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Classification"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "404": {
+            "description": "No membership or source"
+          },
+          "409": {
+            "description": "Stale fingerprint, revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid classification input"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Data": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "turnover_included",
+          "claimed_input_vat_czk",
+          "claim_on",
+          "reason"
+        ],
+        "properties": {
+          "turnover_included": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "claimed_input_vat_czk": {
+            "type": "string",
+            "nullable": true
+          },
+          "claim_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        }
+      },
+      "Observation": {
+        "type": "object",
+        "required": [
+          "kind",
+          "id",
+          "number",
+          "side",
+          "vat_on",
+          "turnover_on",
+          "recorded_vat_czk",
+          "turnover_net_czk",
+          "fingerprint"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "sales",
+              "purchases"
+            ]
+          },
+          "vat_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "turnover_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "recorded_vat_czk": {
+            "type": "string",
+            "nullable": true
+          },
+          "turnover_net_czk": {
+            "type": "string",
+            "nullable": true
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      },
+      "Classification": {
+        "type": "object",
+        "required": [
+          "revision",
+          "observation",
+          "data",
+          "current"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/Observation"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Data"
+          },
+          "current": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "required": [
+          "observation",
+          "classification"
+        ],
+        "properties": {
+          "observation": {
+            "$ref": "#/components/schemas/Observation"
+          },
+          "classification": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Classification"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "Command": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "fingerprint",
+          "data"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Data"
+          }
+        }
+      },
+      "Summary": {
+        "type": "object",
+        "required": [
+          "year",
+          "included_turnover_czk",
+          "claimed_input_vat_czk",
+          "unclassified_turnover",
+          "unclassified_input",
+          "outdated",
+          "classified"
+        ],
+        "properties": {
+          "year": {
+            "type": "integer"
+          },
+          "included_turnover_czk": {
+            "type": "string"
+          },
+          "claimed_input_vat_czk": {
+            "type": "string"
+          },
+          "unclassified_turnover": {
+            "type": "integer"
+          },
+          "unclassified_input": {
+            "type": "integer"
+          },
+          "outdated": {
+            "type": "integer"
+          },
+          "classified": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

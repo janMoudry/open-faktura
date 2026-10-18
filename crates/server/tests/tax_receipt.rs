@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{
     auth, company,
     sales::{self, Create, Data, Kind},
@@ -348,9 +350,7 @@ async fn tax_receipt_upgrade_from_018(pool: PgPool) {
     };
     old.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
-    let d = sales::create(&PgSales(pool.clone()), &a, &c, create(Kind::Advance, KEY))
-        .await
-        .unwrap();
+    let d = historical_documents::sales(&pool, &a, &c, create(Kind::Advance, KEY)).await;
     sqlx::query("INSERT INTO advance_payment(company_id,document_id,actor_id,request_id,command,amount,paid_on,method,note) VALUES($1,$2,$3,$4::text::uuid,'{}',605,'2026-10-11','bank_transfer','Upgrade fixture')").bind(c.parse::<i64>().unwrap()).bind(d.id.parse::<i64>().unwrap()).bind(a.parse::<i64>().unwrap()).bind(KEY).execute(&pool).await.unwrap();
     sqlx::query(
         "UPDATE sales_document SET advance_paid=605,revision=2 WHERE company_id=$1 AND id=$2",
@@ -360,7 +360,12 @@ async fn tax_receipt_upgrade_from_018(pool: PgPool) {
     .execute(&pool)
     .await
     .unwrap();
-    let before = PgAdvance(pool.clone()).pdf(&a, &c, &d.id).await.unwrap();
+    let before: Vec<u8> =
+        sqlx::query_scalar("SELECT advance_pdf FROM sales_document WHERE id=$1::text::bigint")
+            .bind(&d.id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
     faktura_infrastructure::migrate(&pool).await.unwrap();
     assert_eq!(
         before,

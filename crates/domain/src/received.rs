@@ -109,10 +109,7 @@ pub fn totals(d: &Data) -> Result<Totals, Vec<String>> {
         errors.push("dates".into());
     }
     if !crate::exchange::validate(&d.currency, d.exchange_rate.as_ref())
-        || (d.currency != "CZK"
-            && (d.kind == Kind::Receipt
-                || d.lines.iter().any(|l| l.stock.is_some())
-                || d.stock_incidental_cost.is_some()))
+        || (d.currency != "CZK" && d.kind == Kind::Receipt)
     {
         errors.push("currency".into())
     }

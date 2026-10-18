@@ -109,3 +109,31 @@ pub mod tax_report;
 pub mod exchange_rate;
 
 mod retail_posting_pdf;
+
+pub mod company_admin;
+
+pub mod isdoc;
+
+pub mod vat_registry;
+
+pub mod document_tags;
+
+pub mod bank_notification;
+
+pub mod document_output;
+
+pub mod dashboard_widgets;
+
+pub mod document_style;
+
+pub mod draft_trash;
+
+pub mod inbox_mailbox;
+
+pub mod vies;
+
+pub mod document_exports;
+
+pub mod tax_classification;
+
+pub mod taxpayer_filing_profile;

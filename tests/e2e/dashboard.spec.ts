@@ -423,6 +423,17 @@ for (const english of [false, true])
         })
         .click();
       await expect(page.getByRole("heading", { level: 1 })).toContainText("FV");
+      const isdocDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", { name: labels.isdocDownload, exact: true })
+        .click();
+      const isdocFile = await isdocDownload;
+      expect(isdocFile.suggestedFilename()).toMatch(/\.isdoc$/);
+      const isdocPath = await isdocFile.path();
+      expect(readFileSync(isdocPath!, "utf8")).toContain(
+        "<ForeignCurrencyCode>EUR</ForeignCurrencyCode>",
+      );
+
       await page
         .getByRole("tab", { name: labels.paymentsTitle, exact: true })
         .click();
@@ -448,6 +459,93 @@ for (const english of [false, true])
           .getByText(english ? "1,500.00 CZK" : "1 500,00 Kč", { exact: true })
           .first(),
       ).toBeVisible();
+
+      await page.getByText(labels.widgetsCustomize, { exact: true }).click();
+      const widgetSettings = page.locator("details").filter({
+        has: page.getByText(labels.widgetsCustomize, { exact: true }),
+      });
+      await widgetSettings
+        .getByLabel(labels.widgetsVariant, { exact: true })
+        .first()
+        .click();
+      await page
+        .getByRole("option", { name: labels.widgetsCompact, exact: true })
+        .click();
+      await widgetSettings
+        .getByText(labels.taxDashboardTitle, { exact: true })
+        .click();
+      await widgetSettings
+        .getByRole("button", { name: labels.accountSave, exact: true })
+        .click();
+      await expect(
+        widgetSettings.getByText(labels.widgetsSaved, { exact: true }),
+      ).toBeVisible();
+      await page.reload();
+      await expect(
+        page.getByRole("heading", { name: labels.dashboardTitle, exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", {
+          name: labels.taxDashboardTitle,
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("heading", {
+          name: labels.dashboardPartners,
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      await page.getByText(labels.widgetsCustomize, { exact: true }).click();
+      await widgetSettings
+        .getByRole("button", { name: labels.widgetsReset, exact: true })
+        .click();
+      await widgetSettings
+        .getByRole("button", { name: labels.accountSave, exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", {
+          name: labels.taxDashboardTitle,
+          exact: true,
+        }),
+      ).toBeVisible();
+      await page
+        .getByRole("button", { name: labels.taxpayerProfileTitle, exact: true })
+        .click();
+      const taxpayerDialog = page.getByRole("dialog", {
+        name: labels.taxpayerProfileTitle,
+      });
+      await taxpayerDialog
+        .getByRole("button", { name: labels.taxpayerOffice })
+        .click();
+      await page.getByRole("option", { name: /^451 –/ }).click();
+      await taxpayerDialog
+        .getByLabel(labels.taxpayerNumber, { exact: true })
+        .fill("00123456");
+      await taxpayerDialog
+        .getByRole("button", { name: labels.accountSave, exact: true })
+        .click();
+      await expect(taxpayerDialog).not.toBeVisible();
+      await page.reload();
+      await page
+        .getByRole("button", { name: labels.taxpayerProfileTitle, exact: true })
+        .click();
+      await expect(
+        taxpayerDialog.getByLabel(labels.taxpayerNumber, { exact: true }),
+      ).toHaveValue("00123456");
+      await expect(
+        taxpayerDialog.getByRole("button", {
+          name: labels.taxpayerOffice,
+        }),
+      ).toContainText("451");
+      await page.keyboard.press("Escape");
+      const evidenceDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", { name: labels.taxEvidenceCsv, exact: true })
+        .click();
+      expect((await evidenceDownload).suggestedFilename()).toMatch(
+        /evidence-.*\.csv$/,
+      );
     } finally {
       await page.unrouteAll({ behavior: "wait" }).catch(() => {});
       if (server && server.exitCode === null) {

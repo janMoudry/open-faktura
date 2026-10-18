@@ -11,10 +11,7 @@
     "name": "preferences_set",
     "inputSchema": {
       "type": "object",
-      "required": [
-        "revision",
-        "theme"
-      ],
+      "required": ["revision", "theme"],
       "additionalProperties": false,
       "properties": {
         "revision": {
@@ -23,11 +20,7 @@
         },
         "theme": {
           "type": "string",
-          "enum": [
-            "system",
-            "light",
-            "dark"
-          ]
+          "enum": ["system", "light", "dark"]
         }
       }
     }

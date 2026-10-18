@@ -9,7 +9,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use faktura_application::inbox::{Command, InboxStore, Search, Upload};
+use faktura_application::inbox::{Command, InboxStore, MailIntake, Search, Settings, Upload};
 use faktura_infrastructure::{auth::PgAuth, inbox::PgInbox};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -22,10 +22,22 @@ pub fn router(pool: PgPool, origins: Vec<String>, secure: bool) -> Router {
     Router::new()
         .route("/api/companies/{c}/inbox", get(list).post(upload))
         .route("/api/companies/{c}/inbox/commands", post(command))
+        .route(
+            "/api/companies/{c}/inbox/settings",
+            get(settings).post(configure),
+        )
+        .route(
+            "/api/companies/{c}/inbox/mail",
+            get(mail_history).post(mail),
+        )
+        .route(
+            "/api/companies/{c}/inbox/{id}/extract-provider",
+            post(extract_provider),
+        )
         .route("/api/companies/{c}/inbox/{id}/file", get(download))
         .route("/api/companies/{c}/inbox/{id}/extract", get(extract))
         .route("/api/companies/{c}/inbox/{id}/history", get(history))
-        .layer(DefaultBodyLimit::max(4 * 1024 * 1024))
+        .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
         .with_state(S {
             pool: pool.clone(),
             auth: AuthState {
@@ -145,4 +157,54 @@ async fn history(
         Err(e) => return e.into_response(),
     };
     response(PgInbox(s.pool).history(&a, &c, &id).await)
+}
+
+async fn settings(State(s): State<S>, h: HeaderMap, Path(c): Path<String>) -> Response {
+    let a = match actor(&s, &h, false).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(PgInbox(s.pool).settings(&a, &c).await)
+}
+async fn configure(
+    State(s): State<S>,
+    h: HeaderMap,
+    Path(c): Path<String>,
+    Json(v): Json<Settings>,
+) -> Response {
+    let a = match actor(&s, &h, true).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(PgInbox(s.pool).configure(&a, &c, v).await)
+}
+async fn mail(
+    State(s): State<S>,
+    h: HeaderMap,
+    Path(c): Path<String>,
+    Json(v): Json<MailIntake>,
+) -> Response {
+    let a = match actor(&s, &h, true).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(PgInbox(s.pool).mail(&a, &c, v).await)
+}
+async fn mail_history(State(s): State<S>, h: HeaderMap, Path(c): Path<String>) -> Response {
+    let a = match actor(&s, &h, false).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(PgInbox(s.pool).mail_history(&a, &c).await)
+}
+async fn extract_provider(
+    State(s): State<S>,
+    h: HeaderMap,
+    Path((c, id)): Path<(String, String)>,
+) -> Response {
+    let a = match actor(&s, &h, true).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    response(PgInbox(s.pool).extract_provider(&a, &c, &id).await)
 }

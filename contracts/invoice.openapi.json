@@ -24,9 +24,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "1"
-              ]
+              "enum": ["1"]
             }
           }
         ],
@@ -191,10 +189,7 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "enum": [
-                "issued_on",
-                "due_on"
-              ],
+              "enum": ["issued_on", "due_on"],
               "default": "issued_on"
             },
             "description": "Inclusive bound; combined with other filters (AND)."
@@ -234,6 +229,17 @@
               "pattern": "^\\d{1,17}(\\.\\d{1,2})?$"
             },
             "description": "Inclusive bound; combined with other filters (AND)."
+          },
+          {
+            "name": "tag_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "maxLength": 40
+            },
+            "description": "Filter assigned company tag before pagination; empty means all."
           }
         ],
         "responses": {
@@ -289,9 +295,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "1"
-              ]
+              "enum": ["1"]
             }
           }
         ],
@@ -424,9 +428,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "1"
-              ]
+              "enum": ["1"]
             }
           }
         ],
@@ -503,9 +505,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "1"
-              ]
+              "enum": ["1"]
             }
           }
         ],
@@ -698,9 +698,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "1"
-              ]
+              "enum": ["1"]
             }
           }
         ],
@@ -777,9 +775,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "1"
-              ]
+              "enum": ["1"]
             }
           },
           {
@@ -929,11 +925,7 @@
           },
           "vat_percent": {
             "type": "string",
-            "enum": [
-              "0",
-              "12",
-              "21"
-            ]
+            "enum": ["0", "12", "21"]
           },
           "catalog_id": {
             "type": "string",
@@ -956,9 +948,7 @@
         "properties": {
           "calculation_version": {
             "type": "string",
-            "enum": [
-              "of-czk-v1"
-            ]
+            "enum": ["of-czk-v1"]
           },
           "currency": {
             "type": "string",
@@ -980,17 +970,11 @@
           },
           "tax_mode": {
             "type": "string",
-            "enum": [
-              "non_payer",
-              "vat_payer"
-            ]
+            "enum": ["non_payer", "vat_payer"]
           },
           "price_mode": {
             "type": "string",
-            "enum": [
-              "net",
-              "gross"
-            ]
+            "enum": ["net", "gross"]
           },
           "discount_percent": {
             "type": "string",
@@ -999,10 +983,7 @@
           },
           "rounding": {
             "type": "string",
-            "enum": [
-              "none",
-              "whole_czk"
-            ]
+            "enum": ["none", "whole_czk"]
           },
           "lines": {
             "type": "array",
@@ -1014,10 +995,7 @@
           "exchange_rate": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "rate",
-              "units"
-            ],
+            "required": ["rate", "units"],
             "properties": {
               "rate": {
                 "type": "string",
@@ -1034,11 +1012,7 @@
       "InvoiceAmounts": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "net",
-          "vat",
-          "gross"
-        ],
+        "required": ["net", "vat", "gross"],
         "properties": {
           "net": {
             "type": "string"
@@ -1054,10 +1028,7 @@
       "InvoiceLineResult": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "amounts"
-        ],
+        "required": ["id", "amounts"],
         "properties": {
           "id": {
             "type": "string"
@@ -1070,26 +1041,15 @@
       "InvoiceTaxSummary": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "tax_mode",
-          "vat_percent",
-          "amounts"
-        ],
+        "required": ["tax_mode", "vat_percent", "amounts"],
         "properties": {
           "tax_mode": {
             "type": "string",
-            "enum": [
-              "non_payer",
-              "vat_payer"
-            ]
+            "enum": ["non_payer", "vat_payer"]
           },
           "vat_percent": {
             "type": "string",
-            "enum": [
-              "0",
-              "12",
-              "21"
-            ]
+            "enum": ["0", "12", "21"]
           },
           "amounts": {
             "$ref": "#/components/schemas/InvoiceAmounts"
@@ -1111,10 +1071,7 @@
         "properties": {
           "calculation_version": {
             "type": "string",
-            "enum": [
-              "of-czk-v1",
-              "import-v1"
-            ]
+            "enum": ["of-czk-v1", "import-v1"]
           },
           "currency": {
             "type": "string",
@@ -1160,10 +1117,7 @@
       "InvoiceError": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "code",
-          "fields"
-        ],
+        "required": ["code", "fields"],
         "properties": {
           "code": {
             "type": "string"
@@ -1179,12 +1133,7 @@
       "DraftAddress": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "street",
-          "city",
-          "postal_code",
-          "country"
-        ],
+        "required": ["street", "city", "postal_code", "country"],
         "properties": {
           "street": {
             "type": "string"
@@ -1235,12 +1184,7 @@
       "PaymentSnapshot": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "bank_account",
-          "iban",
-          "variable_symbol",
-          "method"
-        ],
+        "required": ["bank_account", "iban", "variable_symbol", "method"],
         "properties": {
           "bank_account": {
             "type": "string"
@@ -1253,10 +1197,7 @@
           },
           "method": {
             "type": "string",
-            "enum": [
-              "cash",
-              "bank_transfer"
-            ]
+            "enum": ["cash", "bank_transfer"]
           }
         }
       },
@@ -1315,16 +1256,18 @@
           },
           "language": {
             "type": "string",
-            "enum": [
-              "cs",
-              "en"
-            ]
+            "enum": ["cs", "en"]
           },
           "order_number": {
             "type": "string"
           },
           "note": {
             "type": "string"
+          },
+          "qr_format": {
+            "type": "string",
+            "enum": ["payment", "invoice", "payment_invoice"],
+            "description": "Immutable print choice; omitted means legacy QR payment. Invoice formats support ordinary CZK invoices from 2024; unsupported data produce no QR."
           }
         }
       },
@@ -1368,11 +1311,7 @@
           },
           "vat_percent": {
             "type": "string",
-            "enum": [
-              "0",
-              "12",
-              "21"
-            ]
+            "enum": ["0", "12", "21"]
           },
           "catalog_id": {
             "type": "string",
@@ -1395,10 +1334,7 @@
         "properties": {
           "calculation_version": {
             "type": "string",
-            "enum": [
-              "of-czk-v1",
-              "import-v1"
-            ]
+            "enum": ["of-czk-v1", "import-v1"]
           },
           "currency": {
             "type": "string",
@@ -1420,27 +1356,18 @@
           },
           "tax_mode": {
             "type": "string",
-            "enum": [
-              "non_payer",
-              "vat_payer"
-            ]
+            "enum": ["non_payer", "vat_payer"]
           },
           "price_mode": {
             "type": "string",
-            "enum": [
-              "net",
-              "gross"
-            ]
+            "enum": ["net", "gross"]
           },
           "discount_percent": {
             "type": "string"
           },
           "rounding": {
             "type": "string",
-            "enum": [
-              "none",
-              "whole_czk"
-            ]
+            "enum": ["none", "whole_czk"]
           },
           "lines": {
             "type": "array",
@@ -1452,10 +1379,7 @@
           "exchange_rate": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "rate",
-              "units"
-            ],
+            "required": ["rate", "units"],
             "properties": {
               "rate": {
                 "type": "string",
@@ -1533,12 +1457,7 @@
       "DraftPage": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "items",
-          "total",
-          "page",
-          "page_size"
-        ],
+        "required": ["items", "total", "page", "page_size"],
         "properties": {
           "items": {
             "type": "array",
@@ -1560,10 +1479,7 @@
       "CreateDraft": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "request_id",
-          "data"
-        ],
+        "required": ["request_id", "data"],
         "properties": {
           "request_id": {
             "type": "string",
@@ -1577,10 +1493,7 @@
       "UpdateDraft": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "revision",
-          "data"
-        ],
+        "required": ["revision", "data"],
         "properties": {
           "revision": {
             "type": "integer",
@@ -1594,10 +1507,7 @@
       "IssueInvoice": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "request_id",
-          "revision"
-        ],
+        "required": ["request_id", "revision"],
         "properties": {
           "request_id": {
             "type": "string",
@@ -1636,12 +1546,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "unpaid",
-              "partial",
-              "paid",
-              "overpaid"
-            ]
+            "enum": ["unpaid", "partial", "paid", "overpaid"]
           },
           "overdue": {
             "type": "boolean"
@@ -1659,12 +1564,7 @@
       "PaymentInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "amount",
-          "paid_on",
-          "method",
-          "note"
-        ],
+        "required": ["amount", "paid_on", "method", "note"],
         "properties": {
           "amount": {
             "type": "string",
@@ -1676,10 +1576,7 @@
           },
           "method": {
             "type": "string",
-            "enum": [
-              "cash",
-              "bank_transfer"
-            ]
+            "enum": ["cash", "bank_transfer"]
           },
           "note": {
             "type": "string",
@@ -1747,10 +1644,7 @@
       "Payments": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "summary",
-          "items"
-        ],
+        "required": ["summary", "items"],
         "properties": {
           "summary": {
             "$ref": "#/components/schemas/Settlement"
@@ -1766,11 +1660,7 @@
       "RegisterPayment": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "request_id",
-          "revision",
-          "payment"
-        ],
+        "required": ["request_id", "revision", "payment"],
         "properties": {
           "request_id": {
             "type": "string",
@@ -1788,12 +1678,7 @@
       "ReversePayment": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "request_id",
-          "revision",
-          "reason",
-          "replacement"
-        ],
+        "required": ["request_id", "revision", "reason", "replacement"],
         "properties": {
           "request_id": {
             "type": "string",
@@ -1864,9 +1749,7 @@
           },
           "currency": {
             "type": "string",
-            "enum": [
-              "CZK"
-            ]
+            "enum": ["CZK"]
           },
           "today": {
             "type": "string"
@@ -1887,11 +1770,7 @@
             "$ref": "#/components/schemas/InvoiceTotals"
           }
         },
-        "required": [
-          "id",
-          "number",
-          "totals"
-        ]
+        "required": ["id", "number", "totals"]
       },
       "AdvanceSource": {
         "type": "object",
@@ -1919,13 +1798,7 @@
             }
           }
         },
-        "required": [
-          "id",
-          "number",
-          "paid",
-          "payment_ids",
-          "tax_receipts"
-        ]
+        "required": ["id", "number", "paid", "payment_ids", "tax_receipts"]
       },
       "AdvanceSettlement": {
         "type": "object",
@@ -1954,10 +1827,7 @@
           },
           "tax_mode": {
             "type": "string",
-            "enum": [
-              "non_payer",
-              "vat_payer"
-            ]
+            "enum": ["non_payer", "vat_payer"]
           },
           "minimum_date": {
             "type": "string",
@@ -1984,10 +1854,7 @@
           "exchange_rate": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "rate",
-              "units"
-            ],
+            "required": ["rate", "units"],
             "properties": {
               "rate": {
                 "type": "string"

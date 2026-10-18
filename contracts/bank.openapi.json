@@ -1664,7 +1664,9 @@
                 "type": "string",
                 "enum": [
                   "invoice",
-                  "received"
+                  "received",
+                  "advance",
+                  "credit"
                 ]
               },
               "document_id": {
@@ -2549,7 +2551,13 @@
             "type": "string"
           },
           "target_kind": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "invoice",
+              "received",
+              "advance",
+              "credit"
+            ]
           },
           "bank_amount": {
             "type": "string"

@@ -1,0 +1,274 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Native IMAP inbox",
+    "version": "1.0.0",
+    "description": "Explicit company opt-in, installer-trusted providers and verified TLS. Manual sync reads up to10messages via EXAMINE/BODY.PEEK, does not change seen/deleted flags. Validated MIME attachments enter shared inbox intake, not accounting."
+  },
+  "paths": {
+    "/api/companies/{company}/inbox/mailbox": {
+      "get": {
+        "operationId": "inbox_mailbox_settings",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxSettings"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "inbox_mailbox_configure",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxSettings"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailboxConfigure"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/mailbox/sync": {
+      "post": {
+        "operationId": "inbox_mailbox_sync",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxRun"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "request_id"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/mailbox/history": {
+      "get": {
+        "operationId": "inbox_mailbox_history",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MailboxRun"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MailboxSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "uid_validity": {
+            "type": "integer",
+            "nullable": true
+          },
+          "cursor": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "automatic": {
+            "type": "boolean"
+          },
+          "next_run_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "revision",
+          "enabled",
+          "provider",
+          "uid_validity",
+          "cursor",
+          "automatic",
+          "next_run_at"
+        ]
+      },
+      "MailboxConfigure": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "automatic": {
+            "type": "boolean",
+            "description": "Explicit opt-in, default false. Requires enabled and provider. Runs every5minutes using configuring actor current permissions."
+          }
+        },
+        "required": [
+          "revision",
+          "enabled",
+          "provider"
+        ]
+      },
+      "MailboxRun": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed",
+              "failed"
+            ]
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "messages": {
+            "type": "integer"
+          },
+          "attachments": {
+            "type": "integer"
+          },
+          "rejected": {
+            "type": "integer"
+          },
+          "uid_validity": {
+            "type": "integer",
+            "nullable": true
+          },
+          "cursor": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "request_id",
+          "status",
+          "error",
+          "messages",
+          "attachments",
+          "rejected",
+          "uid_validity",
+          "cursor",
+          "created_at"
+        ]
+      }
+    }
+  }
+}

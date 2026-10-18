@@ -244,6 +244,56 @@
           }
         }
       }
+    },
+    "/api/companies/{company}/reports/tax/export": {
+      "post": {
+        "operationId": "tax_evidence_export",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Read-only VAT/turnover evidence, all sources within 10000 rows, not a tax filing",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "No membership"
+          },
+          "422": {
+            "description": "Invalid period or export limit"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -620,6 +670,53 @@
             "items": {
               "$ref": "#/components/schemas/TaxEntry"
             }
+          }
+        }
+      },
+      "TaxExportRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "search",
+          "format",
+          "language"
+        ],
+        "properties": {
+          "search": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "year": {
+                "type": "integer",
+                "minimum": 1900
+              },
+              "quarterly": {
+                "type": "boolean",
+                "default": false
+              },
+              "turnover_sources": {
+                "type": "boolean",
+                "default": false
+              },
+              "page": {
+                "type": "integer",
+                "description": "Ignored for export; all matching sources are included within the export limit."
+              }
+            }
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "xlsx"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
           }
         }
       }

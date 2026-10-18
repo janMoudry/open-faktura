@@ -530,19 +530,15 @@ async fn upgrade_024_preserves_existing_documents(p: PgPool) {
     )
     .await
     .unwrap();
-    let invoice = draft::issue(
-        &store,
-        &a,
-        &c,
-        &invoice.id,
-        draft::Issue {
-            request_id: key(),
-            revision: invoice.revision,
-        },
-    )
-    .await
-    .unwrap();
-    let pdf = store.pdf(&a, &c, &invoice.id).await.unwrap();
+    // Historical fixture predates modern trash/branding schema. Preserve a real
+    // rendered PDF in the old row rather than call today's issuer on that schema.
+    let mut invoice = invoice;
+    invoice.number = Some(format!("LEGACY-{}", invoice.id));
+    invoice.issued_at = Some(sqlx::types::chrono::Utc::now().to_rfc3339());
+    invoice.revision += 1;
+    let pdf = faktura_infrastructure::invoice_pdf::render(&invoice).unwrap();
+    sqlx::query("UPDATE invoice_draft SET number=$3,issued_at=now(),issue_request_id=$4::text::uuid,issue_actor_id=$5::text::bigint,issue_revision=revision,revision=revision+1,pdf=$6 WHERE company_id=$1::text::bigint AND id=$2::text::bigint")
+        .bind(&c).bind(&invoice.id).bind(&invoice.number).bind(key()).bind(&a).bind(&pdf).execute(&p).await.unwrap();
     let files = PgAttachment(p.clone());
     let f = attachment::upload(
         &files,

@@ -282,6 +282,8 @@ export interface operations {
         status?: string;
         page?: number;
         kind?: "invoice" | "receipt";
+        /** @description Filter assigned company tag before pagination; empty means all. */
+        tag_id?: string;
       };
       header?: never;
       path: {

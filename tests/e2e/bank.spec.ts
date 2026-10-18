@@ -1468,6 +1468,68 @@ for (const english of [false, true])
         path: `docs/design/bank-cross-currency-${english ? "en" : "cs"}-${info.project.name}.png`,
         fullPage: true,
       });
+      const usdAdvance = await post("/sales", {
+        request_id: crypto.randomUUID(),
+        kind: "advance",
+        data: {
+          name: "Cross-currency advance",
+          maturity_days: 14,
+          status: "created",
+          invoice: structuredClone(crossData),
+        },
+      });
+      const advanceCrossMovement = await post("/bank/commands", {
+        request_id: crypto.randomUUID(),
+        action: "manual",
+        account_id: eurAccount.id,
+        data: {
+          external_id: "",
+          booked_on: crossData.issued_on,
+          amount: "90",
+          currency: "EUR",
+          variable_symbol: "",
+          counterparty: "Advance",
+          description: "Cross currency advance",
+        },
+      });
+      await page.goto(
+        `/#/companies/${alpha.id}/bank/${advanceCrossMovement.value.id}`,
+      );
+      await page
+        .getByRole("button", { name: labels.bankForeignTitle, exact: true })
+        .click();
+      dialog = page.getByRole("dialog");
+      await dialog
+        .getByRole("button", { name: new RegExp(labels.bankForeignDocument) })
+        .click();
+      await page
+        .getByRole("option")
+        .filter({ hasText: usdAdvance.number })
+        .click();
+      await dialog
+        .getByLabel(labels.bankForeignRate.replace("{{currency}}", "EUR"), {
+          exact: true,
+        })
+        .fill("25");
+      await dialog
+        .getByRole("button", { name: labels.bankMatch, exact: true })
+        .click();
+      await expect(dialog).not.toBeVisible();
+      await expect(
+        page
+          .getByRole("link", { name: usdAdvance.number, exact: true })
+          .first(),
+      ).toHaveAttribute(
+        "href",
+        `#/companies/${alpha.id}/advances/${usdAdvance.id}`,
+      );
+      await expect(
+        page.getByText(new RegExp(english ? "difference" : "rozdíl")).first(),
+      ).toContainText(english ? "50.00" : "50,00");
+      await page.screenshot({
+        path: `docs/design/bank-cross-treasury-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
       await page.goto(`/#/companies/${_beta.id}/bank`);
       await expect(
         page.getByText(labels.bankNoAccounts, { exact: true }),

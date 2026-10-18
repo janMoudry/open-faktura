@@ -17,9 +17,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -41,12 +39,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "request_id",
-        "filename",
-        "base64"
-      ],
+      "required": ["company_id", "request_id", "filename", "base64"],
       "additionalProperties": false
     }
   },
@@ -88,9 +81,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "archive"
-              ]
+              "enum": ["archive"]
             },
             "archived": {
               "type": "boolean"
@@ -123,9 +114,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "convert"
-              ]
+              "enum": ["convert"]
             },
             "data": {
               "type": "object",
@@ -187,12 +176,7 @@
                     "address": {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": [
-                        "street",
-                        "city",
-                        "postal_code",
-                        "country"
-                      ],
+                      "required": ["street", "city", "postal_code", "country"],
                       "properties": {
                         "street": {
                           "type": "string"
@@ -271,12 +255,7 @@
                   "items": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": [
-                      "description",
-                      "rate",
-                      "net",
-                      "vat"
-                    ],
+                    "required": ["description", "rate", "net", "vat"],
                     "properties": {
                       "description": {
                         "type": "string"
@@ -295,11 +274,7 @@
                           {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": [
-                              "catalog_id",
-                              "quantity",
-                              "unit"
-                            ],
+                            "required": ["catalog_id", "quantity", "unit"],
                             "properties": {
                               "catalog_id": {
                                 "type": "string"
@@ -311,10 +286,7 @@
                                 "type": "string"
                               },
                               "acquisition_unit_cost": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
+                                "type": ["string", "null"],
                                 "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
                               }
                             }
@@ -332,20 +304,14 @@
                 },
                 "kind": {
                   "type": "string",
-                  "enum": [
-                    "invoice",
-                    "receipt"
-                  ],
+                  "enum": ["invoice", "receipt"],
                   "default": "invoice"
                 },
                 "receipt_method": {
                   "anyOf": [
                     {
                       "type": "string",
-                      "enum": [
-                        "cash",
-                        "card"
-                      ]
+                      "enum": ["cash", "card"]
                     },
                     {
                       "type": "null"
@@ -353,19 +319,13 @@
                   ]
                 },
                 "stock_incidental_cost": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
+                  "type": ["string", "null"],
                   "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
                 },
                 "exchange_rate": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "rate",
-                    "units"
-                  ],
+                  "required": ["rate", "units"],
                   "properties": {
                     "rate": {
                       "type": "string",
@@ -407,9 +367,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "attach"
-              ]
+              "enum": ["attach"]
             },
             "received_id": {
               "type": "string"
@@ -434,10 +392,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -453,10 +408,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -472,10 +424,141 @@
           "type": "string"
         }
       },
+      "required": ["company_id", "id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_settings",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_configure",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "email_enabled": {
+          "type": "boolean"
+        },
+        "extraction_provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
       "required": [
         "company_id",
-        "id"
+        "revision",
+        "email_enabled",
+        "extraction_provider"
       ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_mail_history",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_mail",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "message_id": {
+          "type": "string",
+          "maxLength": 998
+        },
+        "sender": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 998
+        },
+        "attachments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "required": ["request_id", "filename", "base64"],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "filename": {
+                "type": "string"
+              },
+              "base64": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "message_id",
+        "sender",
+        "subject",
+        "attachments"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_extract_provider",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   }

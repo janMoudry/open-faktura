@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{
     auth, company,
     draft::{self, Create, Error, Issue},
@@ -494,10 +496,8 @@ async fn upgrade_preserves_invoice_and_pdf(pool: PgPool) {
     };
     previous.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
-    let d = issued(&pool, &a, &c).await;
-    let bytes = draft::pdf(&PgDraft(pool.clone()), &a, &c, &d.id)
-        .await
-        .unwrap();
+    let (d, historical_pdf) = historical_documents::invoice(&pool, &a, &c, create(KEY)).await;
+    let bytes = historical_pdf;
     all.run(&pool).await.unwrap();
     // The upgrade appends a view column. Production restarts its pool after migration;
     // discard prepared SELECT * plans here as well before reading the upgraded view.

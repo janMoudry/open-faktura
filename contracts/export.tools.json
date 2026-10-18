@@ -4,27 +4,15 @@
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "format",
-        "language",
-        "columns",
-        "selection",
-        "company_id"
-      ],
+      "required": ["format", "language", "columns", "selection", "company_id"],
       "properties": {
         "format": {
           "type": "string",
-          "enum": [
-            "csv",
-            "xlsx"
-          ]
+          "enum": ["csv", "xlsx"]
         },
         "language": {
           "type": "string",
-          "enum": [
-            "cs",
-            "en"
-          ]
+          "enum": ["cs", "en"]
         },
         "columns": {
           "type": "array",
@@ -67,16 +55,11 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "kind",
-                "search"
-              ],
+              "required": ["kind", "search"],
               "properties": {
                 "kind": {
                   "type": "string",
-                  "enum": [
-                    "invoices"
-                  ]
+                  "enum": ["invoices"]
                 },
                 "search": {
                   "type": "object",
@@ -130,10 +113,7 @@
                     },
                     "date_field": {
                       "type": "string",
-                      "enum": [
-                        "issued_on",
-                        "due_on"
-                      ],
+                      "enum": ["issued_on", "due_on"],
                       "default": "issued_on"
                     },
                     "date_from": {
@@ -151,6 +131,11 @@
                     "amount_max": {
                       "type": "string",
                       "pattern": "^\\d{1,17}(\\.\\d{1,2})?$"
+                    },
+                    "tag_id": {
+                      "type": "string",
+                      "default": "",
+                      "maxLength": 40
                     }
                   }
                 }
@@ -159,16 +144,11 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "kind",
-                "search"
-              ],
+              "required": ["kind", "search"],
               "properties": {
                 "kind": {
                   "type": "string",
-                  "enum": [
-                    "contacts"
-                  ]
+                  "enum": ["contacts"]
                 },
                 "search": {
                   "type": "object",
@@ -193,6 +173,11 @@
                       "minimum": 1,
                       "maximum": 100,
                       "default": 25
+                    },
+                    "tag_id": {
+                      "type": "string",
+                      "default": "",
+                      "maxLength": 40
                     }
                   }
                 }

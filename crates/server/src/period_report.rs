@@ -6,7 +6,7 @@ use axum::{
     extract::{DefaultBodyLimit, Path, Query, State},
     http::{header, HeaderMap},
     response::{IntoResponse, Response},
-    routing::get,
+    routing::{get, post},
     Json, Router,
 };
 use faktura_application::period_report::{PeriodReportStore, Search};
@@ -23,6 +23,7 @@ pub fn router(pool: PgPool, origins: Vec<String>, secure: bool) -> Router {
         .route("/api/companies/{c}/reports/period", get(report))
         .route("/api/companies/{c}/reports/dashboard", get(dashboard))
         .route("/api/companies/{c}/reports/tax", get(tax_report))
+        .route("/api/companies/{c}/reports/tax/export", post(tax_export))
         .layer(DefaultBodyLimit::max(4 * 1024 * 1024))
         .with_state(S {
             pool: pool.clone(),
@@ -97,4 +98,36 @@ async fn tax_report(
             .report(&a, &c, q)
             .await,
     )
+}
+
+async fn tax_export(
+    State(s): State<S>,
+    h: HeaderMap,
+    Path(c): Path<String>,
+    Json(q): Json<faktura_application::tax_report::ExportRequest>,
+) -> Response {
+    use faktura_application::tax_report::TaxExportStore;
+    let a = match actor(&s, &h, true).await {
+        Ok(v) => v,
+        Err(e) => return e.into_response(),
+    };
+    match faktura_infrastructure::tax_report::PgTaxReport(s.pool)
+        .export(&a, &c, q)
+        .await
+    {
+        Ok(f) => (
+            [
+                (header::CACHE_CONTROL, "no-store".to_owned()),
+                (header::CONTENT_TYPE, f.media_type.to_owned()),
+                (
+                    header::CONTENT_DISPOSITION,
+                    format!("attachment; filename=\"{}\"", f.filename),
+                ),
+                (header::X_CONTENT_TYPE_OPTIONS, "nosniff".into()),
+            ],
+            f.bytes,
+        )
+            .into_response(),
+        Err(e) => Failure(e).into_response(),
+    }
 }

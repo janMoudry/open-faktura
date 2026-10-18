@@ -1,6 +1,6 @@
 use super::*;
 use faktura_domain::exchange::ExchangeRate;
-async fn usd(s: &PgBank, a: &str, c: &str) -> Account {
+pub(super) async fn usd(s: &PgBank, a: &str, c: &str) -> Account {
     let Reply::Account(v) = run(
         s,
         a,
@@ -22,7 +22,7 @@ async fn usd(s: &PgBank, a: &str, c: &str) -> Account {
     };
     v
 }
-fn command(
+pub(super) fn command(
     m: &Movement,
     d: &banking::ForeignCandidate,
     bank: &str,

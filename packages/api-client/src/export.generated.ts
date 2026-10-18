@@ -67,6 +67,8 @@ export interface components {
       date_to?: string;
       amount_min?: string;
       amount_max?: string;
+      /** @default  */
+      tag_id: string;
     };
     InvoicesSelection: {
       /** @enum {string} */
@@ -81,6 +83,8 @@ export interface components {
       page: number;
       /** @default 25 */
       page_size: number;
+      /** @default  */
+      tag_id: string;
     };
     ContactsSelection: {
       /** @enum {string} */

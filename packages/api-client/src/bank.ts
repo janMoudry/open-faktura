@@ -483,7 +483,7 @@ export async function bankForeignCandidates(
             !/^\d+\.\d{2}$/.test(x.payment_amount)) ||
         typeof x.number !== "string" ||
         typeof x.partner !== "string" ||
-        !["invoice", "received"].includes(x.target_kind) ||
+        !["invoice", "received", "advance", "credit"].includes(x.target_kind) ||
         !Number.isSafeInteger(x.revision) ||
         !isDocumentCurrency(x.currency) ||
         !/^\d+\.\d{2}$/.test(x.outstanding),
@@ -524,7 +524,7 @@ export async function bankForeignReport(
         typeof x.id !== "string" ||
         typeof x.movement_id !== "string" ||
         typeof x.document_id !== "string" ||
-        !["invoice", "received"].includes(x.target_kind) ||
+        !["invoice", "received", "advance", "credit"].includes(x.target_kind) ||
         !money(x.bank_amount) ||
         !x.settlement ||
         !money(x.settlement.difference_czk) ||

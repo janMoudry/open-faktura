@@ -151,108 +151,8 @@ impl RecurringStore for PgRecurring {
         Ok(v)
     }
     async fn command(&self, a: &str, c: &str, i: &str, cmd: Command) -> Result<Rule> {
-        let mut tx = self.0.begin().await.map_err(err)?;
-        let (a, c) = lock(&mut tx, a, c).await?;
-        let i = id(i)?;
-        let input = serde_json::json!({"id":i.to_string(),"command":cmd});
-        if let Some(v) = replay(&mut tx, a, c, &cmd.request_id, &input).await? {
-            return Ok(v);
-        }
-        let v = load(&mut tx, c, i).await?;
-        if v.revision != cmd.revision {
-            return Err(Error::Conflict);
-        }
-        let action = match cmd.action {
-            Action::Save { data } => {
-                if v.status == "active"
-                    || (v.generated > 0 && !v.data.schedule.same_anchor(&data.schedule))
-                {
-                    return Err(Error::Conflict);
-                }
-                check(&mut tx, c, &data).await?;
-                sqlx::query("UPDATE recurring_rule SET data=$3,next_on=$4,status='paused',error_code=NULL WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(serde_json::to_value(&data).map_err(err)?).bind(data.schedule.date(v.generated as u32)).execute(&mut *tx).await.map_err(err)?;
-                "save"
-            }
-            Action::Activate => {
-                let on = v
-                    .data
-                    .schedule
-                    .date(v.generated as u32)
-                    .ok_or(Error::Conflict)?;
-                materialize(&v.data, on)?;
-                sqlx::query("UPDATE recurring_rule SET status='active',error_code=NULL,actor_id=$3 WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(a).execute(&mut *tx).await.map_err(err)?;
-                "activate"
-            }
-            Action::Pause => {
-                sqlx::query("UPDATE recurring_rule SET status='paused',error_code=NULL WHERE company_id=$1 AND id=$2").bind(c).bind(i).execute(&mut *tx).await.map_err(err)?;
-                "pause"
-            }
-            Action::Run => {
-                if v.status != "active" {
-                    return Err(Error::Conflict);
-                }
-                let on = v
-                    .data
-                    .schedule
-                    .date(v.generated as u32)
-                    .ok_or(Error::Conflict)?;
-                let today: chrono::NaiveDate =
-                    sqlx::query_scalar("SELECT (now() AT TIME ZONE $1)::date")
-                        .bind(&v.data.schedule.timezone)
-                        .fetch_one(&mut *tx)
-                        .await
-                        .map_err(err)?;
-                if on > today {
-                    return Err(Error::Conflict);
-                }
-                let invoice = materialize(&v.data, on)?;
-                let mut draft = create_in_tx(
-                    &mut tx,
-                    &a.to_string(),
-                    &c.to_string(),
-                    CreateDraft {
-                        request_id: uuid::Uuid::new_v4().to_string(),
-                        data: invoice,
-                    },
-                )
-                .await?;
-                if v.data.auto_issue {
-                    draft = issue_in_tx(
-                        &mut tx,
-                        &a.to_string(),
-                        &c.to_string(),
-                        &draft.id,
-                        Issue {
-                            request_id: uuid::Uuid::new_v4().to_string(),
-                            revision: draft.revision,
-                        },
-                    )
-                    .await?;
-                }
-                let request = uuid::Uuid::new_v4().to_string();
-                let mail = v.data.mail.as_ref().map(|m| SendQuote {
-                    purpose: None,
-                    settlement_revision: None,
-                    automation_revision: None,
-                    request_id: request.clone(),
-                    revision: draft.revision,
-                    recipient: m.recipient.clone(),
-                    subject: m.subject.clone(),
-                    body: m.body.clone(),
-                    attachment_ids: vec![],
-                    share_id: None,
-                });
-                sqlx::query("INSERT INTO recurring_occurrence(company_id,rule_id,index,scheduled_on,invoice_id,snapshot,actor_id,mail_request,mail_command) VALUES($1,$2,$3,$4,$5,$6,$7,$8::text::uuid,$9)").bind(c).bind(i).bind(v.generated).bind(on).bind(id(&draft.id)?).bind(serde_json::to_value(&v.data).map_err(err)?).bind(a).bind(request).bind(mail.map(serde_json::to_value).transpose().map_err(err)?).execute(&mut *tx).await.map_err(err)?;
-                let next = v.data.schedule.date(v.generated as u32 + 1);
-                sqlx::query("UPDATE recurring_rule SET generated=generated+1,next_on=$3,status=$4,error_code=NULL WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(next).bind(if next.is_some(){"active"}else{"completed"}).execute(&mut *tx).await.map_err(err)?;
-                "run"
-            }
-        };
-        sqlx::query("UPDATE recurring_rule SET revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2").bind(c).bind(i).execute(&mut *tx).await.map_err(err)?;
-        let v = load(&mut tx, c, i).await?;
-        record(&mut tx, a, c, &cmd.request_id, input, &v, action).await?;
-        tx.commit().await.map_err(err)?;
-        Ok(v)
+        self.command_with_rate_provider(a, c, i, cmd, &crate::exchange_rate::Cnb::default())
+            .await
     }
     async fn get(&self, a: &str, c: &str, i: &str) -> Result<Rule> {
         let mut tx = self.0.begin().await.map_err(err)?;
@@ -352,5 +252,177 @@ impl PgRecurring {
         };
         sqlx::query("UPDATE recurring_occurrence SET delivery_id=$4,error_code=$5,next_attempt=now()+interval '5 minutes' WHERE company_id=$1 AND rule_id=$2 AND index=$3").bind(c).bind(i).bind(n).bind(delivery).bind(error).execute(&self.0).await.map_err(err)?;
         Ok(true)
+    }
+}
+
+impl PgRecurring {
+    pub async fn command_with_rate_provider(
+        &self,
+        a: &str,
+        c: &str,
+        i: &str,
+        cmd: Command,
+        provider: &dyn faktura_application::exchange_rate::RateProvider,
+    ) -> Result<Rule> {
+        let mut proposal = None;
+        if matches!(cmd.action, Action::Run) {
+            // Preflight authorization and replay before network; drop all locks before I/O.
+            let mut tx = self.0.begin().await.map_err(err)?;
+            let (_, company) = authorize(&mut tx, a, c, true).await?;
+            let rule = load(&mut tx, company, id(i)?).await?;
+            let seen:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM recurring_command WHERE company_id=$1 AND request_id=$2::text::uuid)").bind(company).bind(&cmd.request_id).fetch_one(&mut *tx).await.map_err(err)?;
+            if !seen && rule.data.rate_policy == RatePolicy::CnbIssueDate {
+                if rule.revision != cmd.revision || rule.status != "active" {
+                    return Err(Error::Conflict);
+                }
+                let on = rule
+                    .data
+                    .schedule
+                    .date(rule.generated as u32)
+                    .ok_or(Error::Conflict)?;
+                tx.commit().await.map_err(err)?;
+                proposal = Some(
+                    provider
+                        .lookup(&rule.data.invoice.calculation.currency, on)
+                        .await?,
+                );
+            } else {
+                tx.commit().await.map_err(err)?;
+            }
+        }
+        // The shared command rechecks authorization, replay, revision and schedule after I/O.
+        self.command_prepared(a, c, i, cmd, proposal).await
+    }
+    async fn command_prepared(
+        &self,
+        a: &str,
+        c: &str,
+        i: &str,
+        cmd: Command,
+        proposal: Option<faktura_application::exchange_rate::Rate>,
+    ) -> Result<Rule> {
+        let mut tx = self.0.begin().await.map_err(err)?;
+        let (a, c) = lock(&mut tx, a, c).await?;
+        let i = id(i)?;
+        let input = serde_json::json!({"id":i.to_string(),"command":cmd});
+        if let Some(v) = replay(&mut tx, a, c, &cmd.request_id, &input).await? {
+            return Ok(v);
+        }
+        let v = load(&mut tx, c, i).await?;
+        if v.revision != cmd.revision {
+            return Err(Error::Conflict);
+        }
+        let action = match cmd.action {
+            Action::Save { data } => {
+                if v.status == "active"
+                    || (v.generated > 0 && !v.data.schedule.same_anchor(&data.schedule))
+                {
+                    return Err(Error::Conflict);
+                }
+                check(&mut tx, c, &data).await?;
+                sqlx::query("UPDATE recurring_rule SET data=$3,next_on=$4,status='paused',error_code=NULL WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(serde_json::to_value(&data).map_err(err)?).bind(data.schedule.date(v.generated as u32)).execute(&mut *tx).await.map_err(err)?;
+                "save"
+            }
+            Action::Activate => {
+                let on = v
+                    .data
+                    .schedule
+                    .date(v.generated as u32)
+                    .ok_or(Error::Conflict)?;
+                materialize(&v.data, on)?;
+                sqlx::query("UPDATE recurring_rule SET status='active',error_code=NULL,actor_id=$3 WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(a).execute(&mut *tx).await.map_err(err)?;
+                "activate"
+            }
+            Action::Pause => {
+                sqlx::query("UPDATE recurring_rule SET status='paused',error_code=NULL WHERE company_id=$1 AND id=$2").bind(c).bind(i).execute(&mut *tx).await.map_err(err)?;
+                "pause"
+            }
+            Action::Run => {
+                if v.status != "active" {
+                    return Err(Error::Conflict);
+                }
+                let on = v
+                    .data
+                    .schedule
+                    .date(v.generated as u32)
+                    .ok_or(Error::Conflict)?;
+                let today: chrono::NaiveDate =
+                    sqlx::query_scalar("SELECT (now() AT TIME ZONE $1)::date")
+                        .bind(&v.data.schedule.timezone)
+                        .fetch_one(&mut *tx)
+                        .await
+                        .map_err(err)?;
+                if on > today {
+                    return Err(Error::Conflict);
+                }
+                let mut invoice = materialize(&v.data, on)?;
+                if v.data.rate_policy == RatePolicy::CnbIssueDate {
+                    let rate = proposal.as_ref().ok_or(Error::Unavailable)?;
+                    if rate.source != "CNB"
+                        || rate.currency != invoice.calculation.currency
+                        || rate.requested_on != on
+                        || !faktura_domain::exchange::validate(
+                            &rate.currency,
+                            Some(&rate.exchange_rate),
+                        )
+                    {
+                        return Err(Error::Unavailable);
+                    }
+                    invoice.calculation.exchange_rate = Some(rate.exchange_rate.clone());
+                }
+                let mut draft = create_in_tx(
+                    &mut tx,
+                    &a.to_string(),
+                    &c.to_string(),
+                    CreateDraft {
+                        request_id: uuid::Uuid::new_v4().to_string(),
+                        data: invoice,
+                    },
+                )
+                .await?;
+                if v.data.auto_issue {
+                    draft = issue_in_tx(
+                        &mut tx,
+                        &a.to_string(),
+                        &c.to_string(),
+                        &draft.id,
+                        Issue {
+                            request_id: uuid::Uuid::new_v4().to_string(),
+                            revision: draft.revision,
+                        },
+                    )
+                    .await?;
+                }
+                let request = uuid::Uuid::new_v4().to_string();
+                let mail = v.data.mail.as_ref().map(|m| SendQuote {
+                    purpose: None,
+                    settlement_revision: None,
+                    automation_revision: None,
+                    request_id: request.clone(),
+                    revision: draft.revision,
+                    recipient: m.recipient.clone(),
+                    subject: m.subject.clone(),
+                    body: m.body.clone(),
+                    attachment_ids: vec![],
+                    share_id: None,
+                });
+                let mut occurrence_snapshot = serde_json::to_value(&v.data).map_err(err)?;
+                if let Some(rate) = proposal.as_ref() {
+                    occurrence_snapshot["invoice"]["calculation"]["exchange_rate"] =
+                        serde_json::to_value(&rate.exchange_rate).map_err(err)?;
+                    occurrence_snapshot["rate_observation"] =
+                        serde_json::to_value(rate).map_err(err)?;
+                }
+                sqlx::query("INSERT INTO recurring_occurrence(company_id,rule_id,index,scheduled_on,invoice_id,snapshot,actor_id,mail_request,mail_command) VALUES($1,$2,$3,$4,$5,$6,$7,$8::text::uuid,$9)").bind(c).bind(i).bind(v.generated).bind(on).bind(id(&draft.id)?).bind(occurrence_snapshot).bind(a).bind(request).bind(mail.map(serde_json::to_value).transpose().map_err(err)?).execute(&mut *tx).await.map_err(err)?;
+                let next = v.data.schedule.date(v.generated as u32 + 1);
+                sqlx::query("UPDATE recurring_rule SET generated=generated+1,next_on=$3,status=$4,error_code=NULL WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(next).bind(if next.is_some(){"active"}else{"completed"}).execute(&mut *tx).await.map_err(err)?;
+                "run"
+            }
+        };
+        sqlx::query("UPDATE recurring_rule SET revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2").bind(c).bind(i).execute(&mut *tx).await.map_err(err)?;
+        let v = load(&mut tx, c, i).await?;
+        record(&mut tx, a, c, &cmd.request_id, input, &v, action).await?;
+        tx.commit().await.map_err(err)?;
+        Ok(v)
     }
 }

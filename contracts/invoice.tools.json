@@ -17,9 +17,7 @@
     },
     "calculation_version": {
       "type": "string",
-      "enum": [
-        "of-czk-v1"
-      ]
+      "enum": ["of-czk-v1"]
     },
     "currency": {
       "type": "string",
@@ -41,17 +39,11 @@
     },
     "tax_mode": {
       "type": "string",
-      "enum": [
-        "non_payer",
-        "vat_payer"
-      ]
+      "enum": ["non_payer", "vat_payer"]
     },
     "price_mode": {
       "type": "string",
-      "enum": [
-        "net",
-        "gross"
-      ]
+      "enum": ["net", "gross"]
     },
     "discount_percent": {
       "type": "string",
@@ -60,10 +52,7 @@
     },
     "rounding": {
       "type": "string",
-      "enum": [
-        "none",
-        "whole_czk"
-      ]
+      "enum": ["none", "whole_czk"]
     },
     "lines": {
       "type": "array",
@@ -110,11 +99,7 @@
           },
           "vat_percent": {
             "type": "string",
-            "enum": [
-              "0",
-              "12",
-              "21"
-            ]
+            "enum": ["0", "12", "21"]
           },
           "catalog_id": {
             "type": "string",
@@ -127,10 +112,7 @@
     "exchange_rate": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "rate",
-        "units"
-      ],
+      "required": ["rate", "units"],
       "properties": {
         "rate": {
           "type": "string",

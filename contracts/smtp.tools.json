@@ -19,11 +19,7 @@
         },
         "mode": {
           "type": "string",
-          "enum": [
-            "environment",
-            "custom",
-            "disabled"
-          ]
+          "enum": ["environment", "custom", "disabled"]
         },
         "host": {
           "type": "string",
@@ -36,11 +32,7 @@
         },
         "security": {
           "type": "string",
-          "enum": [
-            "starttls",
-            "tls",
-            "plain"
-          ]
+          "enum": ["starttls", "tls", "plain"]
         },
         "sender": {
           "type": "string",
@@ -51,10 +43,7 @@
           "maxLength": 254
         },
         "password": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "maxLength": 4096,
           "writeOnly": true,
           "description": "null preserves stored secret; empty clears it"
@@ -91,18 +80,10 @@
         },
         "language": {
           "type": "string",
-          "enum": [
-            "cs",
-            "en"
-          ]
+          "enum": ["cs", "en"]
         }
       },
-      "required": [
-        "request_id",
-        "revision",
-        "recipient",
-        "language"
-      ]
+      "required": ["request_id", "revision", "recipient", "language"]
     }
   }
 ]

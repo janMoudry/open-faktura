@@ -53,10 +53,48 @@ pub struct Audit {
 }
 #[async_trait]
 pub trait InboxStore: Send + Sync {
+    async fn settings(&self, a: &str, c: &str) -> Result<Settings>;
+    async fn configure(&self, a: &str, c: &str, settings: Settings) -> Result<Settings>;
+    async fn mail(&self, a: &str, c: &str, input: MailIntake) -> Result<MailResult>;
+    async fn mail_history(&self, a: &str, c: &str) -> Result<Vec<MailDiagnostic>>;
+    async fn extract_provider(&self, a: &str, c: &str, id: &str) -> Result<crate::received::Data>;
+
     async fn history(&self, a: &str, c: &str, id: &str) -> Result<Vec<Audit>>;
     async fn extract(&self, a: &str, c: &str, id: &str) -> Result<crate::received::Data>;
     async fn list(&self, a: &str, c: &str, q: Search) -> Result<Page>;
     async fn upload(&self, a: &str, c: &str, input: Upload) -> Result<Document>;
     async fn download(&self, a: &str, c: &str, id: &str) -> Result<(Document, Vec<u8>)>;
     async fn execute(&self, a: &str, c: &str, cmd: Command) -> Result<Document>;
+}
+
+/// Explicit company opt-ins; provider names refer to trusted installation config.
+#[derive(Clone, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Settings {
+    pub revision: i64,
+    pub email_enabled: bool,
+    pub extraction_provider: Option<String>,
+}
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MailIntake {
+    pub request_id: String,
+    pub message_id: String,
+    pub sender: String,
+    pub subject: String,
+    pub attachments: Vec<crate::attachment::Upload>,
+}
+#[derive(Serialize, Deserialize)]
+pub struct MailResult {
+    pub message_id: String,
+    pub documents: Vec<Document>,
+}
+#[derive(Serialize)]
+pub struct MailDiagnostic {
+    pub message_id: String,
+    pub sender: String,
+    pub subject: String,
+    pub status: String,
+    pub attachment_count: i32,
+    pub created_at: String,
 }

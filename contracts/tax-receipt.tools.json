@@ -17,17 +17,10 @@
         },
         "page_size": {
           "type": "integer",
-          "enum": [
-            10,
-            25,
-            50,
-            100
-          ]
+          "enum": [10, 25, 50, 100]
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -64,10 +57,7 @@
         },
         "language": {
           "type": "string",
-          "enum": [
-            "cs",
-            "en"
-          ]
+          "enum": ["cs", "en"]
         }
       },
       "required": [
@@ -95,10 +85,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -114,10 +101,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -136,11 +120,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "advance_id",
-        "payment_id"
-      ],
+      "required": ["company_id", "advance_id", "payment_id"],
       "additionalProperties": false
     }
   }

@@ -7,6 +7,7 @@ export type DraftData = components["schemas"]["DraftData"];
 export type PartySnapshot = components["schemas"]["PartySnapshot"];
 export type DraftPage = components["schemas"]["DraftPage"];
 export type DraftSearch = {
+  tag_id?: string;
   status?:
     | "all"
     | "draft"
@@ -83,6 +84,10 @@ function parse(v: any): InvoiceDraft {
     typeof v.company_id !== "string" ||
     !Number.isSafeInteger(v.revision) ||
     !party(d?.supplier) ||
+    !(
+      d.qr_format === undefined ||
+      ["payment", "invoice", "payment_invoice"].includes(d.qr_format)
+    ) ||
     !(d.customer === null || party(d.customer)) ||
     !(d.contact_id === null || typeof d.contact_id === "string") ||
     ![
@@ -137,6 +142,7 @@ export async function listDrafts(
     page_size: String(search.page_size ?? 25),
   });
   for (const field of [
+    "tag_id",
     "date_field",
     "date_from",
     "date_to",

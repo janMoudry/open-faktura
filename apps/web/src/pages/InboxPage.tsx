@@ -1,3 +1,5 @@
+import { InboxMailbox } from "../components/organisms/InboxMailbox";
+import { InboxAdapters } from "../components/organisms/InboxAdapters";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
@@ -40,6 +42,7 @@ export function InboxPage() {
     [page, setPage] = useState(1),
     [attempt, setAttempt] = useState(0),
     [busy, setBusy] = useState(false),
+    [dragging, setDragging] = useState(false),
     [error, setError] = useState(false),
     [history, setHistory] = useState<InboxAudit[] | null>(null),
     [attaching, setAttaching] = useState<InboxDocument | null>(null),
@@ -136,18 +139,49 @@ export function InboxPage() {
       <section className="workspace-panel min-w-0">
         <div className="flex flex-wrap items-end gap-field p-field">
           {write && (
-            <Field
-              type="file"
-              label={t("inboxUpload")}
-              accept=".pdf,.png,.jpg,.jpeg,.isdoc"
-              multiple
-              disabled={busy}
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                e.target.value = "";
-                void upload(files);
+            <div
+              role="group"
+              aria-label={t("inboxDropzone")}
+              className={
+                dragging
+                  ? "rounded-control border-2 border-primary bg-primary-soft p-field"
+                  : "rounded-control border border-dashed border-border p-field"
+              }
+              onDragOver={(e) => {
+                if (
+                  !busy &&
+                  Array.from(e.dataTransfer.types).includes("Files")
+                ) {
+                  e.preventDefault();
+                  setDragging(true);
+                }
               }}
-            />
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null))
+                  setDragging(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                if (!busy) void upload(Array.from(e.dataTransfer.files));
+              }}
+            >
+              <p className="mb-control text-sm text-muted">
+                {t("inboxDropzone")}
+              </p>
+              <Field
+                type="file"
+                label={t("inboxUpload")}
+                accept=".pdf,.png,.jpg,.jpeg,.isdoc"
+                multiple
+                disabled={busy}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  e.target.value = "";
+                  void upload(files);
+                }}
+              />
+            </div>
           )}
           <Field
             label={t("inboxSearch")}
@@ -283,6 +317,13 @@ export function InboxPage() {
           </Button>
         </div>
       </section>
+      <InboxMailbox
+        key={`mailbox:${companyId}`}
+        companyId={companyId}
+        write={write}
+        onImported={() => setAttempt((v) => v + 1)}
+      />
+      <InboxAdapters key={companyId} companyId={companyId} write={write} />
       <Dialog
         open={!!attaching}
         onClose={() => {
@@ -343,11 +384,13 @@ export function InboxPage() {
               {new Date(h.created_at).toLocaleString(language)} ·{" "}
               {t("retailRevision")} {h.revision} ·{" "}
               {t(
-                h.action === "upload"
-                  ? "inboxUpload"
-                  : h.action === "process"
-                    ? "inboxProcessed"
-                    : "inboxArchiveEvent",
+                h.action === "mail"
+                  ? "inboxMailReceived"
+                  : h.action === "upload"
+                    ? "inboxUpload"
+                    : h.action === "process"
+                      ? "inboxProcessed"
+                      : "inboxArchiveEvent",
               )}
             </p>
           ))}

@@ -9,6 +9,30 @@ import { randomBytes } from "node:crypto";
 
 test.use({ actionTimeout: 15000 });
 
+// Deterministic synthetic PDF source, no customer data or external resources.
+function syntheticPreviewPdf() {
+  const content = "BT /F1 18 Tf 72 770 Td (Synthetic original preview) Tj ET\n";
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Length ${content.length} >>\nstream\n${content}endstream`,
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xref = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets.slice(1))
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(pdf);
+}
+
 // Each test uses a disposable DB/server, never bootstraps the developer's account.
 for (const english of [false, true])
   test(`received invoices (${english ? "en" : "cs"})`, async ({
@@ -415,11 +439,107 @@ for (const english of [false, true])
         page.getByText(labels.receivedCancelled, { exact: true }),
       ).toBeVisible();
       await page.goto(`/#/companies/${alpha.id}/inbox`);
-      await page.getByLabel(labels.inboxUpload, { exact: true }).setInputFiles({
-        name: "synthetic.isdoc",
-        mimeType: "application/xml",
-        buffer: readFileSync("tests/fixtures/inbox/synthetic-basic.isdoc"),
+      const mailboxPanel = page.locator("section").filter({
+        has: page.getByRole("heading", {
+          name: labels.mailboxTitle,
+          exact: true,
+        }),
       });
+      await expect(
+        mailboxPanel.getByLabel(labels.mailboxAutomatic, { exact: true }),
+      ).toBeVisible();
+      await expect(
+        mailboxPanel.getByRole("button", {
+          name: labels.mailboxSync,
+          exact: true,
+        }),
+      ).toBeDisabled();
+      await mailboxPanel
+        .getByLabel(labels.mailboxProvider, { exact: true })
+        .fill("unknown-synthetic-provider");
+      await mailboxPanel
+        .getByRole("button", { name: labels.inboxAdapterSave, exact: true })
+        .click();
+      await expect(mailboxPanel.getByRole("alert")).toContainText(
+        labels.mailboxFailed,
+      );
+      await expect(
+        mailboxPanel.getByLabel(labels.mailboxProvider, { exact: true }),
+      ).toHaveValue("unknown-synthetic-provider");
+      await mailboxPanel
+        .getByLabel(labels.mailboxProvider, { exact: true })
+        .fill("");
+      await mailboxPanel
+        .getByRole("button", { name: labels.inboxAdapterSave, exact: true })
+        .click();
+      await expect(mailboxPanel.getByRole("status")).toContainText(
+        labels.inboxAdapterSaved,
+      );
+      await page.getByLabel(labels.inboxEmailEnabled, { exact: true }).click();
+      await page
+        .getByRole("option", { name: labels.inboxAdapterEnabled, exact: true })
+        .click();
+      await page
+        .locator("section")
+        .filter({
+          has: page.getByRole("heading", {
+            name: labels.inboxAdapters,
+            exact: true,
+          }),
+        })
+        .getByRole("button", { name: labels.inboxAdapterSave, exact: true })
+        .click();
+      await expect(
+        page
+          .locator("section")
+          .filter({
+            has: page.getByRole("heading", {
+              name: labels.inboxAdapters,
+              exact: true,
+            }),
+          })
+          .getByRole("status"),
+      ).toContainText(labels.inboxAdapterSaved);
+      const mail = await page.request.post(`${stockBase}/inbox/mail`, {
+        headers: stockHeaders,
+        data: {
+          request_id: crypto.randomUUID(),
+          message_id: "synthetic-e2e@example.test",
+          sender: "sender@example.test",
+          subject: "Synthetic email intake",
+          attachments: [
+            {
+              request_id: crypto.randomUUID(),
+              filename: "email-original.pdf",
+              base64: Buffer.from(
+                "%PDF-1.4\nSynthetic gateway attachment",
+              ).toString("base64"),
+            },
+          ],
+        },
+      });
+      expect(mail.ok()).toBe(true);
+      await page.reload();
+      await expect(
+        page.getByText("Synthetic email intake", { exact: false }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "email-original.pdf", exact: true }),
+      ).toBeVisible();
+      const dropped = await page.evaluateHandle(
+        (text) => {
+          const transfer = new DataTransfer();
+          transfer.items.add(
+            new File([text], "synthetic.isdoc", { type: "application/xml" }),
+          );
+          return transfer;
+        },
+        readFileSync("tests/fixtures/inbox/synthetic-basic.isdoc", "utf8"),
+      );
+      await page
+        .getByRole("group", { name: labels.inboxDropzone, exact: true })
+        .dispatchEvent("drop", { dataTransfer: dropped });
+      await dropped.dispose();
       const inboxRow = page
         .getByRole("row")
         .filter({ hasText: "synthetic.isdoc" });
@@ -449,6 +569,12 @@ for (const english of [false, true])
       await inboxRow
         .getByRole("link", { name: labels.inboxCreate, exact: true })
         .click();
+      await expect(
+        page.getByRole("complementary", {
+          name: labels.inboxOriginal,
+          exact: true,
+        }),
+      ).toContainText("SYNTHETIC-001");
       await page
         .getByRole("button", { name: labels.inboxExtract, exact: true })
         .click();
@@ -459,9 +585,62 @@ for (const english of [false, true])
         page.getByLabel(`${labels.draftVat} 1`, { exact: true }),
       ).toHaveValue("21.02");
       await page
+        .getByRole("button", { name: labels.inboxCreateSupplier, exact: true })
+        .click();
+      const supplierDialog = page.getByRole("dialog");
+      await supplierDialog
+        .getByRole("button", {
+          name: labels.inboxConfirmCreateSupplier,
+          exact: true,
+        })
+        .click();
+      await expect(supplierDialog).not.toBeVisible();
+      await expect(
+        page.getByText(labels.inboxSupplierCreated, { exact: true }),
+      ).toBeVisible();
+      await page
+        .getByLabel(labels.receivedSupplierName, { exact: true })
+        .fill("Reviewed supplier snapshot");
+      await page
+        .getByRole("button", { name: labels.inboxCompareSupplier, exact: true })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", {
+          name: labels.inboxKeepSupplierSnapshot,
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByLabel(labels.receivedSupplierName, { exact: true }),
+      ).toHaveValue("Reviewed supplier snapshot");
+
+      await page
         .getByRole("button", { name: labels.receivedSave, exact: true })
         .click();
       await expect(page).toHaveURL(/received-invoices\/\d+$/);
+      await page.goto(`/#/companies/${alpha.id}/inbox`);
+      await page.getByLabel(labels.inboxUpload, { exact: true }).setInputFiles({
+        name: "synthetic-preview.pdf",
+        mimeType: "application/pdf",
+        buffer: syntheticPreviewPdf(),
+      });
+      await page
+        .getByRole("row")
+        .filter({ hasText: "synthetic-preview.pdf" })
+        .getByRole("link", { name: labels.inboxCreate, exact: true })
+        .click();
+      const preview = page.getByRole("complementary", {
+        name: labels.inboxOriginal,
+        exact: true,
+      });
+      await expect(preview.getByRole("img")).toBeVisible();
+      await expect(preview.getByRole("status")).not.toBeVisible();
+      expect(
+        await preview
+          .getByRole("img")
+          .evaluate((canvas) => (canvas as HTMLCanvasElement).width),
+      ).toBeGreaterThan(100);
       expect(messages).toHaveLength(0);
     } catch (error) {
       await page.screenshot({

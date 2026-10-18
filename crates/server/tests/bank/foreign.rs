@@ -39,6 +39,18 @@ pub(super) async fn foreign_invoice(p: &PgPool, a: &str, c: &str) -> draft::Draf
     )
     .await
     .unwrap();
+    // This helper also seeds pre-059/082 upgrade databases. Do not call today's
+    // issuing implementation against a historical schema.
+    let modern:bool=sqlx::query_scalar("SELECT to_regclass('invoice_trash') IS NOT NULL AND to_regclass('company_document_style') IS NOT NULL").fetch_one(p).await.unwrap();
+    if !modern {
+        let number = format!("LEGACY-{}", d.id);
+        sqlx::query("UPDATE invoice_draft SET number=$3,issued_at=now(),issue_request_id=$4::text::uuid,issue_actor_id=$5::text::bigint,issue_revision=revision,revision=revision+1 WHERE company_id=$1::text::bigint AND id=$2::text::bigint").bind(c).bind(&d.id).bind(&number).bind(key()).bind(a).execute(p).await.unwrap();
+        let mut historical = d;
+        historical.number = Some(number);
+        historical.revision += 1;
+        historical.issued_at = Some(sqlx::types::chrono::Utc::now().to_rfc3339());
+        return historical;
+    }
     draft::issue(
         &s,
         a,

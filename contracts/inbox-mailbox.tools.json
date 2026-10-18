@@ -1,0 +1,79 @@
+[
+  {
+    "name": "inbox_mailbox_settings",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_mailbox_configure",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "automatic": {
+          "type": "boolean",
+          "description": "Explicit opt-in, default false. Requires enabled and provider. Runs every5minutes using configuring actor current permissions."
+        }
+      },
+      "required": ["company_id", "revision", "enabled", "provider"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_mailbox_sync",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": ["company_id", "request_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_mailbox_history",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id"],
+      "additionalProperties": false
+    }
+  }
+]

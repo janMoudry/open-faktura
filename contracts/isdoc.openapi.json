@@ -1,0 +1,77 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura ISDOC export",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/invoices/{id}/isdoc": {
+      "get": {
+        "operationId": "invoiceIsdoc",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unsigned ISDOC 6.0.2 from immutable invoice snapshot; no document changes",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "404": {
+            "description": "No membership or invoice"
+          },
+          "409": {
+            "description": "Not issued"
+          },
+          "422": {
+            "description": "Unsupported snapshot, including advance deductions"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "IsdocExport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["company_id", "id"],
+        "properties": {
+          "company_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

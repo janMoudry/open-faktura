@@ -80,6 +80,7 @@ async fn rule_data(pool: &PgPool) -> recurring::Data {
             .await
             .unwrap();
     recurring::Data {
+        rate_policy: recurring::RatePolicy::Stored,
         name: "Monthly service".into(),
         schedule: faktura_domain::recurring::Schedule {
             first_on: today,
@@ -498,19 +499,15 @@ async fn upgrade_021_preserves_invoice_history(pool: PgPool) {
     )
     .await
     .unwrap();
-    let d = draft::issue(
-        &store,
-        &a,
-        &c,
-        &d.id,
-        draft::Issue {
-            request_id: KEY.into(),
-            revision: d.revision,
-        },
-    )
-    .await
-    .unwrap();
-    let pdf = store.pdf(&a, &c, &d.id).await.unwrap();
+    // Seed the historical document and its PDF before upgrading; today's
+    // issuer intentionally requires the complete current schema.
+    let mut d = d;
+    d.number = Some(format!("LEGACY-{}", d.id));
+    d.issued_at = Some(sqlx::types::chrono::Utc::now().to_rfc3339());
+    d.revision += 1;
+    let pdf = faktura_infrastructure::invoice_pdf::render(&d).unwrap();
+    sqlx::query("UPDATE invoice_draft SET number=$3,issued_at=now(),issue_request_id=$4::text::uuid,issue_actor_id=$5::text::bigint,issue_revision=revision,revision=revision+1,pdf=$6 WHERE company_id=$1::text::bigint AND id=$2::text::bigint")
+        .bind(&c).bind(&d.id).bind(&d.number).bind(KEY).bind(&a).bind(&pdf).execute(&pool).await.unwrap();
     faktura_infrastructure::migrate(&pool).await.unwrap();
     assert_eq!(store.pdf(&a, &c, &d.id).await.unwrap(), pdf);
     let s = PgRecurring(pool.clone());
@@ -547,4 +544,145 @@ async fn worker_uses_saved_calendar_timezone(pool: PgPool) {
     assert!(s.process_one().await.unwrap());
     assert_eq!(s.get(&a, &c, &east.id).await.unwrap().generated, 1);
     assert_eq!(s.get(&a, &c, &west.id).await.unwrap().generated, 0);
+}
+
+struct RateFixture {
+    pool: PgPool,
+    change_rule: Option<String>,
+    fail: bool,
+    calls: std::sync::atomic::AtomicUsize,
+}
+#[async_trait::async_trait]
+impl faktura_application::exchange_rate::RateProvider for RateFixture {
+    async fn lookup(
+        &self,
+        currency: &str,
+        date: sqlx::types::chrono::NaiveDate,
+    ) -> company::Result<faktura_application::exchange_rate::Rate> {
+        self.calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        if let Some(id) = &self.change_rule {
+            tokio::time::timeout(
+                std::time::Duration::from_secs(2),
+                sqlx::query(
+                    "UPDATE recurring_rule SET revision=revision+1 WHERE id=$1::text::bigint",
+                )
+                .bind(id)
+                .execute(&self.pool),
+            )
+            .await
+            .expect("provider I/O must hold no SQL row lock")
+            .unwrap();
+        }
+        if self.fail {
+            return Err(company::CompanyError::Unavailable);
+        }
+        Ok(faktura_application::exchange_rate::Rate {
+            currency: currency.into(),
+            requested_on: date,
+            published_on: date,
+            source: "CNB".into(),
+            exchange_rate: faktura_domain::exchange::ExchangeRate {
+                rate: "26.5".into(),
+                units: "1".into(),
+            },
+        })
+    }
+}
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "requires isolated PostgreSQL"]
+async fn opt_in_cnb_rate_snapshot_failure_replay_and_revision_race(pool: PgPool) {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    let (a, _, c, _) = setup(&pool).await;
+    let s = PgRecurring(pool.clone());
+    let mut d = rule_data(&pool).await;
+    d.rate_policy = recurring::RatePolicy::CnbIssueDate;
+    d.invoice.payment.method = "bank_transfer".into();
+    d.invoice.payment.bank_account = "19-2000145399/0800".into();
+    d.invoice.calculation.currency = "EUR".into();
+    d.invoice.calculation.exchange_rate = Some(faktura_domain::exchange::ExchangeRate {
+        rate: "25".into(),
+        units: "1".into(),
+    });
+    let v = create(&s, &a, &c, d.clone()).await;
+    let v = s
+        .command(&a, &c, &v.id, cmd(v.revision, Action::Activate))
+        .await
+        .unwrap();
+    let unavailable = RateFixture {
+        pool: pool.clone(),
+        change_rule: None,
+        fail: true,
+        calls: AtomicUsize::new(0),
+    };
+    assert!(s
+        .command_with_rate_provider(&a, &c, &v.id, cmd(v.revision, Action::Run), &unavailable)
+        .await
+        .is_err());
+    let count: i64 = sqlx::query_scalar("SELECT count(*) FROM invoice_draft")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(count, 0);
+    let provider = RateFixture {
+        pool: pool.clone(),
+        change_rule: None,
+        fail: false,
+        calls: AtomicUsize::new(0),
+    };
+    let command = cmd(v.revision, Action::Run);
+    let replay = serde_json::to_value(&command).unwrap();
+    let result = s
+        .command_with_rate_provider(&a, &c, &v.id, command, &provider)
+        .await
+        .unwrap();
+    assert_eq!(result.generated, 1);
+    assert_eq!(
+        result.data.invoice.calculation.exchange_rate.unwrap().rate,
+        "25"
+    );
+    let rate: String =
+        sqlx::query_scalar("SELECT data#>>'{calculation,exchange_rate,rate}' FROM invoice_draft")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(rate, "26.5");
+    let again = s
+        .command_with_rate_provider(
+            &a,
+            &c,
+            &v.id,
+            serde_json::from_value(replay).unwrap(),
+            &unavailable,
+        )
+        .await
+        .unwrap();
+    assert_eq!(again.generated, 1);
+    assert_eq!(unavailable.calls.load(Ordering::SeqCst), 1);
+    let second = create(&s, &a, &c, d).await;
+    let second = s
+        .command(&a, &c, &second.id, cmd(second.revision, Action::Activate))
+        .await
+        .unwrap();
+    let racing = RateFixture {
+        pool: pool.clone(),
+        change_rule: Some(second.id.clone()),
+        fail: false,
+        calls: AtomicUsize::new(0),
+    };
+    assert!(matches!(
+        s.command_with_rate_provider(
+            &a,
+            &c,
+            &second.id,
+            cmd(second.revision, Action::Run),
+            &racing
+        )
+        .await,
+        Err(company::CompanyError::Conflict)
+    ));
+    let count: i64 = sqlx::query_scalar("SELECT count(*) FROM invoice_draft")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(count, 1);
 }

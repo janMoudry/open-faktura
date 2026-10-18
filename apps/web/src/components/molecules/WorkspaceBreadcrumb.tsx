@@ -29,7 +29,7 @@ export function WorkspaceBreadcrumb({ homeTo }: { homeTo: string }) {
   const { pathname } = useLocation();
   const { t } = useAppTranslation();
   const parts = pathname.split("/").filter(Boolean);
-  const page = pages[parts[2]];
+  const page = pathname === "/help" ? "helpTitle" : pages[parts[2]];
   return (
     <nav aria-label={t("breadcrumbLabel")} className="workspace-breadcrumb">
       <Link to={homeTo}>{t("brandName")}</Link>

@@ -1,0 +1,218 @@
+[
+  {
+    "name": "tags_list",
+    "inputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            }
+          },
+          "required": ["company_id"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": ["invoice", "sales", "received", "contact"]
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": ["company_id", "kind", "id"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "tags_execute",
+    "inputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "action": {
+              "type": "string",
+              "enum": ["create"]
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          },
+          "required": ["company_id", "request_id", "action", "name"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "action": {
+              "type": "string",
+              "enum": ["rename"]
+            },
+            "tag_id": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "action",
+            "tag_id",
+            "revision",
+            "name"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "action": {
+              "type": "string",
+              "enum": ["delete"]
+            },
+            "tag_id": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "action",
+            "tag_id",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "action": {
+              "type": "string",
+              "enum": ["attach"]
+            },
+            "tag_id": {
+              "type": "string"
+            },
+            "target": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["invoice", "sales", "received", "contact"]
+                },
+                "id": {
+                  "type": "string"
+                }
+              },
+              "required": ["kind", "id"],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "action",
+            "tag_id",
+            "target"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "action": {
+              "type": "string",
+              "enum": ["detach"]
+            },
+            "tag_id": {
+              "type": "string"
+            },
+            "target": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["invoice", "sales", "received", "contact"]
+                },
+                "id": {
+                  "type": "string"
+                }
+              },
+              "required": ["kind", "id"],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "action",
+            "tag_id",
+            "target"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+]

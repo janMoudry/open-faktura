@@ -29,6 +29,7 @@ fn text(value: &str) -> String {
     out
 }
 struct Snapshot {
+    document_style: Option<faktura_application::document_style::Style>,
     retail_tax: Option<Vec<faktura_domain::invoice::TaxSummary>>,
     tax: Option<faktura_domain::cash::TaxSnapshot>,
     number: String,
@@ -63,6 +64,11 @@ pub(crate) async fn load(
         return Ok(pdf);
     }
     let snapshot = Snapshot {
+        document_style: row
+            .get::<Option<serde_json::Value>, _>("document_style")
+            .map(serde_json::from_value)
+            .transpose()
+            .map_err(err)?,
         retail_tax: row
             .try_get::<Option<serde_json::Value>, _>("retail_tax")
             .unwrap_or(None)
@@ -120,6 +126,13 @@ fn render(s: Snapshot, en: bool) -> std::result::Result<Vec<u8>, genpdf::error::
             .styled(Style::new().with_font_size(8))
     });
     doc.set_page_decorator(decorator);
+    if let Some(logo) = s
+        .document_style
+        .as_ref()
+        .and_then(|style| style.logo_base64.as_deref())
+    {
+        doc.push(crate::invoice_pdf::style_image(logo, 40.0)?);
+    }
     doc.push(Break::new(1));
     doc.push(Paragraph::new(title).styled(Style::new().bold().with_font_size(20)));
     doc.push(Paragraph::new(&s.number).styled(Style::new().with_font_size(14)));
@@ -266,6 +279,21 @@ fn render(s: Snapshot, en: bool) -> std::result::Result<Vec<u8>, genpdf::error::
         "Vydal: ____________________     Přijal: ____________________",
         "Paid by: ____________________     Received by: ____________________",
     )));
+    if let Some(style) = &s.document_style {
+        if let Some(signature) = style.signature_base64.as_deref() {
+            doc.push(Break::new(0.5));
+            doc.push(crate::invoice_pdf::style_image(signature, 35.0)?);
+        }
+        let footer = if en {
+            &style.footer_en
+        } else {
+            &style.footer_cs
+        };
+        if !footer.is_empty() {
+            doc.push(Break::new(0.5));
+            doc.push(Paragraph::new(text(footer)).styled(Style::new().with_font_size(8)));
+        }
+    }
     let mut bytes = vec![];
     doc.render(&mut bytes)?;
     Ok(bytes)

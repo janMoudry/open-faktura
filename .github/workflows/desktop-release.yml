@@ -1,0 +1,85 @@
+name: Desktop draft release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            bundles: dmg
+          - os: macos-14
+            target: x86_64-apple-darwin
+            bundles: dmg
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            bundles: deb,appimage
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.0"
+      - run: npm install --global pnpm@10.29.3
+      - run: pnpm install --frozen-lockfile
+      - run: rustup target add ${{ matrix.target }}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+      - run: pnpm check:locales
+      - run: pnpm typecheck
+      - run: pnpm --filter @open-faktura/desktop build --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+        env:
+          CARGO_INCREMENTAL: "0"
+      - run: node scripts/release/collect-desktop.mjs ${{ matrix.target }} target/${{ matrix.target }}/release/bundle release-assets
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: desktop-${{ matrix.target }}
+          path: release-assets/*
+          if-no-files-found: error
+  draft:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: desktop-*
+          path: release-assets
+          merge-multiple: true
+      - name: Create reviewable draft with all targets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          cat > notes.md <<'NOTES'
+          Vývojové instalátory / Development installers
+
+          Nepodepsané a nenotarizované balíčky. Instalace na každém cílovém OS musí projít ověřením před zveřejněním. Neobsahují server ani PostgreSQL a nemají automatický updater.
+          Unsigned, non-notarized packages. Verify installation on every target OS before publishing. Server and PostgreSQL are not bundled; automatic updating is not enabled.
+
+          Použijte server ze stejného vydání. Před upgradem serveru zálohujte databázi. Manifesty uvádějí commit, cílovou platformu a SHA-256 instalátorů.
+          Use the server from the same release. Back up the database before upgrading the server. Manifests identify the commit, target and installer SHA-256 checksums.
+          NOTES
+          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json 2>/dev/null; then
+            node -e 'if (!require("./release-state.json").isDraft) process.exit(1)'
+          else
+            gh release create "$RELEASE_TAG" --draft --verify-tag --target "$RELEASE_COMMIT" --title "Open Faktura $RELEASE_TAG" --notes-file notes.md
+          fi
+          gh release upload "$RELEASE_TAG" release-assets/* --clobber

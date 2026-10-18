@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{
     auth, company,
     sales::{self, Create, Data, Error, Kind, Update},
@@ -467,9 +469,7 @@ async fn upgrade_preserves_quotes(pool: PgPool) {
     previous.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
     let sales = PgSales(pool.clone());
-    let q = sales::create(&sales, &a, &c, create(Kind::Quote, KEY))
-        .await
-        .unwrap();
+    let q = historical_documents::sales(&pool, &a, &c, create(Kind::Quote, KEY)).await;
     all.run(&pool).await.unwrap();
     assert_eq!(
         serde_json::to_value(&q).unwrap(),

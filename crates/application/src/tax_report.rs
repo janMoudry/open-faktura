@@ -44,3 +44,20 @@ pub struct Report {
 pub trait TaxReportStore: Send + Sync {
     async fn report(&self, actor: &str, company: &str, search: Search) -> Result<Report>;
 }
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExportRequest {
+    pub search: Search,
+    pub format: crate::export::Format,
+    pub language: crate::export::Language,
+}
+#[async_trait]
+pub trait TaxExportStore: Send + Sync {
+    async fn export(
+        &self,
+        actor: &str,
+        company: &str,
+        request: ExportRequest,
+    ) -> Result<crate::export::File>;
+}

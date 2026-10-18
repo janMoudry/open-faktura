@@ -995,6 +995,15 @@
           },
           "note": {
             "type": "string"
+          },
+          "qr_format": {
+            "type": "string",
+            "enum": [
+              "payment",
+              "invoice",
+              "payment_invoice"
+            ],
+            "description": "Immutable print choice; omitted means legacy QR payment. Invoice formats support ordinary CZK invoices from 2024; unsupported data produce no QR."
           }
         }
       },

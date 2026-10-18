@@ -938,3 +938,16 @@ a cash CS/EN desktop/mobile: všech 8 prošlo po opravě cílové URL testovací
 stahování PDF. PDF CS/EN renderované přes Poppler a vizuálně zkontrolované.
 Lokální upgrade po záloze: migrace 056/057 úspěšné, API health OK. Nejde
 o ověření skutečných bank, tiskárny či úplné shody iDokladu.
+
+### Integrační dodávka P16–P20 (18. 10. 2026)
+
+Aktuální dokončení a otevřené části uvádí [samostatný přehled](P16_P20_COMPLETION.md).
+P16 se znovu neimplementuje. Paralelní práce doplňuje zbývající návaznosti:
+kurzové párování záloh/vratek, příjem dokladů a notifikační brány, ISDOC/registry,
+export evidence DPH, automatické návrhy kurzů a produktové funkce (členství,
+štítky, výstupy, vzhled, exportní zámky, vratný koš návrhů a nápověda).
+
+Rozhodnutí uživatele: neověřené Money S4/S5 a další účetní formáty může
+provozovatel přizpůsobit [vlastním adaptérem](INTEGRATION_ADAPTERS.md).
+Nativní kompatibilita těchto variant se bez důkazů nedeklaruje. Toto rozhodnutí
+nenahrazuje ověření daňových pravidel ani podpisy/instalační testy desktopu.

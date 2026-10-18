@@ -560,3 +560,31 @@ zaúčtování, historické NULL se neodhadují. `retail_posting_pdf` ukládá b
 PDF pod (company_id, posting_id, revision, language), firemní FK a CS/EN.
 Migrace 057: `bank_connection.matching_treasury` je boolean default false;
 rozšíření automatiky vyžaduje samostatné explicitní nastavení.
+
+### Doplnění P16–P20 — 18. 10. 2026
+
+- 058: kurzové snapshoty bankovních vazeb také pro zálohy a vratky dobropisů;
+  nativní částka a uložené CZK ocenění zůstávají oddělené.
+- 059: vratný `invoice_trash` a neměnný `invoice_trash_command`. Skrytí návrhu
+  zvyšuje revizi, neodstraňuje účetní data; vydaný doklad je chráněný triggerem.
+- 060–063: konfigurace/audit vytěžení a příjmu dokladů, bankovní notifikační
+  brána, IMAP UIDVALIDITY/kurzor/běhy a explicitně povolený plán. Tajemství
+  poskytovatelů jsou instalační konfigurací, nikoli klientským DTO.
+- 070: vlastní pořadí/viditelnost/varianta dashboardových widgetů uživatele.
+- 080–081: profilová správa členství/audit/obnova a štítky s profilovými vazbami.
+- 082: vzhled dokumentů a neměnný snapshot při vystavení faktury. Původní PDF
+  cache se nepřepisuje po změně loga, podpisu nebo patičky.
+- 083: neměnné exportní snapshoty, SHA-256, obsahové zámky a audit odemčení.
+  Úhrady, saldo a vytvoření původního PDF nejsou obsahovou opravou dokladu.
+- 084: snapshot stejného vzhledu v nabídkách, zálohách a pokladních dokladech;
+  historické záznamy bez uloženého vzhledu se zpětně neobrandují.
+
+Nové tabulky používají profilovou autorizaci společných příkazů. Přenosný ZIP
+profilu je čitelný archiv s explicitním seznamem sloupců a odstraněnými tajemstvími,
+nikoli obnovitelná PostgreSQL záloha. Před upgradem zastavit staré API a zálohovat DB.
+
+### Daňová klasifikace a údaje subjektu (071–072)
+
+`tax_evidence_classification` uchovává explicitní rozhodnutí účetního a fingerprint zdrojového plnění; audit a command tabulka zachovávají historii a idempotenci. Změněný zdroj klasifikaci zneplatní, provozní revize bez změny obsahu ji nemění.
+
+`taxpayer_filing_profile` ukládá firemní identifikaci pro budoucí EPO výstupy, revizi a aktéra; audit je neměnný. Kódy finančních úřadů a jejich pracovišť ověřuje verzovaný oficiální číselník. Profil není změnou plátcovství na dokladech ani hotovým daňovým podáním.

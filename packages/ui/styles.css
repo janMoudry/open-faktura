@@ -6,10 +6,10 @@
     @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent text-sm leading-5 font-semibold disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted disabled:border-border;
     min-height: var(--size-control);
   }
+  /* Keep foreground/background paired when async actions enable controls.
+     Interpolating disabled colours can briefly violate text contrast. */
   .ui-button {
     transition:
-      color var(--duration-feedback) ease,
-      background-color var(--duration-feedback) ease,
       border-color var(--duration-feedback) ease,
       transform var(--duration-feedback) var(--ease-feedback);
     touch-action: manipulation;

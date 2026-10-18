@@ -10,21 +10,13 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "quote",
-            "received"
-          ]
+          "enum": ["invoice", "quote", "received"]
         },
         "document_id": {
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "kind",
-        "document_id"
-      ]
+      "required": ["company_id", "kind", "document_id"]
     }
   },
   {
@@ -38,11 +30,7 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "quote",
-            "received"
-          ]
+          "enum": ["invoice", "quote", "received"]
         },
         "document_id": {
           "type": "string"
@@ -81,11 +69,7 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "quote",
-            "received"
-          ]
+          "enum": ["invoice", "quote", "received"]
         },
         "document_id": {
           "type": "string"
@@ -94,12 +78,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "kind",
-        "document_id",
-        "id"
-      ]
+      "required": ["company_id", "kind", "document_id", "id"]
     }
   },
   {
@@ -113,11 +92,7 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "quote",
-            "received"
-          ]
+          "enum": ["invoice", "quote", "received"]
         },
         "document_id": {
           "type": "string"
@@ -126,12 +101,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "kind",
-        "document_id",
-        "id"
-      ]
+      "required": ["company_id", "kind", "document_id", "id"]
     }
   },
   {
@@ -145,10 +115,7 @@
         },
         "kind": {
           "type": "string",
-          "enum": [
-            "invoice",
-            "quote"
-          ]
+          "enum": ["invoice", "quote"]
         },
         "document_id": {
           "type": "string"
@@ -160,13 +127,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "kind",
-        "document_id",
-        "id",
-        "delivery"
-      ]
+      "required": ["company_id", "kind", "document_id", "id", "delivery"]
     }
   }
 ]

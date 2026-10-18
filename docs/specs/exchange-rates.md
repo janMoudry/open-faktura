@@ -65,3 +65,34 @@ Ověřeno 17. 10. 2026: parser 1/1, izolovaný REST/MCP test 1/1, UI scénáře
 4/4. Prošly pnpm check, build:web a build serveru. Mobilní screenshot byl
 vizuálně zkontrolován. Lokální API bylo restartováno a vrací ready.
 Web build nadále upozorňuje na některé chunky nad 500 kB.
+
+## P19-01n — Volitelný kurz pravidelných faktur
+
+Pravidlo má rate_policy=stored (výchozí) nebo cnb_issue_date. Staré snapshoty
+bez pole znamenají stored; tato hodnota se při serializaci vynechává kvůli
+zpětné kompatibilitě idempotentních příkazů. Volba ČNB je explicitní, pouze
+pro cizí měnu a neaktivní upravitelnou šablonu. Změna měny na CZK vrací UI
+ke stored. Načítá se datum plánovaného výskytu, nikoli datum opožděného
+spuštění workeru. Správnost zvoleného daňového kurzu zůstává rozhodnutím
+provozovatele; automatika není obecný účetní kurzový režim.
+
+Společný Run příkaz pro REST/MCP i worker nejprve ověří práva zápisu,
+replay, stav a revizi, uzavře čtecí transakci a pak načte ČNB. Síťové volání
+nedrží firemní/číslovací SQL zámek. Po návratu společný transakční příkaz
+znovu ověří členství, revizi a datum, teprve pak atomicky vytvoří doklad,
+výskyt a případné vystavení. Žádný nový dokument při nedostupnosti zdroje,
+změně revize ani odebrání práv během čekání. Worker použije existující
+chybový stav a ruční obnovení; nepadá tiše zpět na kurz šablony.
+
+Částky cizí měny se nemění. Nový doklad uloží načtené rate/units;
+snapshot výskytu navíc uchová pozorování kurzu včetně requested_on,
+published_on a source. Šablona i všechny starší doklady si ponechají
+původní kurz. Opakovaný request vrací existující výsledek i tehdy, když je
+později ČNB nedostupná, a nedělá další síťový dotaz. Policy stored síť
+nevolá. Bez nové migrace, verzovaný JSON kontrakt a CS/EN editor.
+
+Test `opt_in_cnb_rate_snapshot_failure_replay_and_revision_race` používá
+injektovaný syntetický provider: výpadek bez dokladu, nový uložený kurz,
+neměnná šablona, replay bez provideru a změna revize během I/O. Provider
+v testu aktualizuje stejný SQL řádek pod timeoutem a ověřuje absenci zámku
+v síťové fázi. Testy nepoužívají živou ČNB.

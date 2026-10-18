@@ -1,0 +1,14 @@
+{
+  "record_path": "Items/Item",
+  "price_mode": "net",
+  "decimal_separator": ",",
+  "fields": {
+    "key": "@stableId",
+    "name": "Title",
+    "unit_price": "Price",
+    "vat_percent": "Vat",
+    "currency": { "constant": "CZK" },
+    "code": "Code",
+    "unit": "Unit"
+  }
+}

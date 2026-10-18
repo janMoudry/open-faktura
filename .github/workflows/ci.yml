@@ -33,7 +33,7 @@ jobs:
       - run: cp .env.example .env
       - run: node scripts/init-secrets.mjs
       - run: cargo build --locked -p faktura-server
-      - run: pnpm generate:api && git diff --exit-code -- packages/api-client/src/auth.generated.ts packages/api-client/src/company.generated.ts packages/api-client/src/contact.generated.ts contracts/contact.tools.json packages/api-client/src/invoice.generated.ts contracts/invoice.tools.json contracts/draft.tools.json packages/api-client/src/sales.generated.ts packages/api-client/src/public-quote.generated.ts contracts/sales.tools.json packages/api-client/src/invoice-delivery.generated.ts contracts/invoice-delivery.tools.json packages/api-client/src/smtp.generated.ts contracts/smtp.tools.json packages/api-client/src/attachment.generated.ts contracts/attachment.tools.json packages/api-client/src/export.generated.ts contracts/export.tools.json packages/api-client/src/advance.generated.ts contracts/advance.tools.json packages/api-client/src/tax-receipt.generated.ts contracts/tax-receipt.tools.json packages/api-client/src/advance-settlement.generated.ts contracts/advance-settlement.tools.json packages/api-client/src/credit-note.generated.ts contracts/credit-note.tools.json packages/api-client/src/recurring.generated.ts contracts/recurring.tools.json packages/api-client/src/communication.generated.ts contracts/communication.tools.json packages/api-client/src/invoice-share.generated.ts packages/api-client/src/public-invoice.generated.ts contracts/invoice-share.tools.json packages/api-client/src/received.generated.ts contracts/received.tools.json packages/api-client/src/bank.generated.ts contracts/bank.tools.json
+      - run: pnpm generate:api && git diff --exit-code -- contracts packages/api-client/src
       - run: pnpm test:companies
         env:
           DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
@@ -52,6 +52,10 @@ jobs:
       - run: cargo test --locked -p faktura-server --test sales --test delivery --test share --test invoice_delivery --test attachment --test export --test advance --test tax_receipt --test advance_settlement --test credit_note --test payment --test recurring --test communication --test invoice_share --test received --test bank -- --ignored --test-threads=1
         env:
           DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+      - run: cargo test --locked -p faktura-server --test inbox --test inbox_mailbox --test bank_notification --test stock --test retail --test cash --test period_report --test isdoc --test vat_registry --test vies --test company_admin --test document_tags --test document_output --test document_style --test document_exports --test dashboard_widgets --test tax_classification --test draft_trash -- --include-ignored --test-threads=1
+        env:
+          DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
+          BANK_ENCRYPTION_KEY_FILE: .secrets/bank-key
       - run: pnpm exec playwright install --with-deps chromium
       - run: |
           target/debug/faktura-server > /tmp/faktura-api.log 2>&1 &

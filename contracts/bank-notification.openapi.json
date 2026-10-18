@@ -1,0 +1,399 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Bank notification gateway",
+    "version": "1.0.0",
+    "description": "Custom authenticated opt-in statement attachment gateway. Not a native bank email parser. All inputs use existing bounded bank statement parsers and shared transaction. No automatic matching or payment creation."
+  },
+  "paths": {
+    "/api/companies/{company}/bank/notifications": {
+      "post": {
+        "operationId": "bank_notification_receive",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankPreview"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankNotificationIntake"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/accounts/{account_id}/notification-settings": {
+      "get": {
+        "operationId": "bank_notification_settings",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankNotificationSettings"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "bank_notification_configure",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankNotificationSettings"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankNotificationSettings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/bank/accounts/{account_id}/notification-history": {
+      "get": {
+        "operationId": "bank_notification_history",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankNotificationDiagnostic"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BankPreview": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankPreviewRow"
+            }
+          },
+          "new_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "duplicate_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "rows",
+          "new_count",
+          "duplicate_count",
+          "valid"
+        ]
+      },
+      "BankPreviewRow": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "row": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BankMovementData"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "duplicate",
+              "invalid",
+              "conflict"
+            ]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "row",
+          "data",
+          "status",
+          "fields"
+        ]
+      },
+      "BankMovementData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "external_id": {
+            "type": "string"
+          },
+          "booked_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "counterparty": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "external_id",
+          "booked_on",
+          "amount",
+          "currency",
+          "variable_symbol",
+          "counterparty",
+          "description"
+        ]
+      },
+      "BankStatement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "camt053",
+              "fio_json",
+              "moneta_xml",
+              "rb_abo"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "content_base64": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "format",
+          "filename",
+          "content_base64"
+        ]
+      },
+      "BankNotificationSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "camt053",
+              "fio_json",
+              "moneta_xml",
+              "rb_abo"
+            ]
+          }
+        },
+        "required": [
+          "account_id",
+          "revision",
+          "enabled",
+          "format"
+        ]
+      },
+      "BankNotificationIntake": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "message_id": {
+            "type": "string",
+            "maxLength": 998
+          },
+          "sender": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "file": {
+            "$ref": "#/components/schemas/BankStatement"
+          }
+        },
+        "required": [
+          "request_id",
+          "message_id",
+          "sender",
+          "file"
+        ]
+      },
+      "BankNotificationDiagnostic": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "message_id": {
+            "type": "string"
+          },
+          "sender": {
+            "type": "string"
+          },
+          "new_count": {
+            "type": "integer"
+          },
+          "duplicate_count": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "message_id",
+          "sender",
+          "new_count",
+          "duplicate_count",
+          "created_at"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+[
+  {
+    "name": "document_style_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "document_style_set",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "logo_base64": {
+              "type": "string",
+              "nullable": true,
+              "maxLength": 140000
+            },
+            "signature_base64": {
+              "type": "string",
+              "nullable": true,
+              "maxLength": 140000
+            },
+            "footer_cs": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "footer_en": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "logo_base64",
+            "signature_base64",
+            "footer_cs",
+            "footer_en"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": ["company_id", "request_id", "revision", "data"],
+      "additionalProperties": false
+    }
+  }
+]

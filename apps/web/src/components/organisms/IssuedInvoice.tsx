@@ -1,3 +1,7 @@
+import { DocumentExports } from "./DocumentExports";
+import { useWorkspace } from "../../hooks/useCompanyWorkspace";
+import { DocumentOutput } from "./DocumentOutput";
+import { DocumentTags } from "./DocumentTags";
 import { InvoiceCredits } from "./InvoiceCredits";
 import { AdvanceDeductions } from "./AdvanceDeductions";
 import { DocumentAttachments } from "./DocumentAttachments";
@@ -9,6 +13,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
   Tabs,
+  Button,
   Icon,
   Table,
   TableHeader,
@@ -20,8 +25,9 @@ import {
   Heading,
   formatCalendarDate,
 } from "@open-faktura/ui";
-import { type InvoiceDraft } from "@open-faktura/api-client";
+import { invoiceIsdoc, type InvoiceDraft } from "@open-faktura/api-client";
 import { useAppTranslation } from "../../locales";
+import { apiUrl } from "../../services/status";
 import { moneyText } from "../../utils/invoice";
 export function IssuedInvoice({
   invoice,
@@ -31,6 +37,26 @@ export function IssuedInvoice({
   canCopy: boolean;
 }) {
   const { t, language } = useAppTranslation();
+  const { company } = useWorkspace();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
+  async function downloadIsdoc() {
+    setExporting(true);
+    setExportError(false);
+    try {
+      const file = await invoiceIsdoc(apiUrl, invoice.company_id, invoice.id);
+      const url = URL.createObjectURL(file);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${invoice.id}.isdoc`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setExportError(true);
+    } finally {
+      setExporting(false);
+    }
+  }
   const [params, setParams] = useSearchParams();
   const [settlement, setSettlement] = useState(invoice.settlement);
   const d = invoice.data,
@@ -321,6 +347,16 @@ export function IssuedInvoice({
           </div>
         </div>
         <div className="flex flex-wrap gap-control">
+          {!historical && !invoice.advances && (
+            <Button
+              variant="secondary"
+              loading={exporting}
+              onClick={downloadIsdoc}
+            >
+              <Icon name="download" />
+              {t("isdocDownload")}
+            </Button>
+          )}
           {canCopy && !historical && (
             <Link
               className="ui-button ui-button-secondary ui-button-md"
@@ -333,6 +369,25 @@ export function IssuedInvoice({
           )}
         </div>
       </div>
+      {!historical && (
+        <DocumentOutput company={invoice.company_id} id={invoice.id} />
+      )}
+      {exportError && (
+        <Alert tone="danger" role="alert">
+          {t("isdocError")}
+        </Alert>
+      )}
+      <DocumentExports
+        company={invoice.company_id}
+        target={{ kind: "invoice", id: invoice.id, revision: invoice.revision }}
+        editable={canCopy}
+        owner={company?.role === "owner"}
+      />
+      <DocumentTags
+        company={invoice.company_id}
+        editable={canCopy}
+        target={{ kind: "invoice", id: invoice.id }}
+      />
       {historical && <Alert tone="warning">{t("importHistorical")}</Alert>}
       {historical ? (
         tabs

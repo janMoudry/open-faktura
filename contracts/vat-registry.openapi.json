@@ -1,0 +1,139 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura Czech VAT Registry",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/vat-registry": {
+      "get": {
+        "operationId": "vatRegistryLookup",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vat_number",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^CZ[0-9]{1,10}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current official registry observation; no contact writes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Observation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "404": {
+            "description": "No membership"
+          },
+          "422": {
+            "description": "Unsupported VAT identifier"
+          },
+          "503": {
+            "description": "Registry outage, rate bound or invalid response"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Lookup": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["company_id", "vat_number"],
+        "properties": {
+          "company_id": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string",
+            "pattern": "^CZ[0-9]{1,10}$"
+          }
+        }
+      },
+      "Observation": {
+        "type": "object",
+        "required": [
+          "vat_number",
+          "subject_type",
+          "reliability",
+          "generated_on",
+          "checked_at",
+          "accounts",
+          "source"
+        ],
+        "properties": {
+          "vat_number": {
+            "type": "string"
+          },
+          "subject_type": {
+            "type": "string",
+            "enum": [
+              "vat_payer",
+              "vat_group",
+              "identified_person",
+              "unreliable_person",
+              "not_found"
+            ]
+          },
+          "reliability": {
+            "type": "string",
+            "enum": ["reliable", "unreliable", "not_found"]
+          },
+          "generated_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["CZ_RWS"]
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["number", "published_on", "ended_on"],
+              "properties": {
+                "number": {
+                  "type": "string"
+                },
+                "published_on": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "ended_on": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

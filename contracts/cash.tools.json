@@ -8,9 +8,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -30,22 +28,11 @@
         },
         "direction": {
           "type": "string",
-          "enum": [
-            "all",
-            "income",
-            "expense"
-          ]
+          "enum": ["all", "income", "expense"]
         },
         "status": {
           "type": "string",
-          "enum": [
-            "",
-            "all",
-            "matched",
-            "unmatched",
-            "cancelled",
-            "tax"
-          ]
+          "enum": ["", "all", "matched", "unmatched", "cancelled", "tax"]
         },
         "page": {
           "type": "integer",
@@ -60,9 +47,7 @@
           "format": "date"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -78,10 +63,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -100,10 +82,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -141,9 +120,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "account"
-              ]
+              "enum": ["account"]
             },
             "id": {
               "anyOf": [
@@ -177,9 +154,7 @@
                 },
                 "currency": {
                   "type": "string",
-                  "enum": [
-                    "CZK"
-                  ]
+                  "enum": ["CZK"]
                 },
                 "opening_on": {
                   "type": "string",
@@ -189,12 +164,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "name",
-                "currency",
-                "opening_on",
-                "opening_balance"
-              ]
+              "required": ["name", "currency", "opening_on", "opening_balance"]
             },
             "archived": {
               "type": "boolean"
@@ -223,9 +193,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "manual"
-              ]
+              "enum": ["manual"]
             },
             "account_id": {
               "type": "string"
@@ -243,9 +211,7 @@
                 },
                 "currency": {
                   "type": "string",
-                  "enum": [
-                    "CZK"
-                  ]
+                  "enum": ["CZK"]
                 },
                 "variable_symbol": {
                   "type": "string"
@@ -293,9 +259,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "match"
-              ]
+              "enum": ["match"]
             },
             "movement_id": {
               "type": "string"
@@ -306,12 +270,7 @@
             },
             "target_kind": {
               "type": "string",
-              "enum": [
-                "invoice",
-                "received",
-                "advance",
-                "credit"
-              ]
+              "enum": ["invoice", "received", "advance", "credit"]
             },
             "document_id": {
               "type": "string"
@@ -356,9 +315,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "unmatch"
-              ]
+              "enum": ["unmatch"]
             },
             "movement_id": {
               "type": "string"
@@ -393,9 +350,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "cancel"
-              ]
+              "enum": ["cancel"]
             },
             "movement_id": {
               "type": "string"
@@ -437,9 +392,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "settings"
-              ]
+              "enum": ["settings"]
             },
             "account_id": {
               "anyOf": [
@@ -470,9 +423,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "tax_manual"
-              ]
+              "enum": ["tax_manual"]
             },
             "account_id": {
               "type": "string"
@@ -490,9 +441,7 @@
                 },
                 "currency": {
                   "type": "string",
-                  "enum": [
-                    "CZK"
-                  ]
+                  "enum": ["CZK"]
                 },
                 "variable_symbol": {
                   "type": "string"
@@ -521,26 +470,15 @@
             "tax": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "price_mode",
-                "vat_percent",
-                "tax_on"
-              ],
+              "required": ["price_mode", "vat_percent", "tax_on"],
               "properties": {
                 "price_mode": {
                   "type": "string",
-                  "enum": [
-                    "net",
-                    "gross"
-                  ]
+                  "enum": ["net", "gross"]
                 },
                 "vat_percent": {
                   "type": "string",
-                  "enum": [
-                    "0",
-                    "12",
-                    "21"
-                  ]
+                  "enum": ["0", "12", "21"]
                 },
                 "tax_on": {
                   "type": "string",
@@ -613,9 +551,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "terminal"
-              ]
+              "enum": ["terminal"]
             },
             "company_id": {
               "type": "string"
@@ -645,10 +581,7 @@
           "format": "date"
         }
       },
-      "required": [
-        "company_id",
-        "account_id"
-      ],
+      "required": ["company_id", "account_id"],
       "additionalProperties": false
     }
   },
@@ -661,9 +594,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -680,17 +611,10 @@
         },
         "language": {
           "type": "string",
-          "enum": [
-            "cs",
-            "en"
-          ]
+          "enum": ["cs", "en"]
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "language"
-      ],
+      "required": ["company_id", "id", "language"],
       "additionalProperties": false
     }
   },
@@ -708,26 +632,15 @@
         "tax": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "price_mode",
-            "vat_percent",
-            "tax_on"
-          ],
+          "required": ["price_mode", "vat_percent", "tax_on"],
           "properties": {
             "price_mode": {
               "type": "string",
-              "enum": [
-                "net",
-                "gross"
-              ]
+              "enum": ["net", "gross"]
             },
             "vat_percent": {
               "type": "string",
-              "enum": [
-                "0",
-                "12",
-                "21"
-              ]
+              "enum": ["0", "12", "21"]
             },
             "tax_on": {
               "type": "string",
@@ -736,11 +649,7 @@
           }
         }
       },
-      "required": [
-        "company_id",
-        "amount",
-        "tax"
-      ],
+      "required": ["company_id", "amount", "tax"],
       "additionalProperties": false
     }
   },
@@ -753,9 +662,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   }

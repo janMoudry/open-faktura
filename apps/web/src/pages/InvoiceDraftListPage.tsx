@@ -1,3 +1,5 @@
+import { DocumentTagFilter } from "../components/organisms/DocumentTagFilter";
+import { BulkDocumentOutput } from "../components/organisms/DocumentOutput";
 import { useInvoiceOverview } from "../hooks/useInvoiceOverview";
 import { InvoiceOverviewMetrics } from "../components/organisms/InvoiceOverviewMetrics";
 import { RegisterExport } from "../components/organisms/RegisterExport";
@@ -36,6 +38,7 @@ export function InvoiceDraftListPage() {
   const { company, onExpired } = useWorkspace();
   const { t, language } = useAppTranslation();
   const [params, setParams] = useSearchParams();
+  const tagId = params.get("tag") ?? "";
   const query = params.get("q") ?? "",
     sort = params.get("sort") ?? "number_desc",
     customer = params.get("customer") ?? "";
@@ -84,6 +87,7 @@ export function InvoiceDraftListPage() {
   } | null>(null);
   const [error, setError] = useState<AppKey | "">("");
   const key = JSON.stringify([
+    tagId,
     companyId,
     query,
     sort,
@@ -107,6 +111,7 @@ export function InvoiceDraftListPage() {
       companyId,
       {
         query,
+        tag_id: tagId,
         page,
         sort,
         status,
@@ -171,14 +176,29 @@ export function InvoiceDraftListPage() {
           </Heading>
           <p className="text-sm text-muted">{t("invoiceRegisterIntro")}</p>
         </div>
-        {editable && (
-          <Link className="ui-button ui-button-primary ui-button-md" to="new">
-            <Icon name="plus" />
-            {t("draftNew")}
+        <div className="page-heading-actions">
+          <Link
+            className="ui-button ui-button-secondary ui-button-md"
+            to="trash"
+          >
+            {t("draftTrashTitle")}
           </Link>
-        )}
+          {editable && (
+            <Link className="ui-button ui-button-primary ui-button-md" to="new">
+              <Icon name="plus" />
+              {t("draftNew")}
+            </Link>
+          )}
+        </div>
       </div>
       {overview.value && <InvoiceOverviewMetrics value={overview.value} />}
+      <DocumentTagFilter
+        company={companyId}
+        value={tagId}
+        onChange={(tag) =>
+          setParams({ ...Object.fromEntries(params), tag, page: "1" })
+        }
+      />
       <div className="invoice-sheet register-sheet overflow-hidden">
         <div className="invoice-list-tabs">
           <FilterTabs
@@ -235,6 +255,12 @@ export function InvoiceDraftListPage() {
                   <Badge>{Number(!!customer) + Number(rangeActive)}</Badge>
                 )}
               </Button>
+              <BulkDocumentOutput
+                company={companyId}
+                available={(data?.items ?? [])
+                  .filter((d) => !!d.number)
+                  .map((d) => ({ id: d.id, number: d.number! }))}
+              />
               <RegisterExport
                 key={companyId}
                 company={companyId}
@@ -243,6 +269,7 @@ export function InvoiceDraftListPage() {
                   kind: "invoices",
                   search: {
                     query,
+                    tag_id: tagId,
                     sort: sort as Extract<
                       ExportRequest["selection"],
                       { kind: "invoices" }

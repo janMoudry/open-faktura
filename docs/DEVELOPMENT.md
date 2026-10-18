@@ -54,7 +54,7 @@ Tento příkaz sestaví nativní balíčky aktuálního OS do `target/release/bu
 pnpm --filter @open-faktura/desktop build --debug --bundles app
 ```
 
-Podpisy, notarizace, automatický updater a publikace GitHub Releases ještě nejsou nakonfigurované. Lokálně vytvořený balíček není vydaná podepsaná aplikace. Desktop neinstaluje backend ani PostgreSQL.
+Matice instalátorů a draft GitHub Releases je připravena v [postupu vydání](DESKTOP_RELEASES.md). Podpisy, notarizace a automatický updater ještě nejsou nakonfigurované. Lokálně vytvořený balíček není vydaná podepsaná aplikace. Desktop neinstaluje backend ani PostgreSQL.
 
 ## Kontroly
 
@@ -75,7 +75,7 @@ pnpm test:e2e
 
 Playwright spustí Vite, pokud ještě neběží. Testuje desktopový a mobilní viewport v Chromiu, nikoli instalaci PWA nebo nativní Tauri WebView.
 
-CI má macOS kontrolu celého workspace a debug app bundlu, Linux integrační test proti PostgreSQL. Workflow je připravené; skutečné spuštění na GitHubu ověří až push. Release automatizace bude navazovat na podpisy a podporované cíle.
+CI má macOS kontrolu celého workspace a debug app bundlu, Linux integrační test proti PostgreSQL. Workflow je připravené; skutečné spuštění na GitHubu ověří až push. Release workflow sestavuje čtyři cíle do draftu; podpisy a instalační ověření cílových OS zůstávají samostatné.
 
 ## Organizace
 

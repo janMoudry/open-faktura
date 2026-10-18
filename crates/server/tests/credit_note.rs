@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{auth, company, sales::Data};
 use faktura_domain::company::CompanySettings;
 use faktura_infrastructure::{auth::PgAuth, company::PgCompany};
@@ -593,8 +595,18 @@ async fn upgrade_020_keeps_invoice_pdf_and_cash(pool: PgPool) {
     };
     previous.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
-    let d = invoice(&pool, &a, &c).await;
-    let pdf = PgDraft(pool.clone()).pdf(&a, &c, &d.id).await.unwrap();
+    let mut data = data().invoice;
+    data.tax_on = data.issued_on;
+    let (d, pdf) = historical_documents::invoice(
+        &pool,
+        &a,
+        &c,
+        draft::Create {
+            request_id: KEY.into(),
+            data,
+        },
+    )
+    .await;
     payment::register(
         &PgPayment(pool.clone()),
         &a,

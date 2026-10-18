@@ -1,0 +1,122 @@
+[
+  {
+    "name": "document_export",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["invoice", "sales", "received"]
+              },
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": ["kind", "id", "revision"],
+            "additionalProperties": false
+          }
+        },
+        "lock": {
+          "type": "boolean"
+        }
+      },
+      "required": ["company_id", "request_id", "targets", "lock"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "document_export_unlock",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "target": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["invoice", "sales", "received"]
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": ["kind", "id"],
+          "additionalProperties": false
+        },
+        "export_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "required": ["company_id", "request_id", "target", "export_id", "reason"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "document_export_history",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["invoice", "sales", "received"]
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id", "kind", "id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "document_export_file",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": ["company_id", "id"],
+      "additionalProperties": false
+    }
+  }
+]

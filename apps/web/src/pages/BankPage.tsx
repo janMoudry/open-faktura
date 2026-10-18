@@ -1,3 +1,4 @@
+import { BankNotificationPanel } from "../components/organisms/BankNotificationPanel";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import {
@@ -147,6 +148,11 @@ function BankRegister({ companyId }: { companyId: string }) {
           )}
         </div>
       </div>
+      <BankNotificationPanel
+        companyId={companyId}
+        accounts={accounts}
+        write={canWrite}
+      />
       {connectionOpen && (
         <BankConnectionDialog
           companyId={companyId}

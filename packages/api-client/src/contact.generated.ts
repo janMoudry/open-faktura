@@ -146,6 +146,8 @@ export interface operations {
         archived?: boolean;
         page?: number;
         page_size?: number;
+        /** @description Filter assigned company tag before pagination; empty means all. */
+        tag_id?: string;
       };
       header?: never;
       path: {

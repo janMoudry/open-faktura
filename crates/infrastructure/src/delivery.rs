@@ -192,17 +192,21 @@ pub(crate) async fn render(v: Document) -> Result<Vec<u8>> {
         let mut data = v.data.invoice;
         // iDoklad internal notes are private; the quotation description is public.
         data.note = v.data.name;
-        crate::invoice_pdf::render_quote(&faktura_application::draft::Draft {
-            advances: None,
-            id: v.id,
-            company_id: v.company_id,
-            revision: v.revision,
-            data,
-            totals: v.totals,
-            number: v.number,
-            settlement: None,
-            issued_at: None,
-        })
+        let style = v.document_style;
+        crate::invoice_pdf::render_quote_with_style(
+            &faktura_application::draft::Draft {
+                advances: None,
+                id: v.id,
+                company_id: v.company_id,
+                revision: v.revision,
+                data,
+                totals: v.totals,
+                number: v.number,
+                settlement: None,
+                issued_at: None,
+            },
+            style.as_ref(),
+        )
         .map_err(err)
     })
     .await

@@ -1,3 +1,9 @@
+import { TaxpayerFilingProfile } from "./TaxpayerFilingProfile";
+import {
+  TaxEvidenceClassification,
+  TaxClassificationSummary,
+} from "./TaxEvidenceClassification";
+import { useWorkspace } from "../../hooks/useCompanyWorkspace";
 import { Link } from "react-router";
 import { useEffect, useState } from "react";
 import {
@@ -14,6 +20,7 @@ import {
 } from "@open-faktura/ui";
 import {
   taxReport,
+  exportTaxEvidence,
   SalesFailure,
   type TaxReport,
 } from "@open-faktura/api-client";
@@ -22,16 +29,50 @@ import { apiUrl } from "../../services/status";
 import { moneyText } from "../../utils/invoice";
 export function TaxDashboard({
   company,
+  compact = false,
   today,
   refresh,
   onExpired,
 }: {
   company: string;
+  compact?: boolean;
   today: string;
   refresh: number;
   onExpired: () => void;
 }) {
   const { t, language } = useAppTranslation();
+  const workspace = useWorkspace();
+  const canClassify =
+    workspace.company?.id === company && workspace.company.role !== "viewer";
+  const [classificationRefresh, setClassificationRefresh] = useState(0);
+  const [exporting, setExporting] = useState(false),
+    [exportFailed, setExportFailed] = useState(false);
+  async function download(format: "csv" | "xlsx") {
+    setExporting(true);
+    setExportFailed(false);
+    try {
+      const file = await exportTaxEvidence(apiUrl, company, {
+        search: {
+          year: Number(year),
+          quarterly: quarterly === "true",
+          turnover_sources: source === "true",
+        },
+        format,
+        language,
+      });
+      const url = URL.createObjectURL(file),
+        a = document.createElement("a");
+      a.href = url;
+      a.download = `${source === "true" ? "turnover-evidence" : "vat-evidence"}-${year}.${format}`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      setExportFailed(true);
+      if (e instanceof SalesFailure && e.status === 401) onExpired();
+    } finally {
+      setExporting(false);
+    }
+  }
   const current = today.slice(0, 4);
   const [year, setYear] = useState(current),
     [quarterly, setQuarterly] = useState("false"),
@@ -90,9 +131,44 @@ export function TaxDashboard({
           ]}
         />
       </div>
+      <div className="flex flex-wrap gap-control">
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={exporting}
+          onClick={() => download("csv")}
+        >
+          {t("taxEvidenceCsv")}
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={exporting}
+          onClick={() => download("xlsx")}
+        >
+          {t("taxEvidenceXlsx")}
+        </Button>
+      </div>
+      {exportFailed && (
+        <Alert tone="danger" role="alert">
+          {t("exportError")}
+        </Alert>
+      )}
       <p className="text-sm text-muted">
         {t("taxDashboardScope")} {t("exchangeReportHint")}
       </p>
+      <TaxpayerFilingProfile
+        key={company}
+        company={company}
+        editable={canClassify}
+        onExpired={onExpired}
+      />
+      <TaxClassificationSummary
+        company={company}
+        year={Number(year)}
+        refresh={refresh + classificationRefresh}
+        onExpired={onExpired}
+      />
       {error && (
         <Alert tone="danger" role="alert">
           {t("requestFailed")}{" "}
@@ -115,7 +191,7 @@ export function TaxDashboard({
               {t("taxDashboardTurnoverHint")}
             </p>
           </section>
-          {value.tax_mode === "vat_payer" && (
+          {value.tax_mode === "vat_payer" && !compact && (
             <section className="workspace-panel overflow-hidden">
               <Heading level={3} size="card" className="p-field">
                 {t("taxDashboardVat")}
@@ -186,86 +262,121 @@ export function TaxDashboard({
               </div>
             </section>
           )}
-          <section className="workspace-panel overflow-hidden">
-            <div className="p-field">
-              <Select
-                label={t("taxDashboardSources")}
-                value={source}
-                onChange={(v) => {
-                  setSource(v);
-                  setPage(1);
-                }}
-                options={[
-                  { value: "true", label: t("taxDashboardTurnover") },
-                  { value: "false", label: t("taxDashboardVat") },
-                ]}
-              />
-            </div>
-            {value.items.length ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("taxDashboardDocument")}</TableHead>
-                      <TableHead>{t("taxDashboardDate")}</TableHead>
-                      <TableHead>{t("taxDashboardSide")}</TableHead>
-                      <TableHead className="text-right">
-                        {t("reportAmount")}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <tbody>
-                    {value.items.map((r) => (
-                      <TableRow key={r.kind + ":" + r.id}>
-                        <TableCell className="whitespace-nowrap">
-                          <Link
-                            className="underline underline-offset-4"
-                            to={`/companies/${company}/${({ cash: "cash", invoice: "invoices", credit_note: "credit-notes", tax_receipt: "tax-receipts", retail: "retail", received: "received-invoices", purchase_receipt: "receipts" } as Record<string, string>)[r.kind]}/${r.id}`}
-                          >
-                            {r.number}
-                          </Link>
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {formatCalendarDate(r.reported_on, language)}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {t(
-                            r.side === "sales"
-                              ? "reportSales"
-                              : "reportPurchases",
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap tabular-nums">
-                          {amount(r.amount)}
-                        </TableCell>
+          {compact && value.tax_mode === "vat_payer" && (
+            <dl className="grid gap-field sm:grid-cols-3">
+              {(
+                [
+                  ["taxDashboardOutput", value.output],
+                  ["taxDashboardInput", value.input],
+                  ["taxDashboardDifference", value.difference],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label}>
+                  <dt>{t(label)}</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {amount(value)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {!compact && (
+            <section className="workspace-panel overflow-hidden">
+              <div className="p-field">
+                <Select
+                  label={t("taxDashboardSources")}
+                  value={source}
+                  onChange={(v) => {
+                    setSource(v);
+                    setPage(1);
+                  }}
+                  options={[
+                    { value: "true", label: t("taxDashboardTurnover") },
+                    { value: "false", label: t("taxDashboardVat") },
+                  ]}
+                />
+              </div>
+              {value.items.length ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("taxDashboardDocument")}</TableHead>
+                        <TableHead>{t("taxDashboardDate")}</TableHead>
+                        <TableHead>{t("taxDashboardSide")}</TableHead>
+                        <TableHead>{t("taxClassificationTitle")}</TableHead>
+                        <TableHead className="text-right">
+                          {t("reportAmount")}
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </tbody>
-                </Table>
+                    </TableHeader>
+                    <tbody>
+                      {value.items.map((r) => (
+                        <TableRow key={r.kind + ":" + r.id}>
+                          <TableCell className="whitespace-nowrap">
+                            <Link
+                              className="underline underline-offset-4"
+                              to={`/companies/${company}/${({ cash: "cash", invoice: "invoices", credit_note: "credit-notes", tax_receipt: "tax-receipts", retail: "retail", received: "received-invoices", purchase_receipt: "receipts" } as Record<string, string>)[r.kind]}/${r.id}`}
+                            >
+                              {r.number}
+                            </Link>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {formatCalendarDate(r.reported_on, language)}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {t(
+                              r.side === "sales"
+                                ? "reportSales"
+                                : "reportPurchases",
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <TaxEvidenceClassification
+                              company={company}
+                              kind={r.kind}
+                              id={r.id}
+                              editable={canClassify}
+                              onChanged={() =>
+                                setClassificationRefresh((v) => v + 1)
+                              }
+                              onExpired={onExpired}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap tabular-nums">
+                            {amount(r.amount)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="p-field text-muted">{t("reportEmpty")}</p>
+              )}
+              <div className="p-field flex items-center justify-between gap-field">
+                <span>
+                  {t("taxDashboardDocuments", { count: value.total })}
+                </span>
+                <div className="flex gap-control">
+                  <Button
+                    variant="secondary"
+                    disabled={page === 1}
+                    onClick={() => setPage((v) => v - 1)}
+                  >
+                    {t("reportPrevious")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    disabled={page * 25 >= value.total}
+                    onClick={() => setPage((v) => v + 1)}
+                  >
+                    {t("reportNext")}
+                  </Button>
+                </div>
               </div>
-            ) : (
-              <p className="p-field text-muted">{t("reportEmpty")}</p>
-            )}
-            <div className="p-field flex items-center justify-between gap-field">
-              <span>{t("taxDashboardDocuments", { count: value.total })}</span>
-              <div className="flex gap-control">
-                <Button
-                  variant="secondary"
-                  disabled={page === 1}
-                  onClick={() => setPage((v) => v - 1)}
-                >
-                  {t("reportPrevious")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={page * 25 >= value.total}
-                  onClick={() => setPage((v) => v + 1)}
-                >
-                  {t("reportNext")}
-                </Button>
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
         </>
       )}
     </section>

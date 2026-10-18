@@ -5,8 +5,13 @@ use faktura_application::draft::{
 use sqlx::{PgPool, Postgres, Row, Transaction};
 #[derive(Clone)]
 pub struct PgDraft(pub PgPool);
-fn unavailable(_: impl std::fmt::Display) -> Error {
-    Error::Unavailable
+fn unavailable(error: impl std::fmt::Display) -> Error {
+    // PostgreSQL trigger protects content after an explicit document export lock.
+    if error.to_string().contains("document_export_locked") {
+        Error::Conflict
+    } else {
+        Error::Unavailable
+    }
 }
 fn id(value: &str) -> Result<i64> {
     value.parse().map_err(|_| Error::NotFound)
@@ -104,10 +109,28 @@ impl DraftStore for PgDraft {
         let bytes = if let Some(bytes) = existing {
             bytes
         } else {
-            tokio::task::spawn_blocking(move || crate::invoice_pdf::render(&value))
-                .await
-                .map_err(unavailable)?
-                .map_err(unavailable)?
+            let style: Option<serde_json::Value> = sqlx::query_scalar(
+                "SELECT document_style FROM invoice_draft WHERE company_id=$1 AND id=$2",
+            )
+            .bind(id(company)?)
+            .bind(id(invoice)?)
+            .fetch_one(&self.0)
+            .await
+            .map_err(unavailable)?;
+            let style: Option<faktura_application::document_style::Style> = style
+                .map(serde_json::from_value)
+                .transpose()
+                .map_err(unavailable)?;
+            tokio::task::spawn_blocking(move || {
+                if let Some(style) = style.as_ref() {
+                    crate::invoice_pdf::render_with_style(&value, Some(style))
+                } else {
+                    crate::invoice_pdf::render(&value)
+                }
+            })
+            .await
+            .map_err(unavailable)?
+            .map_err(unavailable)?
         };
         let mut tx = self.0.begin().await.map_err(unavailable)?;
         let (_, company) = authorize(&mut tx, actor, company, false).await?;
@@ -124,13 +147,20 @@ impl DraftStore for PgDraft {
             .await
             .map_err(unavailable)?;
         let (_, company) = authorize(&mut tx, actor, company, false).await?;
-        let predicate = "company_id=$1 AND ($2::bigint IS NULL OR contact_id=$2)
+        if search.tag_id.len() > 40
+            || (!search.tag_id.is_empty()
+                && search.tag_id.parse::<i64>().ok().is_none_or(|v| v <= 0))
+        {
+            return Err(Error::Invalid(vec!["tag_id".into()]));
+        }
+        let predicate = "company_id=$1 AND id NOT IN (SELECT draft_id FROM invoice_trash WHERE company_id=$1 AND deleted_at IS NOT NULL) AND ($2::bigint IS NULL OR contact_id=$2)
             AND strpos(lower(concat_ws(' ',data#>>'{customer,name}',data->>'order_number',data#>>'{calculation,lines,0,description}',number,id::text)),lower($3))>0
             AND ($4 = 'all' OR ($4 = 'draft' AND number IS NULL) OR ($4 = 'issued' AND number IS NOT NULL) OR ($4 = 'outstanding' AND (settlement->>'outstanding')::numeric>0) OR ($4 = 'overdue' AND (settlement->>'overdue')::boolean) OR ($4 IN ('paid','partial','overpaid') AND settlement->>'status'=$4))
             AND ($6::text IS NULL OR data->>$5 >= $6)
             AND ($7::text IS NULL OR data->>$5 <= $7)
             AND ($8::text IS NULL OR (totals->>'payable')::numeric >= $8::numeric)
-            AND ($9::text IS NULL OR (totals->>'payable')::numeric <= $9::numeric)";
+            AND ($9::text IS NULL OR (totals->>'payable')::numeric <= $9::numeric)
+            AND ($10='' OR EXISTS(SELECT 1 FROM document_tag_link l WHERE l.company_id=invoice_with_settlement.company_id AND l.invoice_id=invoice_with_settlement.id AND l.tag_id::text=$10))";
         let sort = match search.sort.as_str() {
             "issued_desc" => "data->>'issued_on' DESC NULLS LAST,id DESC",
             "issued_asc" => "data->>'issued_on' ASC NULLS LAST,id",
@@ -157,15 +187,16 @@ impl DraftStore for PgDraft {
         .bind(&search.date_to)
         .bind(&search.amount_min)
         .bind(&search.amount_max)
+        .bind(&search.tag_id)
         .fetch_one(&mut *tx)
         .await
         .map_err(unavailable)?;
         let items = sqlx::query(&format!(
-            "SELECT * FROM invoice_with_settlement WHERE {predicate} ORDER BY {sort} LIMIT $10 OFFSET $11"
+            "SELECT * FROM invoice_with_settlement WHERE {predicate} ORDER BY {sort} LIMIT $11 OFFSET $12"
         ))
             .bind(company).bind(customer).bind(&search.query).bind(&search.status)
             .bind(&search.date_field).bind(&search.date_from).bind(&search.date_to)
-            .bind(&search.amount_min).bind(&search.amount_max)
+            .bind(&search.amount_min).bind(&search.amount_max).bind(&search.tag_id)
             .bind(search.page_size).bind((search.page - 1) * search.page_size)
             .fetch_all(&mut *tx).await.map_err(unavailable)?
             .into_iter().map(map).collect::<Result<Vec<_>>>()?;
@@ -181,7 +212,7 @@ impl DraftStore for PgDraft {
         let mut tx = self.0.begin().await.map_err(unavailable)?;
         let (_, company) = authorize(&mut tx, actor, company, false).await?;
         let value = map(sqlx::query(
-            "SELECT * FROM invoice_with_settlement WHERE company_id=$1 AND id=$2",
+            "SELECT * FROM invoice_with_settlement WHERE company_id=$1 AND id=$2 AND id NOT IN (SELECT draft_id FROM invoice_trash WHERE company_id=$1 AND deleted_at IS NOT NULL)",
         )
         .bind(company)
         .bind(id(contact)?)
@@ -209,7 +240,7 @@ impl DraftStore for PgDraft {
         let (actor, company) = authorize(&mut tx, actor, company, true).await?;
         let contact = id(contact)?;
         let previous = map(sqlx::query(
-            "SELECT * FROM invoice_draft WHERE company_id=$1 AND id=$2 FOR UPDATE",
+            "SELECT * FROM invoice_draft WHERE company_id=$1 AND id=$2 AND id NOT IN (SELECT draft_id FROM invoice_trash WHERE company_id=$1 AND deleted_at IS NOT NULL) FOR UPDATE",
         )
         .bind(company)
         .bind(contact)
@@ -298,7 +329,7 @@ pub(crate) async fn issue_in_tx(
         return map(row);
     }
     let mut draft = map(sqlx::query(
-        "SELECT * FROM invoice_draft WHERE company_id=$1 AND id=$2 FOR UPDATE",
+        "SELECT * FROM invoice_draft WHERE company_id=$1 AND id=$2 AND id NOT IN (SELECT draft_id FROM invoice_trash WHERE company_id=$1 AND deleted_at IS NOT NULL) FOR UPDATE",
     )
     .bind(company)
     .bind(invoice)
@@ -361,7 +392,7 @@ pub(crate) async fn issue_in_tx(
     if draft.data.payment.variable_symbol.is_empty() {
         draft.data.payment.variable_symbol = format!("{}{:06}", settings.number_year, next);
     }
-    let value = map(sqlx::query("UPDATE invoice_draft SET number=$3,issued_at=now(),issue_request_id=$4::text::uuid,issue_actor_id=$5,issue_revision=$6,data=$7,totals=$8,revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2 RETURNING *")
+    let value = map(sqlx::query("UPDATE invoice_draft SET document_style=(SELECT data FROM company_document_style WHERE company_id=$1),number=$3,issued_at=now(),issue_request_id=$4::text::uuid,issue_actor_id=$5,issue_revision=$6,data=$7,totals=$8,revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2 RETURNING *")
             .bind(company).bind(invoice).bind(&number).bind(&command.request_id).bind(actor).bind(command.revision)
             .bind(serde_json::to_value(&draft.data).map_err(unavailable)?).bind(serde_json::to_value(totals).map_err(unavailable)?)
             .fetch_one(&mut **tx).await.map_err(|e| if e.as_database_error().is_some_and(|d| d.is_unique_violation()) { Error::Conflict } else { unavailable(e) })?)?;

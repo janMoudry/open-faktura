@@ -9,9 +9,23 @@ pub struct Mail {
     pub subject: String,
     pub body: String,
 }
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RatePolicy {
+    #[default]
+    Stored,
+    CnbIssueDate,
+}
+impl RatePolicy {
+    fn is_stored(&self) -> bool {
+        *self == Self::Stored
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Data {
+    #[serde(default, skip_serializing_if = "RatePolicy::is_stored")]
+    pub rate_policy: RatePolicy,
     pub name: String,
     pub schedule: Schedule,
     pub maturity_days: u32,
@@ -83,6 +97,9 @@ pub trait RecurringStore: Send + Sync {
 }
 pub fn validate(d: &Data) -> Result<()> {
     let mut errors = faktura_domain::invoice::validate_draft(&d.invoice);
+    if d.rate_policy == RatePolicy::CnbIssueDate && d.invoice.calculation.currency == "CZK" {
+        errors.push("rate_policy".into());
+    }
     if d.name.trim().is_empty()
         || d.name.chars().count() > 200
         || d.name.chars().any(char::is_control)

@@ -52,6 +52,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/companies/{company}/reports/tax/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["tax_evidence_export"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -151,6 +167,21 @@ export interface components {
       total: number;
       periods: components["schemas"]["TaxPeriod"][];
       items: components["schemas"]["TaxEntry"][];
+    };
+    TaxExportRequest: {
+      search: {
+        year?: number;
+        /** @default false */
+        quarterly: boolean;
+        /** @default false */
+        turnover_sources: boolean;
+        /** @description Ignored for export; all matching sources are included within the export limit. */
+        page?: number;
+      };
+      /** @enum {string} */
+      format: "csv" | "xlsx";
+      /** @enum {string} */
+      language: "cs" | "en";
     };
   };
   responses: never;
@@ -313,6 +344,60 @@ export interface operations {
         content?: never;
       };
       /** @description Invalid year */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  tax_evidence_export: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        company: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TaxExportRequest"];
+      };
+    };
+    responses: {
+      /** @description Read-only VAT/turnover evidence, all sources within 10000 rows, not a tax filing */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/octet-stream": string;
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description No membership */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid period or export limit */
       422: {
         headers: {
           [name: string]: unknown;

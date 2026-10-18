@@ -97,10 +97,12 @@ for (const english of [false, true])
         stdio: "ignore",
       });
       await expect
-        .poll(async () =>
-          fetch(`http://127.0.0.1:${port}/api/ready`)
-            .then((r) => r.status)
-            .catch(() => 0),
+        .poll(
+          async () =>
+            fetch(`http://127.0.0.1:${port}/api/ready`)
+              .then((r) => r.status)
+              .catch(() => 0),
+          { timeout: 20000 },
         )
         .toBe(200);
       await page.route("**/api/**", async (route) => {
@@ -500,6 +502,45 @@ for (const english of [false, true])
         .click();
       await expect(page).toHaveURL(/invoices\/\d+$/);
       expect(page.url()).not.toBe(draftUrl);
+      const copyUrl = page.url();
+      await page
+        .getByRole("button", {
+          name: text("Přesunout do koše", "Move to trash"),
+          exact: true,
+        })
+        .click();
+      const trashDialog = page.getByRole("dialog");
+      await trashDialog
+        .getByRole("button", {
+          name: text("Přesunout do koše", "Move to trash"),
+          exact: true,
+        })
+        .click();
+      await expect(page).toHaveURL(
+        new RegExp(`/companies/${alpha.id}/invoices$`),
+      );
+      await page
+        .getByRole("link", {
+          name: text("Koš návrhů", "Draft trash"),
+          exact: true,
+        })
+        .click();
+      await expect(page.getByRole("table")).toContainText("Design services");
+      await page
+        .getByRole("button", { name: text("Obnovit", "Restore"), exact: true })
+        .click();
+      await expect(
+        page.getByText(text("Koš je prázdný.", "Trash is empty."), {
+          exact: true,
+        }),
+      ).toBeVisible();
+      await page.goto(copyUrl);
+      await expect(
+        page.getByLabel(text("Popis položky", "Item description"), {
+          exact: true,
+        }),
+      ).toHaveValue("Design services");
+
       await page
         .getByRole("link", {
           name: text("Faktury", "Invoices"),
@@ -897,14 +938,6 @@ for (const english of [false, true])
       await pdfButton.evaluate(async (el) => {
         await Promise.allSettled(el.getAnimations().map((a) => a.finished));
       });
-      // Audit stable button colours after async loading/disabled transitions.
-      await page.locator("button").evaluateAll(async (buttons) => {
-        await Promise.allSettled(
-          buttons.flatMap((button) =>
-            button.getAnimations().map((animation) => animation.finished),
-          ),
-        );
-      });
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
         path: `docs/design/invoice-issued-${english ? "en" : "cs"}-${info.project.name}.png`,
@@ -1025,14 +1058,6 @@ for (const english of [false, true])
       ).toBeVisible();
       await expect(payments).toContainText("Synthetic reversal");
       await expect(payments).toContainText("Synthetic correction");
-      // Audit stable button colours after async loading/disabled transitions.
-      await page.locator("button").evaluateAll(async (buttons) => {
-        await Promise.allSettled(
-          buttons.flatMap((button) =>
-            button.getAnimations().map((animation) => animation.finished),
-          ),
-        );
-      });
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
         path: `docs/design/invoice-payments-${english ? "en" : "cs"}-${info.project.name}.png`,
@@ -1082,14 +1107,6 @@ for (const english of [false, true])
       await expect(page.getByRole("main")).toContainText(
         text("59,99 Kč", "59.99 CZK"),
       );
-      // Audit stable button colours after async loading/disabled transitions.
-      await page.locator("button").evaluateAll(async (buttons) => {
-        await Promise.allSettled(
-          buttons.flatMap((button) =>
-            button.getAnimations().map((animation) => animation.finished),
-          ),
-        );
-      });
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
         path: `docs/design/overview-${english ? "en" : "cs"}-${info.project.name}.png`,

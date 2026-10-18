@@ -50,6 +50,12 @@ function rule(v: unknown): RecurringRule {
     !Array.isArray(d.occurrences)
   )
     throw new SalesFailure(502, "invalid_response");
+  if (
+    d.data.rate_policy !== undefined &&
+    !["stored", "cnb_issue_date"].includes(d.data.rate_policy)
+  )
+    throw new SalesFailure(502, "invalid_response");
+  d.data.rate_policy ??= "stored";
   return d;
 }
 export async function createRecurring(

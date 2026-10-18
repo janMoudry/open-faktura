@@ -524,10 +524,10 @@ details[open] > .contact-disclosure svg {
     @apply flex flex-wrap items-center gap-control;
   }
   .register-search {
-    @apply flex min-w-0 flex-1 items-center gap-inline;
+    @apply flex min-w-0 basis-full grow items-center gap-inline sm:basis-64;
   }
   .register-search .ui-control {
-    @apply w-full;
+    @apply min-w-0 flex-1;
   }
   .register-search .ui-button {
     @apply shrink-0;

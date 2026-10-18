@@ -54,17 +54,24 @@ impl ContactStore for PgContact {
             .await
             .map_err(unavailable)?;
         let (_, company) = authorize(&mut tx, actor, company, false).await?;
-        let predicate = "company_id=$1 AND archived=$2 AND strpos(lower(concat_ws(' ', data->>'name',data->>'registration_number',data->>'email')),lower($3))>0";
+        if search.tag_id.len() > 40
+            || (!search.tag_id.is_empty()
+                && search.tag_id.parse::<i64>().ok().is_none_or(|v| v <= 0))
+        {
+            return Err(Error::Invalid(vec!["tag_id".into()]));
+        }
+        let predicate = "company_id=$1 AND archived=$2 AND strpos(lower(concat_ws(' ', data->>'name',data->>'registration_number',data->>'email')),lower($3))>0 AND ($4='' OR EXISTS(SELECT 1 FROM document_tag_link l WHERE l.company_id=contact.company_id AND l.contact_id=contact.id AND l.tag_id::text=$4))";
         let total: i64 =
             sqlx::query_scalar(&format!("SELECT count(*) FROM contact WHERE {predicate}"))
                 .bind(company)
                 .bind(search.archived)
                 .bind(&search.query)
+                .bind(&search.tag_id)
                 .fetch_one(&mut *tx)
                 .await
                 .map_err(unavailable)?;
-        let items = sqlx::query(&format!("SELECT * FROM contact WHERE {predicate} ORDER BY lower(data->>'name'),id LIMIT $4 OFFSET $5"))
-            .bind(company).bind(search.archived).bind(&search.query).bind(search.page_size).bind((search.page-1)*search.page_size).fetch_all(&mut *tx).await.map_err(unavailable)?.into_iter().map(map).collect::<Result<Vec<_>>>()?;
+        let items = sqlx::query(&format!("SELECT * FROM contact WHERE {predicate} ORDER BY lower(data->>'name'),id LIMIT $5 OFFSET $6"))
+            .bind(company).bind(search.archived).bind(&search.query).bind(&search.tag_id).bind(search.page_size).bind((search.page-1)*search.page_size).fetch_all(&mut *tx).await.map_err(unavailable)?.into_iter().map(map).collect::<Result<Vec<_>>>()?;
         tx.commit().await.map_err(unavailable)?;
         Ok(ContactPage {
             items,

@@ -25,6 +25,7 @@ pub struct Page {
 #[derive(Default, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Search {
+    pub tag_id: String,
     pub kind: faktura_domain::received::Kind,
     pub query: String,
     pub status: String,

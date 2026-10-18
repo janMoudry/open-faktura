@@ -275,6 +275,11 @@ export interface components {
       language: "cs" | "en";
       order_number: string;
       note: string;
+      /**
+       * @description Immutable print choice; omitted means legacy QR payment. Invoice formats support ordinary CZK invoices from 2024; unsupported data produce no QR.
+       * @enum {string}
+       */
+      qr_format?: "payment" | "invoice" | "payment_invoice";
     };
     DraftLine: {
       id: string;
@@ -615,6 +620,8 @@ export interface operations {
         archived?: boolean;
         page?: number;
         page_size?: number;
+        /** @description Filter assigned company tag before pagination; empty means all. */
+        tag_id?: string;
       };
       header?: never;
       path: {

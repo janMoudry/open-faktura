@@ -18,9 +18,7 @@
           "format": "int64"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -40,11 +38,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "request_id",
-        "invoice_id"
-      ],
+      "required": ["company_id", "request_id", "invoice_id"],
       "additionalProperties": false
     }
   },
@@ -60,10 +54,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -88,14 +79,7 @@
         },
         "action": {
           "type": "string",
-          "enum": [
-            "update",
-            "issue",
-            "cancel",
-            "offset",
-            "refund",
-            "reverse"
-          ]
+          "enum": ["update", "issue", "cancel", "offset", "refund", "reverse"]
         },
         "data": {
           "type": "object",
@@ -118,10 +102,7 @@
             },
             "language": {
               "type": "string",
-              "enum": [
-                "cs",
-                "en"
-              ]
+              "enum": ["cs", "en"]
             },
             "lines": {
               "type": "array",
@@ -147,10 +128,7 @@
                     ]
                   }
                 },
-                "required": [
-                  "id",
-                  "amount"
-                ],
+                "required": ["id", "amount"],
                 "additionalProperties": false
               }
             }
@@ -174,10 +152,7 @@
         },
         "method": {
           "type": "string",
-          "enum": [
-            "bank_transfer",
-            "cash"
-          ]
+          "enum": ["bank_transfer", "cash"]
         },
         "reason": {
           "type": "string"
@@ -186,33 +161,21 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "request_id",
-        "revision",
-        "action"
-      ],
+      "required": ["company_id", "id", "request_id", "revision", "action"],
       "additionalProperties": false,
       "oneOf": [
         {
           "properties": {
             "action": {
-              "enum": [
-                "update"
-              ]
+              "enum": ["update"]
             }
           },
-          "required": [
-            "data"
-          ]
+          "required": ["data"]
         },
         {
           "properties": {
             "action": {
-              "enum": [
-                "issue"
-              ]
+              "enum": ["issue"]
             }
           },
           "required": []
@@ -220,9 +183,7 @@
         {
           "properties": {
             "action": {
-              "enum": [
-                "cancel"
-              ]
+              "enum": ["cancel"]
             }
           },
           "required": []
@@ -230,9 +191,7 @@
         {
           "properties": {
             "action": {
-              "enum": [
-                "offset"
-              ]
+              "enum": ["offset"]
             }
           },
           "required": []
@@ -240,30 +199,18 @@
         {
           "properties": {
             "action": {
-              "enum": [
-                "refund"
-              ]
+              "enum": ["refund"]
             }
           },
-          "required": [
-            "amount",
-            "date",
-            "method",
-            "reason"
-          ]
+          "required": ["amount", "date", "method", "reason"]
         },
         {
           "properties": {
             "action": {
-              "enum": [
-                "reverse"
-              ]
+              "enum": ["reverse"]
             }
           },
-          "required": [
-            "event_id",
-            "reason"
-          ]
+          "required": ["event_id", "reason"]
         }
       ]
     }
@@ -280,10 +227,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   }

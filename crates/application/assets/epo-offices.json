@@ -1,0 +1,703 @@
+{
+  "observed_on": "2026-10-18",
+  "offices": [
+    {
+      "code": "0",
+      "name": "Generální finanční ředitelství"
+    },
+    {
+      "code": "13",
+      "name": "Specializovaný finanční úřad"
+    },
+    {
+      "code": "451",
+      "name": "Finanční úřad pro hlavní město Prahu"
+    },
+    {
+      "code": "452",
+      "name": "Finanční úřad pro Středočeský kraj"
+    },
+    {
+      "code": "453",
+      "name": "Finanční úřad pro Jihočeský kraj"
+    },
+    {
+      "code": "454",
+      "name": "Finanční úřad pro Plzeňský kraj"
+    },
+    {
+      "code": "455",
+      "name": "Finanční úřad pro Karlovarský kraj"
+    },
+    {
+      "code": "456",
+      "name": "Finanční úřad pro Ústecký kraj"
+    },
+    {
+      "code": "457",
+      "name": "Finanční úřad pro Liberecký kraj"
+    },
+    {
+      "code": "458",
+      "name": "Finanční úřad pro Královéhradecký kraj"
+    },
+    {
+      "code": "459",
+      "name": "Finanční úřad pro Pardubický kraj"
+    },
+    {
+      "code": "460",
+      "name": "Finanční úřad pro Kraj Vysočina"
+    },
+    {
+      "code": "461",
+      "name": "Finanční úřad pro Jihomoravský kraj"
+    },
+    {
+      "code": "462",
+      "name": "Finanční úřad pro Olomoucký kraj"
+    },
+    {
+      "code": "463",
+      "name": "Finanční úřad pro Moravskoslezský kraj"
+    },
+    {
+      "code": "464",
+      "name": "Finanční úřad pro Zlínský kraj"
+    }
+  ],
+  "workplaces": [
+    {
+      "code": "2001",
+      "name": "Územní pracoviště pro Prahu 1",
+      "office": "451"
+    },
+    {
+      "code": "2002",
+      "name": "Územní pracoviště pro Prahu 2",
+      "office": "451"
+    },
+    {
+      "code": "2003",
+      "name": "Územní pracoviště pro Prahu 3",
+      "office": "451"
+    },
+    {
+      "code": "2004",
+      "name": "Územní pracoviště pro Prahu 4",
+      "office": "451"
+    },
+    {
+      "code": "2005",
+      "name": "Územní pracoviště pro Prahu 5",
+      "office": "451"
+    },
+    {
+      "code": "2006",
+      "name": "Územní pracoviště pro Prahu 6",
+      "office": "451"
+    },
+    {
+      "code": "2007",
+      "name": "Územní pracoviště pro Prahu 7",
+      "office": "451"
+    },
+    {
+      "code": "2008",
+      "name": "Územní pracoviště pro Prahu 8",
+      "office": "451"
+    },
+    {
+      "code": "2009",
+      "name": "Územní pracoviště pro Prahu 9",
+      "office": "451"
+    },
+    {
+      "code": "2010",
+      "name": "Územní pracoviště pro Prahu 10",
+      "office": "451"
+    },
+    {
+      "code": "2011",
+      "name": "Územní pracoviště pro Prahu - Jižní Město",
+      "office": "451"
+    },
+    {
+      "code": "2012",
+      "name": "Územní pracoviště v Praze - Modřanech",
+      "office": "451"
+    },
+    {
+      "code": "2101",
+      "name": "Územní pracoviště Praha-východ",
+      "office": "452"
+    },
+    {
+      "code": "2102",
+      "name": "Územní pracoviště Praha-západ",
+      "office": "452"
+    },
+    {
+      "code": "2103",
+      "name": "Územní pracoviště v Benešově",
+      "office": "452"
+    },
+    {
+      "code": "2104",
+      "name": "Územní pracoviště v Berouně",
+      "office": "452"
+    },
+    {
+      "code": "2105",
+      "name": "Územní pracoviště v Brandýse n.L.-Staré Bol.",
+      "office": "452"
+    },
+    {
+      "code": "2106",
+      "name": "Územní pracoviště v Čáslavi",
+      "office": "452"
+    },
+    {
+      "code": "2109",
+      "name": "Územní pracoviště v Hořovicích",
+      "office": "452"
+    },
+    {
+      "code": "2110",
+      "name": "Územní pracoviště v Kladně",
+      "office": "452"
+    },
+    {
+      "code": "2111",
+      "name": "Územní pracoviště v Kolíně",
+      "office": "452"
+    },
+    {
+      "code": "2112",
+      "name": "Územní pracoviště v Kralupech nad Vltavou",
+      "office": "452"
+    },
+    {
+      "code": "2113",
+      "name": "Územní pracoviště v Kutné Hoře",
+      "office": "452"
+    },
+    {
+      "code": "2114",
+      "name": "Územní pracoviště v Mělníce",
+      "office": "452"
+    },
+    {
+      "code": "2115",
+      "name": "Územní pracoviště v Mladé Boleslavi",
+      "office": "452"
+    },
+    {
+      "code": "2118",
+      "name": "Územní pracoviště v Nymburku",
+      "office": "452"
+    },
+    {
+      "code": "2119",
+      "name": "Územní pracoviště v Poděbradech",
+      "office": "452"
+    },
+    {
+      "code": "2120",
+      "name": "Územní pracoviště v Příbrami",
+      "office": "452"
+    },
+    {
+      "code": "2121",
+      "name": "Územní pracoviště v Rakovníku",
+      "office": "452"
+    },
+    {
+      "code": "2122",
+      "name": "Územní pracoviště v Říčanech",
+      "office": "452"
+    },
+    {
+      "code": "2124",
+      "name": "Územní pracoviště ve Slaném",
+      "office": "452"
+    },
+    {
+      "code": "2125",
+      "name": "Územní pracoviště ve Vlašimi",
+      "office": "452"
+    },
+    {
+      "code": "2201",
+      "name": "Územní pracoviště v Českých Budějovicích",
+      "office": "453"
+    },
+    {
+      "code": "2203",
+      "name": "Územní pracoviště v Českém Krumlově",
+      "office": "453"
+    },
+    {
+      "code": "2205",
+      "name": "Územní pracoviště v Jindřichově Hradci",
+      "office": "453"
+    },
+    {
+      "code": "2208",
+      "name": "Územní pracoviště v Písku",
+      "office": "453"
+    },
+    {
+      "code": "2209",
+      "name": "Územní pracoviště v Prachaticích",
+      "office": "453"
+    },
+    {
+      "code": "2211",
+      "name": "Územní pracoviště ve Strakonicích",
+      "office": "453"
+    },
+    {
+      "code": "2212",
+      "name": "Územní pracoviště v Táboře",
+      "office": "453"
+    },
+    {
+      "code": "2301",
+      "name": "Územní pracoviště v Plzni",
+      "office": "454"
+    },
+    {
+      "code": "2302",
+      "name": "Územní pracoviště Plzeň-sever",
+      "office": "454"
+    },
+    {
+      "code": "2303",
+      "name": "Územní pracoviště Plzeň-jih",
+      "office": "454"
+    },
+    {
+      "code": "2305",
+      "name": "Územní pracoviště v Domažlicích",
+      "office": "454"
+    },
+    {
+      "code": "2308",
+      "name": "Územní pracoviště v Klatovech",
+      "office": "454"
+    },
+    {
+      "code": "2312",
+      "name": "Územní pracoviště v Rokycanech",
+      "office": "454"
+    },
+    {
+      "code": "2313",
+      "name": "Územní pracoviště v Tachově",
+      "office": "454"
+    },
+    {
+      "code": "2401",
+      "name": "Územní pracoviště v Karlových Varech",
+      "office": "455"
+    },
+    {
+      "code": "2403",
+      "name": "Územní pracoviště v Chebu",
+      "office": "455"
+    },
+    {
+      "code": "2407",
+      "name": "Územní pracoviště v Sokolově",
+      "office": "455"
+    },
+    {
+      "code": "2501",
+      "name": "Územní pracoviště v Ústí nad Labem",
+      "office": "456"
+    },
+    {
+      "code": "2503",
+      "name": "Územní pracoviště v Děčíně",
+      "office": "456"
+    },
+    {
+      "code": "2504",
+      "name": "Územní pracoviště v Chomutově",
+      "office": "456"
+    },
+    {
+      "code": "2505",
+      "name": "Územní pracoviště v Kadani",
+      "office": "456"
+    },
+    {
+      "code": "2507",
+      "name": "Územní pracoviště v Litoměřicích",
+      "office": "456"
+    },
+    {
+      "code": "2509",
+      "name": "Územní pracoviště v Lounech",
+      "office": "456"
+    },
+    {
+      "code": "2510",
+      "name": "Územní pracoviště v Mostě",
+      "office": "456"
+    },
+    {
+      "code": "2512",
+      "name": "Územní pracoviště v Roudnici nad Labem",
+      "office": "456"
+    },
+    {
+      "code": "2513",
+      "name": "Územní pracoviště v Rumburku",
+      "office": "456"
+    },
+    {
+      "code": "2514",
+      "name": "Územní pracoviště v Teplicích",
+      "office": "456"
+    },
+    {
+      "code": "2515",
+      "name": "Územní pracoviště v Žatci",
+      "office": "456"
+    },
+    {
+      "code": "2601",
+      "name": "Územní pracoviště v Liberci",
+      "office": "457"
+    },
+    {
+      "code": "2602",
+      "name": "Územní pracoviště v České Lípě",
+      "office": "457"
+    },
+    {
+      "code": "2604",
+      "name": "Územní pracoviště v Jablonci nad Nisou",
+      "office": "457"
+    },
+    {
+      "code": "2607",
+      "name": "Územní pracoviště v Semilech",
+      "office": "457"
+    },
+    {
+      "code": "2609",
+      "name": "Územní pracoviště v Turnově",
+      "office": "457"
+    },
+    {
+      "code": "2701",
+      "name": "Územní pracoviště v Hradci Králové",
+      "office": "458"
+    },
+    {
+      "code": "2707",
+      "name": "Územní pracoviště v Jičíně",
+      "office": "458"
+    },
+    {
+      "code": "2709",
+      "name": "Územní pracoviště v Náchodě",
+      "office": "458"
+    },
+    {
+      "code": "2712",
+      "name": "Územní pracoviště v Rychnově nad Kněžnou",
+      "office": "458"
+    },
+    {
+      "code": "2713",
+      "name": "Územní pracoviště v Trutnově",
+      "office": "458"
+    },
+    {
+      "code": "2801",
+      "name": "Územní pracoviště v Pardubicích",
+      "office": "459"
+    },
+    {
+      "code": "2804",
+      "name": "Územní pracoviště v Chrudimi",
+      "office": "459"
+    },
+    {
+      "code": "2808",
+      "name": "Územní pracoviště ve Svitavách",
+      "office": "459"
+    },
+    {
+      "code": "2809",
+      "name": "Územní pracoviště v Ústí nad Orlicí",
+      "office": "459"
+    },
+    {
+      "code": "2810",
+      "name": "Územní pracoviště ve Vysokém Mýtě",
+      "office": "459"
+    },
+    {
+      "code": "2811",
+      "name": "Územní pracoviště v Žamberku",
+      "office": "459"
+    },
+    {
+      "code": "2901",
+      "name": "Územní pracoviště v Jihlavě",
+      "office": "460"
+    },
+    {
+      "code": "2903",
+      "name": "Územní pracoviště v Havlíčkově Brodě",
+      "office": "460"
+    },
+    {
+      "code": "2910",
+      "name": "Územní pracoviště v Pelhřimově",
+      "office": "460"
+    },
+    {
+      "code": "2912",
+      "name": "Územní pracoviště v Třebíči",
+      "office": "460"
+    },
+    {
+      "code": "2913",
+      "name": "Územní pracoviště ve Velkém Meziříčí",
+      "office": "460"
+    },
+    {
+      "code": "2914",
+      "name": "Územní pracoviště ve Žďáru nad Sázavou",
+      "office": "460"
+    },
+    {
+      "code": "3001",
+      "name": "Územní pracoviště Brno I",
+      "office": "461"
+    },
+    {
+      "code": "3002",
+      "name": "Územní pracoviště Brno II",
+      "office": "461"
+    },
+    {
+      "code": "3003",
+      "name": "Územní pracoviště Brno III",
+      "office": "461"
+    },
+    {
+      "code": "3004",
+      "name": "Územní pracoviště Brno IV",
+      "office": "461"
+    },
+    {
+      "code": "3005",
+      "name": "Územní pracoviště Brno-venkov",
+      "office": "461"
+    },
+    {
+      "code": "3006",
+      "name": "Územní pracoviště v Blansku",
+      "office": "461"
+    },
+    {
+      "code": "3007",
+      "name": "Územní pracoviště v Boskovicích",
+      "office": "461"
+    },
+    {
+      "code": "3008",
+      "name": "Územní pracoviště v Břeclavi",
+      "office": "461"
+    },
+    {
+      "code": "3010",
+      "name": "Územní pracoviště v Hodoníně",
+      "office": "461"
+    },
+    {
+      "code": "3011",
+      "name": "Územní pracoviště v Hustopečích",
+      "office": "461"
+    },
+    {
+      "code": "3013",
+      "name": "Územní pracoviště v Kyjově",
+      "office": "461"
+    },
+    {
+      "code": "3018",
+      "name": "Územní pracoviště ve Veselí nad Moravou",
+      "office": "461"
+    },
+    {
+      "code": "3019",
+      "name": "Územní pracoviště ve Vyškově",
+      "office": "461"
+    },
+    {
+      "code": "3020",
+      "name": "Územní pracoviště ve Znojmě",
+      "office": "461"
+    },
+    {
+      "code": "3101",
+      "name": "Územní pracoviště v Olomouci",
+      "office": "462"
+    },
+    {
+      "code": "3102",
+      "name": "Územní pracoviště v Hranicích",
+      "office": "462"
+    },
+    {
+      "code": "3103",
+      "name": "Územní pracoviště v Jeseníku",
+      "office": "462"
+    },
+    {
+      "code": "3106",
+      "name": "Územní pracoviště v Prostějově",
+      "office": "462"
+    },
+    {
+      "code": "3107",
+      "name": "Územní pracoviště v Přerově",
+      "office": "462"
+    },
+    {
+      "code": "3108",
+      "name": "Územní pracoviště ve Šternberku",
+      "office": "462"
+    },
+    {
+      "code": "3109",
+      "name": "Územní pracoviště v Šumperku",
+      "office": "462"
+    },
+    {
+      "code": "3110",
+      "name": "Územní pracoviště v Zábřehu",
+      "office": "462"
+    },
+    {
+      "code": "3201",
+      "name": "Územní pracoviště Ostrava I",
+      "office": "463"
+    },
+    {
+      "code": "3202",
+      "name": "Územní pracoviště Ostrava II",
+      "office": "463"
+    },
+    {
+      "code": "3203",
+      "name": "Územní pracoviště Ostrava III",
+      "office": "463"
+    },
+    {
+      "code": "3205",
+      "name": "Územní pracoviště v Bruntále",
+      "office": "463"
+    },
+    {
+      "code": "3207",
+      "name": "Územní pracoviště ve Frýdku-Místku",
+      "office": "463"
+    },
+    {
+      "code": "3210",
+      "name": "Územní pracoviště v Havířově",
+      "office": "463"
+    },
+    {
+      "code": "3212",
+      "name": "Územní pracoviště v Karviné",
+      "office": "463"
+    },
+    {
+      "code": "3213",
+      "name": "Územní pracoviště v Kopřivnici",
+      "office": "463"
+    },
+    {
+      "code": "3214",
+      "name": "Územní pracoviště v Krnově",
+      "office": "463"
+    },
+    {
+      "code": "3215",
+      "name": "Územní pracoviště v Novém Jičíně",
+      "office": "463"
+    },
+    {
+      "code": "3216",
+      "name": "Územní pracoviště v Opavě",
+      "office": "463"
+    },
+    {
+      "code": "3218",
+      "name": "Územní pracoviště v Třinci",
+      "office": "463"
+    },
+    {
+      "code": "3301",
+      "name": "Územní pracoviště ve Zlíně",
+      "office": "464"
+    },
+    {
+      "code": "3304",
+      "name": "Územní pracoviště v Kroměříži",
+      "office": "464"
+    },
+    {
+      "code": "3306",
+      "name": "Územní pracoviště v Otrokovicích",
+      "office": "464"
+    },
+    {
+      "code": "3307",
+      "name": "Územní pracoviště v Rožnově pod Radhoštěm",
+      "office": "464"
+    },
+    {
+      "code": "3308",
+      "name": "Územní pracoviště v Uherském Brodě",
+      "office": "464"
+    },
+    {
+      "code": "3309",
+      "name": "Územní pracoviště v Uherském Hradišti",
+      "office": "464"
+    },
+    {
+      "code": "3310",
+      "name": "Územní pracoviště ve Valašském Meziříčí",
+      "office": "464"
+    },
+    {
+      "code": "3312",
+      "name": "Územní pracoviště ve Vsetíně",
+      "office": "464"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://mojedane.gov.cz/dpr/epo_ciselnik?C=ufo&PL=2026-10-18",
+      "version": "51.3.00670",
+      "sha256": "57f6641cde64f8235057d8e1be26e758c3e924e2696bfe35f70715e198cde237"
+    },
+    {
+      "url": "https://mojedane.gov.cz/dpr/epo_ciselnik?C=pracufo&PL=2026-10-18",
+      "version": "51.3.00210",
+      "sha256": "214f998e242d30154d3125e4a98815eb698755eef52bf0553aab4993ab981b5c"
+    }
+  ]
+}

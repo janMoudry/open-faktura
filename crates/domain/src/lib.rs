@@ -37,3 +37,5 @@ pub mod retail;
 pub mod stock_cost;
 
 pub mod exchange;
+
+pub mod invoice_qr;

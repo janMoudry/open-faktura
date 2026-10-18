@@ -1,0 +1,109 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura dashboard widgets",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/auth/dashboard-widgets": {
+      "get": {
+        "operationId": "dashboard_widgets_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Own-account widget layout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "409": {
+            "description": "Revision conflict"
+          },
+          "422": {
+            "description": "Invalid layout"
+          }
+        }
+      },
+      "post": {
+        "operationId": "dashboard_widgets_set",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Layout"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Own-account widget layout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "409": {
+            "description": "Revision conflict"
+          },
+          "422": {
+            "description": "Invalid layout"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Widget": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "variant"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["finance", "tax"]
+          },
+          "variant": {
+            "type": "string",
+            "enum": ["detailed", "compact"]
+          }
+        }
+      },
+      "Layout": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["revision", "widgets"],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "widgets": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "$ref": "#/components/schemas/Widget"
+            }
+          }
+        }
+      }
+    }
+  }
+}

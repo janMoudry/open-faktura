@@ -1,0 +1,48 @@
+[
+  {
+    "name": "invoice_trash_list",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": ["company_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "invoice_trash_execute",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["company_id", "request_id", "id", "revision", "action"],
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "action": {
+          "type": "string",
+          "enum": ["trash", "restore"]
+        }
+      }
+    }
+  }
+]

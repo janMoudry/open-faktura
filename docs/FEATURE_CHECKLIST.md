@@ -1,6 +1,6 @@
 # Checklist funkcí Open Faktury
 
-Stav k 14. 10. 2026. [Zpět na README](../README.md) · [Implementační plán](IMPLEMENTATION_PLAN.md) · [Úplný cílový rozsah](research/FEATURES_REFERENCE.md)
+Stav k 18. 10. 2026. Aktuální souhrn P16–P20: [stav dokončení](P16_P20_COMPLETION.md). [Zpět na README](../README.md) · [Implementační plán](IMPLEMENTATION_PLAN.md) · [Úplný cílový rozsah](research/FEATURES_REFERENCE.md)
 
 Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s iDokladem nebo připravenost celého produktu pro produkci. Nezaškrtnuté položky chybí nebo vyžadují dokončení a ověření. Podrobné podmínky a testy uvádějí odkazované specifikace. Checklist aktualizujte s každou dodávkou; nenahrazuje úplný soupis FEATURES.
 
@@ -24,7 +24,8 @@ Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s i
 - [x] Více fakturačních profilů, přepínání a nastavení.
 - [x] Profilová izolace, role owner/editor/viewer a audit implementovaných operací.
 - [x] Základní postupy zálohy a obnovy databáze.
-- [ ] Pozvánky a kompletní uživatelské UI správy členů a oprávnění.
+- [x] Správa existujících členů podle e-mailu, role, převod vlastnictví a odchod; ochrana posledního vlastníka.
+- [ ] E-mailové pozvánky dosud nezaregistrovaným uživatelům.
 - [ ] Dvoufázové ověření a další správa účtu z úplného rozsahu.
 - [ ] Veřejná beta: provozní, bezpečnostní a zátěžové ověření.
 - [x] Projektová licence GNU AGPL v3 (`AGPL-3.0-only`), [znění](../LICENSE) a [vysvětlení](LICENSING.md).
@@ -37,7 +38,7 @@ Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s i
 - [x] Fakturační a dodací adresy, kontaktní osoby a platební údaje.
 - [x] Doplnění údajů podle IČO z ARES; ruční zadání bez registru.
 - [x] Archivace/obnova a ochrana proti přepsání souběžné úpravy.
-- [ ] Ověřování DIČ, plátcovství a další registry.
+- [x] Ruční ověření českého DIČ přes oficiální RWS a EU DIČ přes VIES; výpadek služby není neplatné DIČ. [RWS](specs/vat-registry.md) · [VIES](specs/vies.md).
 - [ ] Rozšíření pro nákupní/dodavatelskou agendu.
 
 [Specifikace kontaktů](specs/contacts.md)
@@ -52,7 +53,8 @@ Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s i
 - [x] Plné a částečné ruční úhrady, přeplatek a oprava/storno úhrady.
 - [x] Základní přehled pohledávek a plateb aktivního profilu.
 - [ ] Úplně ověřená numerická shoda s iDokladem.
-- [ ] Cizí měny, kurzy a širší daňové režimy.
+- [x] Podporované cizí měny, uložené kurzy a přepočty přehledů podle [rozsahu](specs/report-currencies.md).
+- [ ] Širší daňové režimy a různé kurzy záloh/DDPP/vyúčtování.
 - [ ] Kompletní opravný tok vystavených dokladů.
 
 [Výpočty](specs/invoice-calculation.md) · [Vystavení](specs/invoice-issue.md) · [Úhrady](specs/invoice-payments.md)
@@ -123,11 +125,12 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P16-03: hromadný náhled a potvrzení přesných shod z aktuální stránky, vysvětlené přeskočení, konflikty i mimo výběr, atomický zápis/rollback, REST/MCP a CS/EN. [Rozsah](specs/bank-batch-matching.md).
 - [x] P16-15a: vlastní přístupy k bankovnímu účtu, šifrování, test spojení, ruční synchronizace a její stav, odpojení, REST/MCP a CS/EN. Přímé Fio a instalačně registrovaná gateway; [kontrakt a omezení](specs/bank-connections.md).
 - [x] P16-15b: volitelná automatická synchronizace (15 min / 1 h / 6 h / den), worker s profilovými oprávněními, příští běh a diagnostika, CS/EN. Bez automatického párování.
-- [ ] P16-15: bankovní notifikace, další nativní adaptéry/PSD2 poskytovatelé a živé ověření. Vlastní gateway není hotový adaptér všech bank.
+- [x] P16-15: autentizovaná vlastní brána bankovních notifikací se společným importem.
+- [ ] Další nativní adaptéry/PSD2 poskytovatelé a živé ověření. Vlastní gateway není hotový adaptér všech bank.
 - [x] P16-14: opt-in průběžné párování přesných shod, oprávnění aktéra, atomické dávky, audit a CS/EN stav. [Pravidla a omezení](specs/bank-auto-matching.md).
 - [x] P16-11: rozdělení pohybu mezi více dokladů, přesný nerozdělený zbytek/přeplatek, atomické odpojení a CS/EN. [Rozsah](specs/bank-split-matching.md).
 - [x] P16-12: ruční bankovní/pokladní párování záloh a vratek dobropisů, vlastní platební operace, existující úhrady bez zdvojení a ochrana DDPP/vyúčtování. [Rozsah](specs/treasury-documents.md).
-- [ ] P16-13: cizí měny a kurzy.
+- [x] P16-13: cizoměnové účty, importy, shodné i rozdílné měny faktur, záloh a vratek; explicitní kurzy a existující úhrady bez duplicity.
 - [x] P16-13h: české i zahraniční IBAN bankovních účtů, kontrola formátu a checksumu, import se shodou účtu/měny; bez rozšíření IBAN na dokladech a QR ([rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů)).
 - [x] P16-04: CZK pokladny, počáteční stav, PP/VP doklady, saldo za období, storno, ruční párování nových/existujících hotovostních úhrad, REST/MCP a CS/EN. [Hranice](specs/cash-register.md).
 - [x] P16-05: volitelná hlavní pokladna, automatické PP/VP ze skutečných hotovostních úhrad vydaných/přijatých faktur a účtenek, opravy/storna, PDF a náhled tisku v CS/EN. [Rozsah](specs/cash-register.md).
@@ -146,22 +149,26 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P18-03e: pořizovací ocenění ručních/počátečních příjmů a inventurních přebytků, storno původní hodnoty. Numerická shoda iDokladu není doložená.
 - [x] P18-04: přehled prodeje ceníkových položek, období/typ, skutečné uložené částky, zdrojové doklady, sloupce a CSV/XLSX, REST/MCP, CS/EN. [Specifikace](specs/item-sales.md).
 - [x] P18-05a: import základního ceníku Money S3 XML s náhledem, konflikty a deduplikací. [Rozsah](specs/catalog-import.md).
-- [ ] P18-05b: nativní adaptéry Money S4/S5 čekají na exportní kontrakt (E-059).
+- [x] P18-05b: pro neověřené varianty Money S4/S5 je podle rozhodnutí uživatele dostupné obecné mapování a [vlastní adaptér](INTEGRATION_ADAPTERS.md); nejde o nativní podporu S4/S5 (E-059).
 - [x] P18-05c: obecný import ceníku CSV/XLSX s mapováním a přesnými cenami, CS/EN.
 - [x] Měsíční CZK přehled prodeje/nákupu, kumulace, meziroční srovnání a zdrojové doklady s profilovou izolací.
 - [ ] P19: další přehledy, daňové podklady a účetní exporty.
-- [ ] P20: štítky, koš, uzávěrky a zbývající hromadné akce.
-- [ ] P20: branding dokumentů, podpis/razítko a další tiskové výstupy.
+- [x] P20: štítky a serverové filtry, koš nepropojených návrhů, exportní snapshoty a zámky, hromadné PDF.
+- [ ] P20: koš dalších dokladů, anonymizace kontaktů a zbývající hromadné akce.
+- [x] P20: logo, podpis/razítko a lokalizované patičky nových faktur, nabídek, záloh, pokladních dokladů, DDPP a dobropisů.
+- [x] P20: RTF faktury, dodací list a potvrzení úhrady.
+- [ ] P20: širší tiskové preference a výstupy dalších typů dokladů.
 
 ## Rozhraní a distribuce — L10N-01, P11, PERSONAL-01
 
 - [x] České a anglické UI, přepínání jazyka a zapamatování volby na zařízení.
-- [x] Responzivní monochromatické rozhraní a sdílené komponenty/tokeny.
+- [x] Responzivní rozhraní se společnými tokeny a současnou rumělkovou identitou.
 - [x] Vývojový katalog komponent mimo produkční vstup.
 - [x] Tauri klient sdílející webové UI a připojený k serveru.
 - [ ] Dokončení a ověření všech zbývajících rozdílů proti referenčnímu UX.
 - [ ] Instalovatelná PWA a offline režim.
-- [ ] Desktopové instalátory v GitHub Releases, podpisy a automatické aktualizace.
+- [x] Matice CI pro instalátory do draft GitHub Releases; lokální macOS debug DMG ověřený sestavením a integritou.
+- [ ] Ověření instalace na všech OS, produkční podpisy a automatické aktualizace.
 - [ ] Osobní desktop s přibaleným lokálním Rust/PostgreSQL runtime.
 - [x] Světlý, tmavý a systémový vzhled s uložením preference uživatele v DB.
 - [ ] Další personalizace a preference oznámení.

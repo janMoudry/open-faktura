@@ -99,6 +99,52 @@ pub(super) async fn candidates(
             }
         }
     }
+    let (table, currency_path, filter, partner) = if incoming {
+        (
+            "sales_document",
+            "data->'invoice'->'calculation'->>'currency'",
+            "kind='advance' AND NOT archived",
+            "data->'invoice'->'customer'->>'name'",
+        )
+    } else {
+        (
+            "credit_note",
+            "totals->>'currency'",
+            "status='issued'",
+            "source->'data'->'customer'->>'name'",
+        )
+    };
+    let rows=sqlx::query(&format!("SELECT id,{currency_path} AS currency FROM {table} WHERE company_id=$1 AND {filter} AND {currency_path}<>$4 AND ($3::bigint IS NULL OR id=$3) AND ($2='' OR position(lower($2) in lower(number||' '||coalesce({partner},'')))>0) ORDER BY id DESC LIMIT 50"))
+        .bind(c).bind(q).bind(only).bind(&m.data.currency).fetch_all(&mut **tx).await.map_err(err)?;
+    for row in rows {
+        let currency: String = row.get("currency");
+        let choices = crate::treasury_documents::candidates(
+            tx,
+            c,
+            incoming,
+            rust_decimal::Decimal::MAX,
+            m.data.booked_on,
+            "bank_transfer",
+            &currency,
+            "",
+            Some(row.get("id")),
+            true,
+        )
+        .await?;
+        for choice in choices {
+            result.push(ForeignCandidate {
+                payment_amount: choice.payment_id.as_ref().map(|_| choice.available.clone()),
+                payment_id: choice.payment_id,
+                target_kind: choice.target_kind,
+                document_id: choice.document_id,
+                number: choice.number,
+                partner: choice.partner,
+                revision: choice.revision,
+                outstanding: choice.outstanding,
+                currency: currency.clone(),
+            });
+        }
+    }
     Ok(result)
 }
 pub(super) async fn execute(
@@ -137,16 +183,24 @@ pub(super) async fn execute(
         return Err(invalid("bank_amount"));
     }
     let incoming = !m.data.amount.starts_with('-');
-    if target_kind != if incoming { "invoice" } else { "received" } {
+    if !(if incoming {
+        ["invoice", "advance"]
+    } else {
+        ["received", "credit"]
+    })
+    .contains(&target_kind.as_str())
+    {
         return Err(invalid("target_kind"));
     }
-    let table = if incoming {
-        "invoice_draft"
-    } else {
-        "received_invoice"
+    let (table, data_path) = match target_kind.as_str() {
+        "invoice" => ("invoice_draft", "data"),
+        "received" => ("received_invoice", "data"),
+        "advance" => ("sales_document", "data->'invoice'"),
+        "credit" => ("credit_note", "source->'data'"),
+        _ => return Err(invalid("target_kind")),
     };
     let json: serde_json::Value = sqlx::query_scalar(&format!(
-        "SELECT data FROM {table} WHERE company_id=$1 AND id=$2 FOR UPDATE"
+        "SELECT {data_path} FROM {table} WHERE company_id=$1 AND id=$2 FOR UPDATE"
     ))
     .bind(c)
     .bind(id(&document_id)?)
@@ -157,7 +211,11 @@ pub(super) async fn execute(
     let candidate = candidates(tx, c, &m, "", Some(id(&document_id)?))
         .await?
         .into_iter()
-        .find(|candidate| candidate.payment_id == payment_id)
+        .find(|candidate| {
+            candidate.target_kind == target_kind
+                && candidate.document_id == document_id
+                && candidate.payment_id == payment_id
+        })
         .ok_or(Error::Conflict)?;
     if candidate.revision != target_revision
         || if let Some(value) = &candidate.payment_amount {
@@ -172,7 +230,7 @@ pub(super) async fn execute(
         None
     } else {
         Some(
-            serde_json::from_value(if incoming {
+            serde_json::from_value(if target_kind != "received" {
                 json["calculation"]["exchange_rate"].clone()
             } else {
                 json["exchange_rate"].clone()
@@ -209,6 +267,20 @@ pub(super) async fn execute(
     let created = payment_id.is_none();
     let payment_id = if let Some(payment_id) = payment_id {
         payment_id
+    } else if matches!(target_kind.as_str(), "advance" | "credit") {
+        crate::treasury_documents::pay(
+            tx,
+            actor,
+            company,
+            &target_kind,
+            &document_id,
+            target_revision,
+            paid,
+            m.data.booked_on,
+            "bank_transfer",
+            &m.number,
+        )
+        .await?
     } else if incoming {
         let before = crate::payment::load(tx, c, id(&document_id)?).await?;
         let after = crate::payment::register_in_tx(
@@ -246,8 +318,8 @@ pub(super) async fn execute(
         .await?;
         key
     };
-    sqlx::query("INSERT INTO bank_match(company_id,movement_id,invoice_id,received_id,payment_id,created_payment,actor_id,amount,foreign_settlement) VALUES($1,$2,$3,$4,$5,$9,$6,$7,$8)")
-        .bind(c).bind(id(&m.id)?).bind(if incoming {Some(id(&document_id)?)} else {None}).bind(if incoming {None} else {Some(id(&document_id)?)}).bind(payment_id).bind(a).bind(allocated).bind(serde_json::to_value(snapshot).map_err(err)?).bind(created).execute(&mut **tx).await.map_err(err)?;
+    sqlx::query("INSERT INTO bank_match(company_id,movement_id,invoice_id,received_id,payment_id,created_payment,actor_id,amount,foreign_settlement,advance_id,credit_id) VALUES($1,$2,$3,$4,$5,$9,$6,$7,$8,$10,$11)")
+        .bind(c).bind(id(&m.id)?).bind(if target_kind == "invoice" {Some(id(&document_id)?)} else {None}).bind(if target_kind == "received" {Some(id(&document_id)?)} else {None}).bind(payment_id).bind(a).bind(allocated).bind(serde_json::to_value(snapshot).map_err(err)?).bind(created).bind(if target_kind == "advance" {Some(id(&document_id)?)} else {None}).bind(if target_kind == "credit" {Some(id(&document_id)?)} else {None}).execute(&mut **tx).await.map_err(err)?;
     sqlx::query("UPDATE bank_movement SET revision=revision+1 WHERE company_id=$1 AND id=$2")
         .bind(c)
         .bind(id(&m.id)?)
@@ -266,20 +338,31 @@ pub(super) async fn report(
     let row=sqlx::query(&format!("SELECT count(*) total,coalesce(sum(greatest((b.foreign_settlement->>'difference_czk')::numeric,0)),0) gains,coalesce(sum(greatest(-(b.foreign_settlement->>'difference_czk')::numeric,0)),0) losses {source}")).bind(c).bind(q.from).bind(q.to).fetch_one(&mut **tx).await.map_err(err)?;
     let gains: rust_decimal::Decimal = row.get("gains");
     let losses: rust_decimal::Decimal = row.get("losses");
-    let rows=sqlx::query(&format!("SELECT b.id,b.movement_id,m.number movement_number,m.booked_on,b.invoice_id,b.received_id,b.amount,b.foreign_settlement,coalesce((SELECT number FROM invoice_draft WHERE company_id=b.company_id AND id=b.invoice_id),(SELECT number FROM received_invoice WHERE company_id=b.company_id AND id=b.received_id)) document_number {source} ORDER BY m.booked_on DESC,b.id DESC LIMIT 25 OFFSET $4")).bind(c).bind(q.from).bind(q.to).bind((q.page.unwrap_or(1)-1)*25).fetch_all(&mut **tx).await.map_err(err)?;
+    let rows=sqlx::query(&format!("SELECT b.id,b.movement_id,m.number movement_number,m.booked_on,b.invoice_id,b.received_id,b.advance_id,b.credit_id,b.amount,b.foreign_settlement,coalesce((SELECT number FROM invoice_draft WHERE company_id=b.company_id AND id=b.invoice_id),(SELECT number FROM received_invoice WHERE company_id=b.company_id AND id=b.received_id),(SELECT number FROM sales_document WHERE company_id=b.company_id AND id=b.advance_id),(SELECT number FROM credit_note WHERE company_id=b.company_id AND id=b.credit_id)) document_number {source} ORDER BY m.booked_on DESC,b.id DESC LIMIT 25 OFFSET $4")).bind(c).bind(q.from).bind(q.to).bind((q.page.unwrap_or(1)-1)*25).fetch_all(&mut **tx).await.map_err(err)?;
     let items = rows
         .into_iter()
         .map(|r| {
             let invoice: Option<i64> = r.get("invoice_id");
             let received: Option<i64> = r.get("received_id");
+            let advance: Option<i64> = r.get("advance_id");
+            let credit: Option<i64> = r.get("credit_id");
             Ok(ForeignReportEntry {
                 id: r.get::<i64, _>("id").to_string(),
                 movement_id: r.get::<i64, _>("movement_id").to_string(),
                 movement_number: r.get("movement_number"),
-                document_id: invoice.or(received).ok_or(Error::Unavailable)?.to_string(),
+                document_id: invoice
+                    .or(received)
+                    .or(advance)
+                    .or(credit)
+                    .ok_or(Error::Unavailable)?
+                    .to_string(),
                 document_number: r.get("document_number"),
                 target_kind: if invoice.is_some() {
                     "invoice"
+                } else if advance.is_some() {
+                    "advance"
+                } else if credit.is_some() {
+                    "credit"
                 } else {
                     "received"
                 }

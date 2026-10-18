@@ -428,3 +428,16 @@ Testy invoice/retail/bank, cash/bank E2E CS/EN. Před upgradem zastavit staré
 API a zálohovat DB. Legacy issuer=NULL není dnešní profil; PDF cache po revizích.
 Matching treasury default false, původní úhrady nezdvojovat, vratky hledají VS
 původní faktury. Různé měny záloh/vratek a další P16–P20 stále zbývají.
+
+
+## Integrované rozšíření P16–P20 (18. 10. 2026)
+
+Aktuální rozsah a limity jsou v `docs/P16_P20_COMPLETION.md`; starší poznámky výše jsou historií dodávek. Migrace 058–085 obsahují různé měny záloh/vratek, koš návrhů, inbox adaptéry/IMAP, bankovní notifikace, widgety, explicitní daňovou klasifikaci, údaje daňového subjektu, správu profilů, štítky, branding a exportní zámky. Číselné mezery jsou rezervované rozsahy agentů.
+
+Před upgradem záloha DB a zastavení starého API. Testy používají izolované DB; SMTP/IMAP/bankovní testy nesmějí použít skutečné zákazníky nebo přístupy. IMAP je opt-in a zprávy nemaže ani neoznačuje jako přečtené. QR/OCR/ISDOC výstup je návrh k ruční kontrole.
+
+Archiv profilu používá `contracts/company-archive-schema.json`: po nové migraci regenerovat na prázdné testovací DB a ručně zkontrolovat nové sloupce. Tajemství a veřejné bearer odkazy se nesmějí exportovat. PDF branding je snapshot; původní PDF cache se nemění. Koš nyní zahrnuje jen nevystavené nepropojené návrhy.
+
+Daňová klasifikace a EPO identifikační profil nejsou přiznání/KH/SH. Údaje nejsou automatický nárok na odpočet ani právní určení obratu. Money S4/S5 a neověřené účetní varianty podle rozhodnutí uživatele řeší obecné mapování nebo vlastní adaptér (`docs/INTEGRATION_ADAPTERS.md`); neoznačovat je za nativní podporu.
+
+Desktopové CI vytváří pouze draft Releases; viz `docs/DESKTOP_RELEASES.md`. Podpisy, updater a přibalený server nejsou automaticky hotové sestavením instalátoru.

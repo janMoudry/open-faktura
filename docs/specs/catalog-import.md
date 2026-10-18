@@ -82,3 +82,20 @@ Testy: catalog-import-mapping.spec.ts (přesné desetinné řetězce a neplatné
 vstupy), import.spec.ts (CS/EN desktop/mobile zápis), serverový import.rs
 (generic_catalog_invalid_rows_and_exact_values, neplatné řádky, přeskočení,
 izolace profilu, uložené ceny a opakování).
+
+## P18-05b — Uživatelské mapování a rozšíření místo neověřeného adaptéru
+
+Rozhodnutí uživatele 18. 10. 2026: nedoložené konkrétní S4/S5 exporty může
+provozovatel namapovat sám; implementace nečeká na jeho účet ani soubory.
+Existující CSV/XLSX mapper doplňuje spustitelný lokální konfigurovatelný
+XML adaptér `scripts/adapters/catalog_xml.py` a
+[návod kontraktu rozšíření](../INTEGRATION_ADAPTERS.md). Výstup je existující
+source=generic import_prepare s náhledem a potvrzením, nikoli přímý zápis.
+
+Přesná pole, cenový režim, měnu a identity určuje uživatelská mapa. Duplicity,
+chybějící/nejednoznačné ceny a neznámá měna se neodhadují. Syntetické fixtures
+v tests/fixtures/adapters nejsou nativní export Money. Test Python3 plus
+Rust fixture-contract test ověřují přesné ceny, ID s nulovými prefixy,
+bezpečnost XML a použití autoritativního DTO/doménové validace. Nativní
+shoda univerzálního formátu S4/S5 se nadále netvrdí (E-059); přijatý rozsah
+je doložený adaptér nebo vlastní mapování/extension point.

@@ -1,0 +1,1417 @@
+{
+  "observed_on": "2026-10-18",
+  "source": "https://mojedane.gov.cz/dpr/adis/idpr_pub/epo2_info/popis_struktury_seznam.faces",
+  "scope": "Official schema inventory; not a sample filing, calculation, or legal completeness validation.",
+  "schemas": [
+    {
+      "code": "DPHDP3",
+      "version": "03.01.04",
+      "published_on": "2026-08-11",
+      "url": "https://adisspr.mfcr.cz/adis/jepo/schema/dphdp3_epo2.xsd",
+      "sha256": "08e7b168b0675c896298217b7049889d14789353220a973665a0bf33064aa0cf",
+      "bytes": 132886,
+      "records": [
+        {
+          "name": "VetaD",
+          "min_occurs": "1",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "c_okec",
+              "required": false
+            },
+            {
+              "name": "ctvrt",
+              "required": false
+            },
+            {
+              "name": "d_poddp",
+              "required": false
+            },
+            {
+              "name": "d_zjist",
+              "required": false
+            },
+            {
+              "name": "dapdph_forma",
+              "required": true
+            },
+            {
+              "name": "dokument",
+              "required": true
+            },
+            {
+              "name": "k_uladis",
+              "required": true
+            },
+            {
+              "name": "kod_zo",
+              "required": false
+            },
+            {
+              "name": "mesic",
+              "required": false
+            },
+            {
+              "name": "rok",
+              "required": true
+            },
+            {
+              "name": "trans",
+              "required": false
+            },
+            {
+              "name": "typ_platce",
+              "required": true
+            },
+            {
+              "name": "zdobd_do",
+              "required": false
+            },
+            {
+              "name": "zdobd_od",
+              "required": false
+            },
+            {
+              "name": "d_por_dod",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaP",
+          "min_occurs": "1",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "c_orient",
+              "required": false
+            },
+            {
+              "name": "c_pop",
+              "required": false
+            },
+            {
+              "name": "c_telef",
+              "required": false
+            },
+            {
+              "name": "c_ufo",
+              "required": true
+            },
+            {
+              "name": "c_pracufo",
+              "required": false
+            },
+            {
+              "name": "dic",
+              "required": true
+            },
+            {
+              "name": "email",
+              "required": false
+            },
+            {
+              "name": "jmeno",
+              "required": false
+            },
+            {
+              "name": "naz_obce",
+              "required": false
+            },
+            {
+              "name": "opr_jmeno",
+              "required": false
+            },
+            {
+              "name": "opr_postaveni",
+              "required": false
+            },
+            {
+              "name": "opr_prijmeni",
+              "required": false
+            },
+            {
+              "name": "prijmeni",
+              "required": false
+            },
+            {
+              "name": "psc",
+              "required": false
+            },
+            {
+              "name": "sest_jmeno",
+              "required": false
+            },
+            {
+              "name": "sest_prijmeni",
+              "required": false
+            },
+            {
+              "name": "sest_telef",
+              "required": false
+            },
+            {
+              "name": "stat",
+              "required": false
+            },
+            {
+              "name": "titul",
+              "required": false
+            },
+            {
+              "name": "typ_ds",
+              "required": true
+            },
+            {
+              "name": "ulice",
+              "required": false
+            },
+            {
+              "name": "zast_dat_nar",
+              "required": false
+            },
+            {
+              "name": "zast_ev_cislo",
+              "required": false
+            },
+            {
+              "name": "zast_ic",
+              "required": false
+            },
+            {
+              "name": "zast_jmeno",
+              "required": false
+            },
+            {
+              "name": "zast_kod",
+              "required": false
+            },
+            {
+              "name": "zast_nazev",
+              "required": false
+            },
+            {
+              "name": "zast_prijmeni",
+              "required": false
+            },
+            {
+              "name": "zast_typ",
+              "required": false
+            },
+            {
+              "name": "zkrobchjm",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "Veta1",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "dan23",
+              "required": false
+            },
+            {
+              "name": "dan5",
+              "required": false
+            },
+            {
+              "name": "dan_dzb23",
+              "required": false
+            },
+            {
+              "name": "dan_dzb5",
+              "required": false
+            },
+            {
+              "name": "dan_pdop_nrg",
+              "required": false
+            },
+            {
+              "name": "dan_psl23_e",
+              "required": false
+            },
+            {
+              "name": "dan_psl23_z",
+              "required": false
+            },
+            {
+              "name": "dan_psl5_e",
+              "required": false
+            },
+            {
+              "name": "dan_psl5_z",
+              "required": false
+            },
+            {
+              "name": "dan_pzb23",
+              "required": false
+            },
+            {
+              "name": "dan_pzb5",
+              "required": false
+            },
+            {
+              "name": "dan_rpren23",
+              "required": false
+            },
+            {
+              "name": "dan_rpren5",
+              "required": false
+            },
+            {
+              "name": "dov_zb23",
+              "required": false
+            },
+            {
+              "name": "dov_zb5",
+              "required": false
+            },
+            {
+              "name": "obrat23",
+              "required": false
+            },
+            {
+              "name": "obrat5",
+              "required": false
+            },
+            {
+              "name": "p_dop_nrg",
+              "required": false
+            },
+            {
+              "name": "p_sl23_e",
+              "required": false
+            },
+            {
+              "name": "p_sl23_z",
+              "required": false
+            },
+            {
+              "name": "p_sl5_e",
+              "required": false
+            },
+            {
+              "name": "p_sl5_z",
+              "required": false
+            },
+            {
+              "name": "p_zb23",
+              "required": false
+            },
+            {
+              "name": "p_zb5",
+              "required": false
+            },
+            {
+              "name": "rez_pren23",
+              "required": false
+            },
+            {
+              "name": "rez_pren5",
+              "required": false
+            },
+            {
+              "name": "opr_dane_zd",
+              "required": false
+            },
+            {
+              "name": "opr_dane_dan",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "Veta2",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "dod_dop_nrg",
+              "required": false
+            },
+            {
+              "name": "dod_zb",
+              "required": false
+            },
+            {
+              "name": "pln_ost",
+              "required": false
+            },
+            {
+              "name": "pln_rez_pren",
+              "required": false
+            },
+            {
+              "name": "pln_sluzby",
+              "required": false
+            },
+            {
+              "name": "pln_vyvoz",
+              "required": false
+            },
+            {
+              "name": "pln_zaslani",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "Veta3",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "dov_osv",
+              "required": false
+            },
+            {
+              "name": "opr_dluz",
+              "required": false
+            },
+            {
+              "name": "opr_verit",
+              "required": false
+            },
+            {
+              "name": "tri_dozb",
+              "required": false
+            },
+            {
+              "name": "tri_pozb",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "Veta4",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "dov_cu",
+              "required": false
+            },
+            {
+              "name": "nar_maj",
+              "required": false
+            },
+            {
+              "name": "nar_zdp23",
+              "required": false
+            },
+            {
+              "name": "nar_zdp5",
+              "required": false
+            },
+            {
+              "name": "od_maj",
+              "required": false
+            },
+            {
+              "name": "od_zdp23",
+              "required": false
+            },
+            {
+              "name": "od_zdp5",
+              "required": false
+            },
+            {
+              "name": "odkr_maj",
+              "required": false
+            },
+            {
+              "name": "odkr_zdp23",
+              "required": false
+            },
+            {
+              "name": "odkr_zdp5",
+              "required": false
+            },
+            {
+              "name": "odp_cu",
+              "required": false
+            },
+            {
+              "name": "odp_cu_nar",
+              "required": false
+            },
+            {
+              "name": "odp_rez_nar",
+              "required": false
+            },
+            {
+              "name": "odp_rezim",
+              "required": false
+            },
+            {
+              "name": "odp_sum_kr",
+              "required": false
+            },
+            {
+              "name": "odp_sum_nar",
+              "required": false
+            },
+            {
+              "name": "odp_tuz23",
+              "required": false
+            },
+            {
+              "name": "odp_tuz23_nar",
+              "required": false
+            },
+            {
+              "name": "odp_tuz5",
+              "required": false
+            },
+            {
+              "name": "odp_tuz5_nar",
+              "required": false
+            },
+            {
+              "name": "pln23",
+              "required": false
+            },
+            {
+              "name": "pln5",
+              "required": false
+            },
+            {
+              "name": "kor_odp_zd",
+              "required": false
+            },
+            {
+              "name": "kor_odp_plne",
+              "required": false
+            },
+            {
+              "name": "kor_odp_krac",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "Veta5",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "koef_p20_nov",
+              "required": false
+            },
+            {
+              "name": "koef_p20_vypor",
+              "required": false
+            },
+            {
+              "name": "odp_uprav_kf",
+              "required": false
+            },
+            {
+              "name": "pln_nkf",
+              "required": false
+            },
+            {
+              "name": "plnosv_kf",
+              "required": false
+            },
+            {
+              "name": "plnosv_nkf",
+              "required": false
+            },
+            {
+              "name": "vypor_odp",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "Veta6",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "dan_vrac",
+              "required": false
+            },
+            {
+              "name": "dan_zocelk",
+              "required": false
+            },
+            {
+              "name": "dano",
+              "required": false
+            },
+            {
+              "name": "dano_da",
+              "required": false
+            },
+            {
+              "name": "dano_no",
+              "required": false
+            },
+            {
+              "name": "odp_zocelk",
+              "required": false
+            },
+            {
+              "name": "uprav_odp",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaR",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "poradi",
+              "required": true
+            },
+            {
+              "name": "t_prilohy",
+              "required": false
+            },
+            {
+              "name": "kod_sekce",
+              "required": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "DPHKH1",
+      "version": "03.01.15",
+      "published_on": "2026-08-11",
+      "url": "https://adisspr.mfcr.cz/adis/jepo/schema/dphkh1_epo2.xsd",
+      "sha256": "fdee7efed604acff9c4862d6b5391ae019c4f0940a32086e0032b032245429f9",
+      "bytes": 123273,
+      "records": [
+        {
+          "name": "VetaD",
+          "min_occurs": "1",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "dokument",
+              "required": true
+            },
+            {
+              "name": "k_uladis",
+              "required": true
+            },
+            {
+              "name": "mesic",
+              "required": false
+            },
+            {
+              "name": "rok",
+              "required": true
+            },
+            {
+              "name": "ctvrt",
+              "required": false
+            },
+            {
+              "name": "zdobd_od",
+              "required": false
+            },
+            {
+              "name": "zdobd_do",
+              "required": false
+            },
+            {
+              "name": "d_poddp",
+              "required": false
+            },
+            {
+              "name": "khdph_forma",
+              "required": true
+            },
+            {
+              "name": "d_zjist",
+              "required": false
+            },
+            {
+              "name": "c_jed_vyzvy",
+              "required": false
+            },
+            {
+              "name": "vyzva_odp",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaP",
+          "min_occurs": "1",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "c_ufo",
+              "required": true
+            },
+            {
+              "name": "c_pracufo",
+              "required": false
+            },
+            {
+              "name": "dic",
+              "required": true
+            },
+            {
+              "name": "typ_ds",
+              "required": true
+            },
+            {
+              "name": "titul",
+              "required": false
+            },
+            {
+              "name": "jmeno",
+              "required": false
+            },
+            {
+              "name": "prijmeni",
+              "required": false
+            },
+            {
+              "name": "zkrobchjm",
+              "required": false
+            },
+            {
+              "name": "ulice",
+              "required": false
+            },
+            {
+              "name": "c_orient",
+              "required": false
+            },
+            {
+              "name": "c_pop",
+              "required": false
+            },
+            {
+              "name": "naz_obce",
+              "required": false
+            },
+            {
+              "name": "psc",
+              "required": false
+            },
+            {
+              "name": "stat",
+              "required": false
+            },
+            {
+              "name": "email",
+              "required": false
+            },
+            {
+              "name": "zast_typ",
+              "required": false
+            },
+            {
+              "name": "zast_kod",
+              "required": false
+            },
+            {
+              "name": "zast_prijmeni",
+              "required": false
+            },
+            {
+              "name": "zast_jmeno",
+              "required": false
+            },
+            {
+              "name": "zast_dat_nar",
+              "required": false
+            },
+            {
+              "name": "zast_ev_cislo",
+              "required": false
+            },
+            {
+              "name": "zast_nazev",
+              "required": false
+            },
+            {
+              "name": "zast_ic",
+              "required": false
+            },
+            {
+              "name": "opr_jmeno",
+              "required": false
+            },
+            {
+              "name": "opr_postaveni",
+              "required": false
+            },
+            {
+              "name": "opr_prijmeni",
+              "required": false
+            },
+            {
+              "name": "sest_jmeno",
+              "required": false
+            },
+            {
+              "name": "sest_prijmeni",
+              "required": false
+            },
+            {
+              "name": "sest_telef",
+              "required": false
+            },
+            {
+              "name": "c_telef",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaA1",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "c_radku",
+              "required": false
+            },
+            {
+              "name": "dic_odb",
+              "required": true
+            },
+            {
+              "name": "c_evid_dd",
+              "required": true
+            },
+            {
+              "name": "duzp",
+              "required": true
+            },
+            {
+              "name": "zakl_dane1",
+              "required": true
+            },
+            {
+              "name": "kod_pred_pl",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "VetaA2",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "c_radku",
+              "required": false
+            },
+            {
+              "name": "k_stat",
+              "required": false
+            },
+            {
+              "name": "vatid_dod",
+              "required": false
+            },
+            {
+              "name": "c_evid_dd",
+              "required": false
+            },
+            {
+              "name": "dppd",
+              "required": true
+            },
+            {
+              "name": "zakl_dane1",
+              "required": false
+            },
+            {
+              "name": "dan1",
+              "required": false
+            },
+            {
+              "name": "zakl_dane2",
+              "required": false
+            },
+            {
+              "name": "dan2",
+              "required": false
+            },
+            {
+              "name": "zakl_dane3",
+              "required": false
+            },
+            {
+              "name": "dan3",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaA3",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "c_radku",
+              "required": false
+            },
+            {
+              "name": "k_stat",
+              "required": false
+            },
+            {
+              "name": "vatid_odb",
+              "required": false
+            },
+            {
+              "name": "jm_prijm_obch",
+              "required": false
+            },
+            {
+              "name": "d_narozeni",
+              "required": false
+            },
+            {
+              "name": "m_pobytu_sidlo",
+              "required": false
+            },
+            {
+              "name": "c_evid_dd",
+              "required": true
+            },
+            {
+              "name": "dup",
+              "required": true
+            },
+            {
+              "name": "osv_plneni",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "VetaA4",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "c_radku",
+              "required": false
+            },
+            {
+              "name": "dic_odb",
+              "required": true
+            },
+            {
+              "name": "c_evid_dd",
+              "required": true
+            },
+            {
+              "name": "dppd",
+              "required": true
+            },
+            {
+              "name": "zakl_dane1",
+              "required": false
+            },
+            {
+              "name": "dan1",
+              "required": false
+            },
+            {
+              "name": "zakl_dane2",
+              "required": false
+            },
+            {
+              "name": "dan2",
+              "required": false
+            },
+            {
+              "name": "zakl_dane3",
+              "required": false
+            },
+            {
+              "name": "dan3",
+              "required": false
+            },
+            {
+              "name": "kod_rezim_pl",
+              "required": true
+            },
+            {
+              "name": "zdph_44",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "VetaA5",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "zakl_dane1",
+              "required": false
+            },
+            {
+              "name": "dan1",
+              "required": false
+            },
+            {
+              "name": "zakl_dane2",
+              "required": false
+            },
+            {
+              "name": "dan2",
+              "required": false
+            },
+            {
+              "name": "zakl_dane3",
+              "required": false
+            },
+            {
+              "name": "dan3",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaB1",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "c_radku",
+              "required": false
+            },
+            {
+              "name": "dic_dod",
+              "required": true
+            },
+            {
+              "name": "c_evid_dd",
+              "required": true
+            },
+            {
+              "name": "duzp",
+              "required": true
+            },
+            {
+              "name": "zakl_dane1",
+              "required": false
+            },
+            {
+              "name": "dan1",
+              "required": false
+            },
+            {
+              "name": "zakl_dane2",
+              "required": false
+            },
+            {
+              "name": "dan2",
+              "required": false
+            },
+            {
+              "name": "zakl_dane3",
+              "required": false
+            },
+            {
+              "name": "dan3",
+              "required": false
+            },
+            {
+              "name": "kod_pred_pl",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "VetaB2",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "c_radku",
+              "required": false
+            },
+            {
+              "name": "dic_dod",
+              "required": true
+            },
+            {
+              "name": "c_evid_dd",
+              "required": true
+            },
+            {
+              "name": "dppd",
+              "required": true
+            },
+            {
+              "name": "zakl_dane1",
+              "required": false
+            },
+            {
+              "name": "dan1",
+              "required": false
+            },
+            {
+              "name": "zakl_dane2",
+              "required": false
+            },
+            {
+              "name": "dan2",
+              "required": false
+            },
+            {
+              "name": "zakl_dane3",
+              "required": false
+            },
+            {
+              "name": "dan3",
+              "required": false
+            },
+            {
+              "name": "pomer",
+              "required": true
+            },
+            {
+              "name": "zdph_44",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "VetaB3",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "zakl_dane1",
+              "required": false
+            },
+            {
+              "name": "dan1",
+              "required": false
+            },
+            {
+              "name": "zakl_dane2",
+              "required": false
+            },
+            {
+              "name": "dan2",
+              "required": false
+            },
+            {
+              "name": "zakl_dane3",
+              "required": false
+            },
+            {
+              "name": "dan3",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaC",
+          "min_occurs": "0",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "obrat23",
+              "required": false
+            },
+            {
+              "name": "obrat5",
+              "required": false
+            },
+            {
+              "name": "pln23",
+              "required": false
+            },
+            {
+              "name": "pln5",
+              "required": false
+            },
+            {
+              "name": "pln_rez_pren",
+              "required": false
+            },
+            {
+              "name": "rez_pren23",
+              "required": false
+            },
+            {
+              "name": "rez_pren5",
+              "required": false
+            },
+            {
+              "name": "celk_zd_a2",
+              "required": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "DPHSHV",
+      "version": "02.01.05",
+      "published_on": "2026-08-11",
+      "url": "https://adisspr.mfcr.cz/adis/jepo/schema/dphshv_epo2.xsd",
+      "sha256": "29cab9ccb767704a6f9d897a6656dce8423e3b9e1d1e734719b79ab18ff88dde",
+      "bytes": 70835,
+      "records": [
+        {
+          "name": "VetaD",
+          "min_occurs": "1",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "k_uladis",
+              "required": true
+            },
+            {
+              "name": "dokument",
+              "required": true
+            },
+            {
+              "name": "ctvrt",
+              "required": false
+            },
+            {
+              "name": "rok",
+              "required": true
+            },
+            {
+              "name": "shvies_forma",
+              "required": true
+            },
+            {
+              "name": "d_poddp",
+              "required": false
+            },
+            {
+              "name": "poc_radku",
+              "required": false
+            },
+            {
+              "name": "poc_stran",
+              "required": false
+            },
+            {
+              "name": "pln_poc_celk",
+              "required": false
+            },
+            {
+              "name": "suma_pln",
+              "required": false
+            },
+            {
+              "name": "mesic",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaP",
+          "min_occurs": "1",
+          "max_occurs": "1",
+          "attributes": [
+            {
+              "name": "c_ufo",
+              "required": true
+            },
+            {
+              "name": "c_pracufo",
+              "required": false
+            },
+            {
+              "name": "dic",
+              "required": true
+            },
+            {
+              "name": "typ_ds",
+              "required": true
+            },
+            {
+              "name": "prijmeni",
+              "required": false
+            },
+            {
+              "name": "jmeno",
+              "required": false
+            },
+            {
+              "name": "titul",
+              "required": false
+            },
+            {
+              "name": "zkrobchjm",
+              "required": false
+            },
+            {
+              "name": "dodobchjm",
+              "required": false
+            },
+            {
+              "name": "naz_obce",
+              "required": false
+            },
+            {
+              "name": "ulice",
+              "required": false
+            },
+            {
+              "name": "c_pop",
+              "required": false
+            },
+            {
+              "name": "c_orient",
+              "required": false
+            },
+            {
+              "name": "psc",
+              "required": false
+            },
+            {
+              "name": "opr_prijmeni",
+              "required": false
+            },
+            {
+              "name": "opr_jmeno",
+              "required": false
+            },
+            {
+              "name": "opr_postaveni",
+              "required": false
+            },
+            {
+              "name": "sest_prijmeni",
+              "required": false
+            },
+            {
+              "name": "sest_jmeno",
+              "required": false
+            },
+            {
+              "name": "sest_telef",
+              "required": false
+            },
+            {
+              "name": "zast_kod",
+              "required": false
+            },
+            {
+              "name": "zast_typ",
+              "required": false
+            },
+            {
+              "name": "zast_prijmeni",
+              "required": false
+            },
+            {
+              "name": "zast_jmeno",
+              "required": false
+            },
+            {
+              "name": "zast_nazev",
+              "required": false
+            },
+            {
+              "name": "zast_dat_nar",
+              "required": false
+            },
+            {
+              "name": "zast_ev_cislo",
+              "required": false
+            },
+            {
+              "name": "zast_ic",
+              "required": false
+            },
+            {
+              "name": "stat",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaR",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "por_c_stran",
+              "required": false
+            },
+            {
+              "name": "c_rad",
+              "required": false
+            },
+            {
+              "name": "k_storno",
+              "required": false
+            },
+            {
+              "name": "k_stat",
+              "required": false
+            },
+            {
+              "name": "c_vat",
+              "required": false
+            },
+            {
+              "name": "k_pln_eu",
+              "required": false
+            },
+            {
+              "name": "pln_pocet",
+              "required": false
+            },
+            {
+              "name": "pln_hodnota",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "VetaS",
+          "min_occurs": "0",
+          "max_occurs": "unbounded",
+          "attributes": [
+            {
+              "name": "c_rad",
+              "required": false
+            },
+            {
+              "name": "c_vat",
+              "required": false
+            },
+            {
+              "name": "k_stat",
+              "required": false
+            },
+            {
+              "name": "c_vat_puv",
+              "required": false
+            },
+            {
+              "name": "k_cos",
+              "required": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { DocumentTagFilter } from "../components/organisms/DocumentTagFilter";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import {
@@ -32,6 +33,7 @@ export function ReceivedInvoicesPage({
     { company, onExpired } = useWorkspace(),
     { t, language } = useAppTranslation();
   const [params, setParams] = useSearchParams();
+  const tagId = params.get("tag") ?? "";
   const query = params.get("q") ?? "",
     status = params.get("status") ?? "all",
     page = Math.max(1, Math.min(10000, Number(params.get("page")) || 1));
@@ -44,7 +46,7 @@ export function ReceivedInvoicesPage({
     const c = new AbortController();
     setError(false);
     setResult(null);
-    listReceived(apiUrl, companyId, query, status, page, c.signal, kind)
+    listReceived(apiUrl, companyId, query, status, page, c.signal, kind, tagId)
       .then((v) => {
         if (!c.signal.aborted) setResult(v);
       })
@@ -55,7 +57,7 @@ export function ReceivedInvoicesPage({
         }
       });
     return () => c.abort();
-  }, [companyId, query, status, page, kind, attempt]);
+  }, [companyId, query, status, page, kind, attempt, tagId]);
   return (
     <div className="space-y-group">
       <div className="flex flex-wrap justify-between items-center gap-field">
@@ -68,12 +70,24 @@ export function ReceivedInvoicesPage({
           </Link>
         )}
       </div>
+      <DocumentTagFilter
+        company={companyId}
+        value={tagId}
+        onChange={(tag) =>
+          setParams({ ...Object.fromEntries(params), tag, page: "1" })
+        }
+      />
       <div className="workspace-panel register-sheet">
         <form
           className="flex flex-wrap gap-field items-end p-field"
           onSubmit={(e) => {
             e.preventDefault();
-            setParams({ q: input, status });
+            setParams({
+              ...Object.fromEntries(params),
+              q: input,
+              status,
+              page: "1",
+            });
           }}
         >
           <Input
@@ -88,7 +102,14 @@ export function ReceivedInvoicesPage({
           <Select
             label={t("receivedFilter")}
             value={status}
-            onChange={(v) => setParams({ q: query, status: v })}
+            onChange={(v) =>
+              setParams({
+                ...Object.fromEntries(params),
+                q: query,
+                status: v,
+                page: "1",
+              })
+            }
             options={[
               { value: "all", label: t("receivedAll") },
               ...(kind === "invoice"
@@ -193,7 +214,12 @@ export function ReceivedInvoicesPage({
               <Button
                 disabled={page === 1}
                 onClick={() =>
-                  setParams({ q: query, status, page: String(page - 1) })
+                  setParams({
+                    ...Object.fromEntries(params),
+                    q: query,
+                    status,
+                    page: String(page - 1),
+                  })
                 }
               >
                 {t("quotePrevious")}
@@ -201,7 +227,12 @@ export function ReceivedInvoicesPage({
               <Button
                 disabled={page * 25 >= result.total}
                 onClick={() =>
-                  setParams({ q: query, status, page: String(page + 1) })
+                  setParams({
+                    ...Object.fromEntries(params),
+                    q: query,
+                    status,
+                    page: String(page + 1),
+                  })
                 }
               >
                 {t("quoteNext")}

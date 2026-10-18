@@ -721,3 +721,22 @@ async fn generic_catalog_invalid_rows_and_exact_values(pool: PgPool) {
         .unwrap();
     assert_eq!(replay.rows[0].status, "duplicate");
 }
+
+#[test]
+fn user_configured_adapter_fixture_matches_shared_prepare_contract() {
+    let mut input: faktura_application::import::Prepare = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/adapters/synthetic-catalog-prepare.json"
+    ))
+    .unwrap();
+    assert_eq!(input.source, "generic");
+    assert_eq!(input.records.len(), 2);
+    assert!(input.records.iter_mut().all(|r| r.validate().is_empty()));
+    match &input.records[0] {
+        faktura_domain::import::Record::Catalog { key, data } => {
+            assert_eq!(key, "00001");
+            assert_eq!(data.unit_price, "19.995");
+            assert_eq!(data.code, "00005");
+        }
+        _ => panic!("catalog adapter contract"),
+    }
+}

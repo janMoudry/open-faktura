@@ -126,7 +126,7 @@ pub(crate) async fn insert_movement(
         return Err(invalid("numbering_exhausted"));
     }
     let seq:i64=sqlx::query_scalar("INSERT INTO cash_series(company_id,year,direction,next_value) VALUES($1,$2,$3,2) ON CONFLICT(company_id,year,direction) DO UPDATE SET next_value=cash_series.next_value+1 RETURNING next_value-1").bind(c).bind(year).bind(direction).fetch_one(&mut **tx).await.map_err(err)?;
-    sqlx::query_scalar("INSERT INTO cash_movement(company_id,account_id,number,data,amount,booked_on,issuer) VALUES($1,$2,$3,$4,$5,$6,(SELECT settings FROM company WHERE id=$1)) RETURNING id")
+    sqlx::query_scalar("INSERT INTO cash_movement(company_id,account_id,number,data,amount,booked_on,issuer,document_style) VALUES($1,$2,$3,$4,$5,$6,(SELECT settings FROM company WHERE id=$1),(SELECT data FROM company_document_style WHERE company_id=$1)) RETURNING id")
       .bind(c).bind(id(account)?).bind(format!("{}{year}{seq:06}",if incoming{"PP"}else{"VP"})).bind(serde_json::to_value(data).map_err(err)?).bind(amount(&data.amount).ok_or_else(||invalid("amount"))?).bind(data.booked_on).fetch_one(&mut **tx).await.map_err(err)
 }
 async fn linked(

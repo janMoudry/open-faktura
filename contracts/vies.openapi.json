@@ -1,0 +1,118 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura EU VIES VAT lookup",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/vies": {
+      "get": {
+        "operationId": "viesLookup",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vat_number",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(AT|BE|BG|HR|CY|CZ|DK|EE|FI|FR|DE|EL|HU|IE|IT|LV|LT|LU|MT|NL|PL|PT|RO|SK|SI|ES|SE|XI)[A-Z0-9+*]{1,20}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current VIES observation; no contact writes or tax treatment decision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Observation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "404": {
+            "description": "No membership"
+          },
+          "422": {
+            "description": "Unsupported VAT identifier"
+          },
+          "503": {
+            "description": "Registry outage, rate bound or invalid response"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Lookup": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "company_id",
+          "vat_number"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string",
+            "pattern": "^(AT|BE|BG|HR|CY|CZ|DK|EE|FI|FR|DE|EL|HU|IE|IT|LV|LT|LU|MT|NL|PL|PT|RO|SK|SI|ES|SE|XI)[A-Z0-9+*]{1,20}$"
+          }
+        }
+      },
+      "Observation": {
+        "type": "object",
+        "required": [
+          "vat_number",
+          "valid",
+          "requested_on",
+          "checked_at",
+          "name",
+          "address",
+          "source"
+        ],
+        "properties": {
+          "vat_number": {
+            "type": "string"
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "requested_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "EU_VIES"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

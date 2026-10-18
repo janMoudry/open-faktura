@@ -16,6 +16,14 @@ import { AuthPage } from "../pages/AuthPage";
 import { useAppTranslation } from "../locales";
 import { NotFoundPage } from "../pages/NotFoundPage";
 
+const DraftTrashPage = lazy(() =>
+  import("../pages/DraftTrashPage").then((m) => ({
+    default: m.DraftTrashPage,
+  })),
+);
+const HelpPage = lazy(() =>
+  import("../pages/HelpPage").then((m) => ({ default: m.HelpPage })),
+);
 const ReportsPage = lazy(() =>
   import("../pages/ReportsPage").then((m) => ({ default: m.ReportsPage })),
 );
@@ -257,6 +265,7 @@ const router = createHashRouter([
         children: [
           { index: true, element: <CompanyPage /> },
           { path: "workspace", element: <CompanyPage /> },
+          { path: "help", element: <HelpPage /> },
           { path: "companies", element: <CompanyPage /> },
           { path: "companies/:companyId", element: <CompanyPage /> },
           { path: "companies/:companyId/bank", element: <BankPage /> },
@@ -375,6 +384,10 @@ const router = createHashRouter([
           {
             path: "companies/:companyId/invoices",
             element: <InvoiceDraftListPage />,
+          },
+          {
+            path: "companies/:companyId/invoices/trash",
+            element: <DraftTrashPage />,
           },
           {
             path: "companies/:companyId/invoices/:invoiceId",

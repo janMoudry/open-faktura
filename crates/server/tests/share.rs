@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{
     auth, company,
     sales::{self, Create, Data, Error, Kind, Update},
@@ -548,9 +550,7 @@ async fn upgrade_preserves_attachment_replay(pool: PgPool) {
     };
     previous.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
-    let q = sales::create(&PgSales(pool.clone()), &a, &c, create(Kind::Quote, KEY))
-        .await
-        .unwrap();
+    let q = historical_documents::sales(&pool, &a, &c, create(Kind::Quote, KEY)).await;
     let mut cmd = serde_json::to_value(command(1, KEY)).unwrap();
     cmd.as_object_mut().unwrap().remove("share_id");
     sqlx::query("INSERT INTO quote_delivery(company_id,document_id,actor_id,request_id,command,revision,snapshot,pdf,sender,reply_to,recipient,subject,body,message_id) VALUES($1,$2,$3,$4::text::uuid,$5,1,$6,$7,'sender@example.test','','customer@example.test','Original','Original','test-message-id')").bind(c.parse::<i64>().unwrap()).bind(q.id.parse::<i64>().unwrap()).bind(a.parse::<i64>().unwrap()).bind(KEY).bind(cmd).bind(serde_json::to_value(&q).unwrap()).bind(b"original historical PDF".as_slice()).execute(&pool).await.unwrap();

@@ -1,0 +1,198 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Company document branding",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/document-style": {
+      "get": {
+        "operationId": "document_style_get",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "document_style_set",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Style": {
+        "type": "object",
+        "properties": {
+          "logo_base64": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 140000
+          },
+          "signature_base64": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 140000
+          },
+          "footer_cs": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "footer_en": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "logo_base64",
+          "signature_base64",
+          "footer_cs",
+          "footer_en"
+        ],
+        "additionalProperties": false
+      },
+      "Snapshot": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "logo_base64": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 140000
+              },
+              "signature_base64": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 140000
+              },
+              "footer_cs": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "footer_en": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "logo_base64",
+              "signature_base64",
+              "footer_cs",
+              "footer_en"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "revision",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "Command": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "logo_base64": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 140000
+              },
+              "signature_base64": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 140000
+              },
+              "footer_cs": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "footer_en": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "logo_base64",
+              "signature_base64",
+              "footer_cs",
+              "footer_en"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "request_id",
+          "revision",
+          "data"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

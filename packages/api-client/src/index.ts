@@ -82,3 +82,31 @@ export * from "./stock";
 export * from "./preferences";
 export * from "./period-report";
 export * from "./exchange-rate";
+
+export * from "./company-admin";
+
+export * from "./isdoc";
+
+export * from "./vat-registry";
+
+export * from "./document-tags";
+
+export * from "./bank-notification";
+
+export * from "./document-output";
+
+export * from "./dashboard-widgets";
+
+export * from "./document-style";
+
+export * from "./inbox-mailbox";
+
+export * from "./vies";
+
+export * from "./document-exports";
+
+export * from "./draft-trash";
+
+export * from "./tax-classification";
+
+export * from "./taxpayer-filing-profile";

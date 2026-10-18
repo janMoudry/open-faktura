@@ -1,3 +1,6 @@
+import { DocumentStyle } from "../components/organisms/DocumentStyle";
+import { DocumentTags } from "../components/organisms/DocumentTags";
+import { CompanyAdministration } from "../components/organisms/CompanyAdministration";
 import { CommunicationSettings } from "../components/organisms/CommunicationSettings";
 import { AresRegistration } from "../components/molecules/AresRegistration";
 import { useCompanyAres, companyRegistryData } from "../hooks/useCompanyAres";
@@ -516,6 +519,26 @@ export function CompanyPage() {
             )}
           </>
         )}
+        {company && (
+          <DocumentTags
+            key={`tags-${company.id}`}
+            company={company.id}
+            editable={company.role !== "viewer"}
+          />
+        )}
+        {company && (
+          <DocumentStyle
+            key={`style-${company.id}`}
+            company={company.id}
+            editable={company.role === "owner"}
+          />
+        )}
+        <CompanyAdministration
+          key={company?.id ?? "trash"}
+          company={company?.id}
+          owner={company?.role === "owner"}
+          onExpired={onExpired}
+        />
         {company && (
           <CommunicationSettings
             key={company.id}

@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{
     auth, company, draft,
     payment::{self, Error, PaymentInput, Register, Reverse},
@@ -553,14 +555,23 @@ async fn upgrade_p07_preserves_invoice_and_pdf(pool: PgPool) {
     };
     previous.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
-    let invoice = issued(&pool, &a, &c, 1).await;
-    let pdf = faktura_infrastructure::invoice_pdf::render(&invoice).unwrap();
-    sqlx::query("UPDATE invoice_draft SET pdf=$2 WHERE id=$1::text::bigint")
-        .bind(&invoice.id)
-        .bind(&pdf)
-        .execute(&pool)
-        .await
-        .unwrap();
+    let mut data: DraftData =
+        serde_json::from_str(include_str!("../../../tests/fixtures/invoice-draft.json")).unwrap();
+    data.supplier.registration_number = "12345678".into();
+    data.payment.method = "cash".into();
+    data.calculation.tax_mode = TaxMode::NonPayer;
+    data.calculation.lines[0].vat_percent = "0".into();
+    data.tax_on = None;
+    let (invoice, pdf) = historical_documents::invoice(
+        &pool,
+        &a,
+        &c,
+        draft::Create {
+            request_id: key(1),
+            data,
+        },
+    )
+    .await;
     all.run(&pool).await.unwrap();
     let state = payment::get(&PgPayment(pool.clone()), &a, &c, &invoice.id)
         .await

@@ -25,3 +25,44 @@ To není ověření konkrétní mobilní bankovní aplikace.
 P16-13i (18. 10. 2026) umožňuje zahraniční IBAN v profilu a na faktuře,
 ale nezvětšuje rozsah QR Platby. Pro non-CZ IBAN se QR nevygeneruje ani
 při částce v CZK. Test ověřuje toto oddělení; důvod v E-070.
+
+## P20-04b — QR Faktura a QR Platba+F, 18. 10. 2026
+
+V návrhu faktury je explicitní volba `qr_format`: payment (výchozí), invoice,
+payment_invoice. Nezadaná hodnota je payment a při serializaci se výchozí
+hodnota vynechává pro kompatibilitu historických snapshotů a replay příkazů.
+Volba je součástí uloženého návrhu a vystaveného snapshotu; web/REST/MCP
+používají společný renderer. PDF cache starých dokladů se nepřepisuje.
+
+Podklad QR Faktura SID 1.0 a integrace X-INV jsou veřejné specifikace KDP ČR:
+https://www.kdpcr.cz/informace/qr-faktura/popis-formatu a
+https://www.kdpcr.cz/informace/qr-faktura/integrace-s-qr-platbou,
+přečteno 18. 10. 2026. Nejde o pozorování nebo potvrzení aplikace iDoklad.
+
+QR Faktura z běžné CZK faktury od roku 2024 obsahuje původní číslo dokladu,
+datum vystavení/plnění/splatnosti, celkovou splatnou částku a uložené základy
++ DPH ve skupinách 21 %, 12 % a 0 %. Nic se nepřepočítává podle aktuálního
+profilu. IČO/DIČ, VS a účet se přidají jen v odpovídajícím formátu. Úhrady
+po vystavení tento kód nemění. Číslo dokladu má limit standardu 40 znaků.
+Text se escapuje procentovým kódováním; kód neobsahuje URL a nevyžaduje síť.
+Není to ověřený podpis ani garance daňové správnosti plnění.
+
+QR Platba+F vkládá SID do SPD X-INV, společné AM/DT/ACC/VS přesune do
+vnější QR Platby a vnitřní oddělovače/escapy zakóduje znovu. Zdědí všechny
+limity bezpečné QR Platby (včetně platného CZ účtu, metody a částky).
+QR Faktura samotná není platební příkaz a nevyžaduje bankovní převod.
+Nedaňová běžná faktura neplátce má TD:0; standard TD:0 sám nerozlišuje
+zálohu od jiné nedaňové faktury, import proto musí být vždy kontrolovaný.
+
+Nabídky, dobropisy a DDPP tento kód nemají. U záloh a vyúčtování s uloženými
+odpočty zůstává podporována původní volba payment; invoice/payment_invoice
+se nevygenerují, protože daňové odpočty vyžadují odlišné mapování. Cizí měna,
+starší sazby, příliš dlouhé číslo nebo nepodporovaná skupina kód nevytvoří;
+nikdy se nenahradí částka nebo účet. UI tyto limity uvádí u volby.
+
+Doménový test kontroluje výchozí serializaci, přesné částky a dvojí escapování.
+Roundtrip přes skutečný SID/SPD importer ověřuje zachování původního čísla
+včetně hvězdičky, základu a DPH. PostgreSQL QR test renderuje payment,
+invoice a payment_invoice v CS/EN ze skutečně vystavených snapshotů a ověřuje
+opakované čtení stejné cache. Živá shoda konkrétní mobilní aplikace není
+potvrzená.

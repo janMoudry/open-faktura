@@ -198,3 +198,26 @@ klienta; obojí opraveno a celá sada zopakována. Kontrola klienta nově ověř
 bankovní měnu a snapshot i v historii a reportu. Screenshoty
 `docs/design/bank-cross-currency-{cs,en}-{desktop,mobile}.png`, CS desktop/mobile
 vizuálně zkontrolovány. Syntetické scénáře nedokládají shodu s přihlášeným iDokladem.
+
+## P16-13j — zálohy a vratky mezi rozdílnými měnami (18. 10. 2026)
+
+Rozšiřuje vlastní pravidla P16-13g o příchozí úhrady záloh a odchozí vratky
+vystavených dobropisů. Nejde o nové pozorování algoritmu iDokladu. Cílová
+měna se čte ze zálohy nebo z původní faktury dobropisu, kurz je uložený
+historický kurz. Částky banky a dokladu se zadávají odděleně; pro non-CZK
+banku je explicitní bank_rate. Stejná měna patří do match/split.
+
+Kandidáti zahrnují nové i již evidované bank_transfer úhrady. Platba se
+připojuje celá a bez duplikace. Nová platba používá společné treasury
+příkazy a jejich omezení rezervací/DDPP. Odpojení stornuje jen nově vytvořené
+úhrady; zamítnutá oprava DDPP vrátí celou transakci. Výběr používá kombinaci
+typu a ID dokladu, protože ID různých tabulek se mohou shodovat.
+
+Migrace 058 rozšiřuje CHECK snapshotu, původní data se nemění. Report čte
+stejný snapshot CZK rozdílu a odkazuje podle typu na zálohu či dobropis.
+Přehled není účetní zápis ani změna historického daňového kurzu. REST/MCP,
+CS/EN sdílejí příkaz; automatika žádné různé měny ani kurz neodhaduje.
+
+Akceptace: nové a existující zálohové úhrady, refund, znaménko rozdílu,
+neshodná částka/směr, izolace, replay, původní platba po odpojení, kolize
+ID mezi fakturou a zálohou, odkazy reportu, CS/EN desktop/mobile.

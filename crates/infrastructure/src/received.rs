@@ -6,8 +6,13 @@ use rust_decimal::Decimal;
 use sqlx::{PgPool, Postgres, Row, Transaction};
 #[derive(Clone)]
 pub struct PgReceived(pub PgPool);
-fn err(_: impl std::fmt::Display) -> Error {
-    Error::Unavailable
+fn err(error: impl std::fmt::Display) -> Error {
+    // PostgreSQL trigger protects content after an explicit document export lock.
+    if error.to_string().contains("document_export_locked") {
+        Error::Conflict
+    } else {
+        Error::Unavailable
+    }
 }
 fn id(s: &str) -> Result<i64> {
     s.parse().map_err(|_| Error::NotFound)
@@ -146,8 +151,17 @@ impl ReceivedStore for PgReceived {
             return Err(Error::Invalid(vec!["query".into()]));
         }
         let mut tx = self.0.begin().await.map_err(err)?;
+        sqlx::query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+            .execute(&mut *tx)
+            .await
+            .map_err(err)?;
         let (_, c) = crate::draft::authorize(&mut tx, a, c, false).await?;
-        let predicate="company_id=$1 AND kind=$4 AND ($2='' OR position(lower($2) in lower(number||' '||(data->>'external_number')||' '||(data->'supplier'->>'name')||' '||(data->>'description')))>0) AND CASE $3 WHEN 'cancelled' THEN cancelled WHEN 'paid' THEN NOT cancelled AND paid=total WHEN 'unpaid' THEN NOT cancelled AND paid<total WHEN 'overdue' THEN NOT cancelled AND paid<total AND due_on<(now() AT TIME ZONE 'Europe/Prague')::date ELSE NOT cancelled END";
+        if q.tag_id.len() > 40
+            || (!q.tag_id.is_empty() && q.tag_id.parse::<i64>().ok().is_none_or(|v| v <= 0))
+        {
+            return Err(Error::Invalid(vec!["tag_id".into()]));
+        }
+        let predicate="company_id=$1 AND kind=$4 AND ($2='' OR position(lower($2) in lower(number||' '||(data->>'external_number')||' '||(data->'supplier'->>'name')||' '||(data->>'description')))>0) AND CASE $3 WHEN 'cancelled' THEN cancelled WHEN 'paid' THEN NOT cancelled AND paid=total WHEN 'unpaid' THEN NOT cancelled AND paid<total WHEN 'overdue' THEN NOT cancelled AND paid<total AND due_on<(now() AT TIME ZONE 'Europe/Prague')::date ELSE NOT cancelled END AND ($5='' OR EXISTS(SELECT 1 FROM document_tag_link l WHERE l.company_id=received_invoice.company_id AND l.received_id=received_invoice.id AND l.tag_id::text=$5))";
         let total = sqlx::query_scalar(&format!(
             "SELECT count(*) FROM received_invoice WHERE {predicate}"
         ))
@@ -155,10 +169,11 @@ impl ReceivedStore for PgReceived {
         .bind(&q.query)
         .bind(&q.status)
         .bind(q.kind.as_str())
+        .bind(&q.tag_id)
         .fetch_one(&mut *tx)
         .await
         .map_err(err)?;
-        let items=sqlx::query(&format!("SELECT * FROM received_invoice WHERE {predicate} ORDER BY received_on DESC,id DESC LIMIT 25 OFFSET $5")).bind(c).bind(q.query).bind(q.status).bind(q.kind.as_str()).bind((page-1)*25).fetch_all(&mut *tx).await.map_err(err)?.into_iter().map(map).collect::<Result<Vec<_>>>()?;
+        let items=sqlx::query(&format!("SELECT * FROM received_invoice WHERE {predicate} ORDER BY received_on DESC,id DESC LIMIT 25 OFFSET $6")).bind(c).bind(q.query).bind(q.status).bind(q.kind.as_str()).bind(&q.tag_id).bind((page-1)*25).fetch_all(&mut *tx).await.map_err(err)?.into_iter().map(map).collect::<Result<Vec<_>>>()?;
         Ok(Page { items, total, page })
     }
     async fn preview(&self, a: &str, c: &str, data: Data) -> Result<Totals> {

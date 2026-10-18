@@ -1,0 +1,224 @@
+[
+  {
+    "name": "company_administration",
+    "inputSchema": {
+      "type": "object",
+      "required": ["company_id"],
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "company_trash",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "company_archive",
+    "inputSchema": {
+      "type": "object",
+      "required": ["company_id"],
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "company_administration_execute",
+    "inputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "action": {
+              "type": "string",
+              "enum": ["add_member"]
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "maxLength": 254
+            },
+            "role": {
+              "type": "string",
+              "enum": ["editor", "viewer"]
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "revision",
+            "action",
+            "email",
+            "role"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "action": {
+              "type": "string",
+              "enum": ["set_role"]
+            },
+            "user_id": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string",
+              "enum": ["editor", "viewer"]
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "revision",
+            "action",
+            "user_id",
+            "role"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "action": {
+              "type": "string",
+              "enum": ["remove_member"]
+            },
+            "user_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "revision",
+            "action",
+            "user_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "action": {
+              "type": "string",
+              "enum": ["transfer"]
+            },
+            "user_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "company_id",
+            "request_id",
+            "revision",
+            "action",
+            "user_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "action": {
+              "type": "string",
+              "enum": ["leave"]
+            }
+          },
+          "required": ["company_id", "request_id", "revision", "action"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "company_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "action": {
+              "type": "string",
+              "enum": ["restore"]
+            }
+          },
+          "required": ["company_id", "request_id", "revision", "action"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,2 @@
+# Preserve the exact published schema, including its original whitespace/hash.
+tests/fixtures/isdoc/isdoc-invoice-6.0.2.xsd -whitespace

@@ -13,6 +13,8 @@ pub struct CompanyMcp {
     token: String,
     rates: std::sync::Arc<dyn faktura_application::exchange_rate::RateProvider>,
     ares: faktura_infrastructure::ares::Ares,
+    vat_registry: faktura_infrastructure::vat_registry::Rws,
+    vies: std::sync::Arc<dyn faktura_application::vies::ViesRegistry>,
     drafts: faktura_infrastructure::draft::PgDraft,
     contacts: faktura_infrastructure::contact::PgContact,
     catalog: faktura_infrastructure::catalog::PgCatalog,
@@ -27,6 +29,13 @@ impl CompanyMcp {
         provider: std::sync::Arc<dyn faktura_application::exchange_rate::RateProvider>,
     ) -> Self {
         self.rates = provider;
+        self
+    }
+    pub fn with_vies_provider(
+        mut self,
+        provider: std::sync::Arc<dyn faktura_application::vies::ViesRegistry>,
+    ) -> Self {
+        self.vies = provider;
         self
     }
     pub fn new(pool: PgPool, token: String) -> Self {
@@ -51,6 +60,8 @@ impl CompanyMcp {
             store: PgCompany(pool),
             token,
             ares: Default::default(),
+            vat_registry: Default::default(),
+            vies: std::sync::Arc::new(faktura_infrastructure::vies::Vies::default()),
             rates: std::sync::Arc::new(faktura_infrastructure::exchange_rate::Cnb::default()),
         }
     }
@@ -112,6 +123,100 @@ fn tools() -> Vec<Tool> {
         let name = schema["name"].as_str().unwrap();
         result.push(Tool::new(name.to_owned(),"Profile-scoped banking in account currency with explicit cross-currency invoice allocation. Foreign matching creates a new payment in document currency or links the full existing payment when payment_id is supplied; bank_amount remains in account currency and the CZK difference is not a ledger entry. Preview does not import. Execute explicitly creates/updates an account, imports CSV or a documented bank statement, records a manual movement, matches or unmatches a payment. Never sends a bank transfer. Connection test/sync contacts the configured provider; schedule enables recurring external reads and requires explicit opt-in. Matching enables recurring payment writes for exact matches and requires a separate explicit opt-in. include_treasury additionally opts into advances and credit refunds using the original invoice reference. Never log bank tokens. Existing payments can be linked without a second payment; unmatch reverses only payments created by matching.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="bank_execute" && name!="bank_connection_execute")));
     }
+    let schemas: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/company-admin.tools.json"))
+            .expect("company administration tools");
+    for schema in schemas.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Company membership, ownership transfer, leave, restore and portable archive. Only owners manage memberships or export company data. Transfer preserves history and makes the previous owner an editor. Leaving removes access. Restore only affects a deleted profile owned by the actor. The archive excludes credentials and bearer-link columns and is not a PostgreSQL backup.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="company_administration_execute")));
+    }
+
+    let vat: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/vat-registry.tools.json"))
+            .expect("vat tools");
+    for schema in vat.as_array().unwrap() {
+        result.push(Tool::new(schema["name"].as_str().unwrap().to_owned(), "Read official Czech VAT registry status and published accounts; requires profile access and makes an external lookup.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(true)));
+    }
+    let taxpayer_profiles: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../contracts/taxpayer-filing-profile.tools.json"
+    ))
+    .unwrap();
+    for schema in taxpayer_profiles.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(), "Explicit EPO taxpayer metadata; set records user supplied taxpayer identity and official office selection. Does not alter invoice VAT mode or submit a tax return.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="taxpayer_filing_profile_set")));
+    }
+    let tax_classifications: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../contracts/tax-classification.tools.json"
+    ))
+    .expect("tax classification tools");
+    for schema in tax_classifications.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Explicit taxpayer evidence classification. Get and summary are read-only. Set records the user's turnover or deduction choice with reason, source fingerprint, revision and audit; never changes a source document or determines statutory eligibility.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name!="tax_classification_set")));
+    }
+    let vies: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/vies.tools.json"))
+            .expect("vies tools");
+    for schema in vies.as_array().unwrap() {
+        result.push(Tool::new(schema["name"].as_str().unwrap().to_owned(),"Manual EU/XI VAT number verification for invoice preparation. Requires profile membership; no contact changes or tax-treatment decisions.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(true)));
+    }
+    let tags: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/document-tags.tools.json"))
+            .expect("tag tools");
+    for schema in tags.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(), "Profile-scoped document tags. Create, rename, delete, attach and detach require write membership; deleting a tag never deletes its documents.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name=="tags_list")));
+    }
+    let notifications: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../contracts/bank-notification.tools.json"
+    ))
+    .expect("bank notification tools");
+    for schema in notifications.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(), "Authenticated bank statement gateway intake. Explicit account opt-in required; validates account, format and duplicate message identity. Receiving imports movements only, never enables matching or creates payments.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"bank_notification_settings"|"bank_notification_history"))));
+    }
+    let outputs: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../contracts/document-output.tools.json"
+    ))
+    .expect("document output tools");
+    for schema in outputs.as_array().unwrap() {
+        result.push(Tool::new(schema["name"].as_str().unwrap().to_owned(), "Read-only invoice output: batch original PDFs, editable RTF, delivery note or active-payment confirmation. Does not issue, send, or change source documents.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(true)));
+    }
+    let document_exports: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../contracts/document-exports.tools.json"
+    ))
+    .expect("document export tools");
+    for schema in document_exports.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Explicit versioned JSON document export. Optional lock freezes document content, never payments or balances. Only owner can unlock with a required audited reason. Snapshots remain immutable; this is not a third-party accounting format.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"document_export_history"|"document_export_file"))));
+    }
+    let widgets: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../contracts/dashboard-widgets.tools.json"
+    ))
+    .expect("widget tools");
+    for schema in widgets.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(), "Read or change the authenticated user's dashboard widget order, visibility and detail. Financial data and other accounts are unchanged.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name=="dashboard_widgets_get")));
+    }
+    let trash: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/draft-trash.tools.json"))
+            .expect("draft trash tools");
+    for schema in trash.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(), "List, trash or restore unissued invoice drafts. Linked, issued and export-locked documents cannot be trashed; no permanent deletion.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name=="invoice_trash_list")));
+    }
+    let styles: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/document-style.tools.json"))
+            .expect("style tools");
+    for schema in styles.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(), "Profile document brand: bounded logo/signature images and localized footers. Owner-only updates affect future issued invoice snapshots, never existing PDF history.", schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(name=="document_style_get")));
+    }
+    let isdoc: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/isdoc.tools.json"))
+            .expect("isdoc tools");
+    for schema in isdoc.as_array().unwrap() {
+        result.push(Tool::new(schema["name"].as_str().unwrap().to_owned(), "Read-only ISDOC export of the issued invoice snapshot. Returns filename, media_type and base64; never sends or changes the document.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(true)));
+    }
     let preferences: serde_json::Value =
         serde_json::from_str(include_str!("../../../contracts/preferences.tools.json"))
             .expect("preference tools");
@@ -132,12 +237,19 @@ fn tools() -> Vec<Tool> {
         let name = schema["name"].as_str().unwrap();
         result.push(Tool::new(name.to_owned(),"Profile-scoped inventory. Execute records opening quantities, manual movements, physical counts or reversals. Do not infer a physical receipt from an uploaded invoice.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(!matches!(name,"stock_execute"|"stock_set_cost"))));
     }
+    let mailboxes: serde_json::Value =
+        serde_json::from_str(include_str!("../../../contracts/inbox-mailbox.tools.json"))
+            .expect("mailbox tools");
+    for schema in mailboxes.as_array().unwrap() {
+        let name = schema["name"].as_str().unwrap();
+        result.push(Tool::new(name.to_owned(),"Native IMAP intake. Configure requires company opt-in and an installer-trusted provider name. Sync reads up to 10 messages using verified TLS and BODY.PEEK; does not mark read or delete. Network action requires explicit user authorization. Imported attachments are untrusted proposals; never automatically account them.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(matches!(name,"inbox_mailbox_settings"|"inbox_mailbox_history"))));
+    }
     let inbox: serde_json::Value =
         serde_json::from_str(include_str!("../../../contracts/inbox.tools.json"))
             .expect("inbox tools");
     for schema in inbox.as_array().unwrap() {
         let name = schema["name"].as_str().unwrap();
-        result.push(Tool::new(name.to_owned(),"Profile-scoped inbox. Uploaded files are untrusted. Conversion requires reviewed document data and explicit confirmation.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(!matches!(name,"inbox_execute"|"inbox_upload"))));
+        result.push(Tool::new(name.to_owned(),"Profile-scoped inbox. Uploaded files are untrusted. Conversion requires reviewed document data and explicit confirmation. inbox_extract_provider sends the original file to the configured external provider and requires explicit user authorization; the returned proposal is never automatically booked.",schema["inputSchema"].as_object().unwrap().clone()).with_annotations(ToolAnnotations::new().read_only(!matches!(name,"inbox_execute"|"inbox_upload"|"inbox_configure"|"inbox_mail"|"inbox_extract_provider"))));
     }
     let retail: serde_json::Value =
         serde_json::from_str(include_str!("../../../contracts/retail.tools.json"))
@@ -461,6 +573,17 @@ impl ServerHandler for CompanyMcp {
                 )
                 .await
             }
+            "tax_evidence_export" => {
+                async {
+                    use faktura_application::tax_report::TaxExportStore;
+                    use base64::Engine;
+                    let mut value = serde_json::Value::Object(args);
+                    let c = value.as_object_mut().and_then(|v| v.remove("company_id")).and_then(|v| v.as_str().map(str::to_owned)).ok_or_else(|| CompanyError::Invalid(vec!["company_id".into()]))?;
+                    let query = serde_json::from_value(value).map_err(|_| CompanyError::Invalid(vec!["query".into()]))?;
+                    let f = faktura_infrastructure::tax_report::PgTaxReport(self.store.0.clone()).export(&actor,&c,query).await?;
+                    Ok(serde_json::json!({"filename": f.filename,"media_type": f.media_type,"base64":base64::engine::general_purpose::STANDARD.encode(f.bytes)}))
+                }.await
+            }
             "tax_report" => {
                 async {
                     use faktura_application::tax_report::TaxReportStore;
@@ -478,6 +601,52 @@ impl ServerHandler for CompanyMcp {
                     serde_json::to_value(value).map_err(|_| CompanyError::Unavailable)
                 }
                 .await
+            }
+            "bank_notification_settings" | "bank_notification_configure" | "bank_notification_receive" | "bank_notification_history" => bank_notification_tool(self.store.0.clone(), &actor, request.name.as_ref(), args).await,
+            "dashboard_widgets_get" | "dashboard_widgets_set" => {
+                async {
+                    use faktura_application::dashboard_widgets::DashboardWidgetStore;
+                    let store=faktura_infrastructure::dashboard_widgets::PgDashboardWidgets(self.store.0.clone());
+                    let v=if request.name.as_ref()=="dashboard_widgets_get" {
+                        if !args.is_empty() {return Err(CompanyError::Invalid(vec!["arguments".into()]));}
+                        store.get(&actor).await?
+                    } else {
+                        let input=serde_json::from_value(serde_json::Value::Object(args)).map_err(|_|CompanyError::Invalid(vec!["arguments".into()]))?;
+                        store.set(&actor,input).await?
+                    };
+                    serde_json::to_value(v).map_err(|_|CompanyError::Unavailable)
+                }.await
+            }
+            "invoice_trash_list" | "invoice_trash_execute" => crate::draft_trash::tool(self.store.0.clone(), &actor, request.name.as_ref(), args).await,
+            "document_style_get" | "document_style_set" => crate::document_style::tool(self.store.0.clone(), &actor, request.name.as_ref(), args).await,
+            "document_export" | "document_export_history" | "document_export_file" | "document_export_unlock" => crate::document_exports::tool(self.store.0.clone(), &actor, request.name.as_ref(), args).await,
+            "document_output" => crate::document_output::tool(self.store.0.clone(), &actor, args).await,
+            "tags_list" | "tags_execute" => crate::document_tags::tool(self.store.0.clone(), &actor, request.name.as_ref(), args).await,
+            "company_administration" | "company_administration_execute" | "company_trash" | "company_archive" => crate::company_admin::tool(self.store.0.clone(), &actor, request.name.as_ref(), args).await,
+            "taxpayer_filing_profile_get" | "taxpayer_filing_profile_set" => crate::taxpayer_filing_profile::tool(self.store.0.clone(),&actor,request.name.as_ref(),args).await,
+            "tax_classification_get" | "tax_classification_set" | "tax_classification_summary" => crate::tax_classification::tool(self.store.0.clone(),&actor,request.name.as_ref(),args).await,
+            "vies_lookup" if args.len()==2 => {
+                match(args.get("company_id").and_then(|v|v.as_str()),args.get("vat_number").and_then(|v|v.as_str())) {
+                    (Some(c),Some(v))=>faktura_application::vies::lookup(&self.store,self.vies.as_ref(),&actor,c,v).await.and_then(|v|serde_json::to_value(v).map_err(|_|CompanyError::Unavailable)),
+                    _=>Err(CompanyError::Invalid(vec!["arguments".into()]))
+                }
+            }
+            "vat_registry_lookup" if args.len() == 2 => {
+                match (args.get("company_id").and_then(|v| v.as_str()), args.get("vat_number").and_then(|v| v.as_str())) {
+                    (Some(c), Some(v)) => faktura_application::vat_registry::lookup(&self.store, &self.vat_registry, &actor, c, v).await.and_then(|v| serde_json::to_value(v).map_err(|_| CompanyError::Unavailable)),
+                    _ => Err(CompanyError::Invalid(vec!["arguments".into()])),
+                }
+            }
+            "invoice_isdoc" => {
+                async {
+                    use faktura_application::isdoc::IsdocStore;
+                    use base64::Engine;
+                    let c=args.get("company_id").and_then(|v|v.as_str()).ok_or_else(||CompanyError::Invalid(vec!["company_id".into()]))?;
+                    let id=args.get("id").and_then(|v|v.as_str()).ok_or_else(||CompanyError::Invalid(vec!["id".into()]))?;
+                    if args.len()!=2 {return Err(CompanyError::Invalid(vec!["arguments".into()]));}
+                    let file=faktura_infrastructure::isdoc::PgIsdoc(self.store.0.clone()).export(&actor,c,id).await?;
+                    Ok(serde_json::json!({"filename":file.filename,"media_type":file.media_type,"base64":base64::engine::general_purpose::STANDARD.encode(file.bytes)}))
+                }.await
             }
             "dashboard_report" => {
                 async {
@@ -532,8 +701,9 @@ impl ServerHandler for CompanyMcp {
                 )
                 .await
             }
+            "inbox_mailbox_settings" | "inbox_mailbox_configure" | "inbox_mailbox_sync" | "inbox_mailbox_history" => mailbox_tool(self.store.0.clone(),&actor,request.name.as_ref(),args).await,
             "inbox_list" | "inbox_upload" | "inbox_execute" | "inbox_download"
-            | "inbox_extract" | "inbox_history" => {
+            | "inbox_extract" | "inbox_history" | "inbox_settings" | "inbox_configure" | "inbox_mail" | "inbox_mail_history" | "inbox_extract_provider" => {
                 inbox_tool(
                     &faktura_infrastructure::inbox::PgInbox(self.store.0.clone()),
                     &actor,
@@ -2002,6 +2172,31 @@ async fn inbox_tool(
         .ok_or_else(invalid)?;
     let value = serde_json::Value::Object(args);
     let result = match name {
+        "inbox_settings" => serde_json::to_value(store.settings(actor, &c).await?),
+        "inbox_configure" => serde_json::to_value(
+            store
+                .configure(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "inbox_mail" => serde_json::to_value(
+            store
+                .mail(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "inbox_mail_history" => serde_json::to_value(store.mail_history(actor, &c).await?),
+        "inbox_extract_provider" => serde_json::to_value(
+            store
+                .extract_provider(actor, &c, value["id"].as_str().ok_or_else(invalid)?)
+                .await?,
+        ),
         "inbox_history" => serde_json::to_value(
             store
                 .history(actor, &c, value["id"].as_str().ok_or_else(invalid)?)
@@ -2201,4 +2396,82 @@ async fn item_sales_tool(
         )
         .map_err(|_| CompanyError::Unavailable)
     }
+}
+
+async fn bank_notification_tool(
+    pool: PgPool,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    use faktura_application::bank_notification::NotificationStore;
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(|| CompanyError::Invalid(vec!["company_id".into()]))?;
+    let store = faktura_infrastructure::bank_notification::PgNotification(pool);
+    let value = match name {
+        "bank_notification_settings" | "bank_notification_history" => {
+            let account = args
+                .remove("account_id")
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .ok_or_else(|| CompanyError::Invalid(vec!["account_id".into()]))?;
+            if !args.is_empty() {
+                return Err(CompanyError::Invalid(vec!["arguments".into()]));
+            }
+            if name == "bank_notification_settings" {
+                serde_json::to_value(store.settings(actor, &c, &account).await?)
+            } else {
+                serde_json::to_value(store.history(actor, &c, &account).await?)
+            }
+        }
+        "bank_notification_configure" => {
+            let v = serde_json::from_value(serde_json::Value::Object(args))
+                .map_err(|_| CompanyError::Invalid(vec!["arguments".into()]))?;
+            serde_json::to_value(store.configure(actor, &c, v).await?)
+        }
+        "bank_notification_receive" => {
+            let v = serde_json::from_value(serde_json::Value::Object(args))
+                .map_err(|_| CompanyError::Invalid(vec!["arguments".into()]))?;
+            serde_json::to_value(store.receive(actor, &c, v).await?)
+        }
+        _ => return Err(CompanyError::Invalid(vec!["tool".into()])),
+    };
+    value.map_err(|_| CompanyError::Unavailable)
+}
+
+async fn mailbox_tool(
+    pool: sqlx::PgPool,
+    actor: &str,
+    name: &str,
+    mut args: serde_json::Map<String, serde_json::Value>,
+) -> company::Result<serde_json::Value> {
+    use faktura_application::inbox_mailbox::MailboxStore;
+    let invalid = || CompanyError::Invalid(vec!["arguments".into()]);
+    let c = args
+        .remove("company_id")
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .ok_or_else(invalid)?;
+    let store = faktura_infrastructure::inbox_mailbox::PgMailbox::new(pool);
+    let value = serde_json::Value::Object(args);
+    let result = match name {
+        "inbox_mailbox_settings" => serde_json::to_value(store.settings(actor, &c).await?),
+        "inbox_mailbox_configure" => serde_json::to_value(
+            store
+                .configure(
+                    actor,
+                    &c,
+                    serde_json::from_value(value).map_err(|_| invalid())?,
+                )
+                .await?,
+        ),
+        "inbox_mailbox_sync" => serde_json::to_value(
+            store
+                .sync(actor, &c, value["request_id"].as_str().ok_or_else(invalid)?)
+                .await?,
+        ),
+        "inbox_mailbox_history" => serde_json::to_value(store.history(actor, &c).await?),
+        _ => return Err(invalid()),
+    };
+    result.map_err(|_| CompanyError::Unavailable)
 }

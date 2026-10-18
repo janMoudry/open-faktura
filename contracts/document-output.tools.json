@@ -1,0 +1,32 @@
+[
+  {
+    "name": "document_output",
+    "inputSchema": {
+      "type": "object",
+      "required": ["company_id", "ids", "kind", "language"],
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["bulk_pdf", "rtf", "delivery_note", "payment_confirmation"]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["cs", "en"]
+        }
+      }
+    }
+  }
+]

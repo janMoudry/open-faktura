@@ -1,11 +1,7 @@
 {
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "company_id",
-    "currency",
-    "date"
-  ],
+  "required": ["company_id", "currency", "date"],
   "properties": {
     "company_id": {
       "type": "string"

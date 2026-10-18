@@ -8,9 +8,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -71,17 +69,10 @@
         },
         "purpose": {
           "type": "string",
-          "enum": [
-            "reminder",
-            "thanks"
-          ]
+          "enum": ["reminder", "thanks"]
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "purpose"
-      ],
+      "required": ["company_id", "id", "purpose"],
       "additionalProperties": false
     }
   },
@@ -100,11 +91,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "paused"
-      ],
+      "required": ["company_id", "id", "paused"],
       "additionalProperties": false
     }
   }

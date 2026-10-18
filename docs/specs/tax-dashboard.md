@@ -80,3 +80,21 @@ haléřové hodnoty, DUZP oproti booked_on, archivaci, změnu plátcovství,
 storno a oddělení profilu; REST/MCP shoda obsahuje pokladní plnění.
 `pnpm check`, server build a web build prošly. Lokální API aktualizováno,
 readiness ověřena; screenshot mobilní české verze vizuálně zkontrolován.
+
+## P19-04a — Export evidovaných podkladů
+
+CSV/XLSX pro zvolený rok a druh zdrojů (evidovaná DPH / orientační obrat).
+POST `/reports/tax/export`, MCP `tax_evidence_export`, CS/EN. Export používá
+stejný evaluátor jako přehled a jeden REPEATABLE READ snapshot pro výběr
+všech řádků, nikoli smyčku přes samostatné stránky. Limit 10 000 zdrojů;
+překročení vrací export_limit bez zkráceného souboru. Nastavení page se pro
+export nepoužije. Profilová práva i pro viewer; žádné změny dokladů.
+
+Sloupce: typ a ID zdroje, číslo dokladu, rozhodné datum, směr, částka CZK a
+výslovný rozsah evidovaných podkladů. Desetinné řetězce a ISO data se
+zachovávají jako text; společný encoder chrání CSV vzorce a XLSX používá
+textové buňky. Vstupní DPH není automaticky uznaný odpočet. Export není
+přiznání, kontrolní hlášení, souhrnné hlášení ani zákonný obrat a nenahrazuje
+chybějící daňové klasifikace. Daňové formuláře P19-04 zůstávají samostatný
+rozsah. Test `tax_evidence_exports_all_sources_from_one_snapshot` ověřuje
+více než jednu stránku, přesné částky, formula ochranu, oba formáty a profily.

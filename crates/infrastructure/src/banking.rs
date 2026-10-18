@@ -223,6 +223,23 @@ async fn statement_preview(
     let data = crate::bank_statement::parse(&f, &a.data.iban, &a.data.currency)?;
     preview_rows(tx, c, a, data, &f.format, 1).await
 }
+/// Shared statement ingestion, called only after company authorization and lock.
+pub(crate) async fn statement_import_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    c: i64,
+    file: StatementInput,
+) -> Result<ImportPreview> {
+    let account_id = file.account_id.clone();
+    let source = file.format.clone();
+    let report = statement_preview(tx, c, file).await?;
+    if !report.valid {
+        return Err(invalid("import_conflict"));
+    }
+    for row in report.rows.iter().filter(|r| r.status == "new") {
+        insert_movement(tx, c, &account_id, &row.data, &source).await?;
+    }
+    Ok(report)
+}
 pub(crate) async fn insert_movement(
     tx: &mut Transaction<'_, Postgres>,
     c: i64,
@@ -723,16 +740,7 @@ impl BankStore for PgBank {
                 Reply::Import(report)
             }
             Action::Statement { file } => {
-                let account_id = file.account_id.clone();
-                let source = file.format.clone();
-                let report = statement_preview(&mut tx, c, file).await?;
-                if !report.valid {
-                    return Err(invalid("import_conflict"));
-                }
-                for r in report.rows.iter().filter(|r| r.status == "new") {
-                    insert_movement(&mut tx, c, &account_id, &r.data, &source).await?;
-                }
-                Reply::Import(report)
+                Reply::Import(statement_import_in_tx(&mut tx, c, file).await?)
             }
             Action::Manual {
                 account_id,

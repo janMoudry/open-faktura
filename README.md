@@ -20,7 +20,7 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Veřejné odkazy na nabídky i faktury, odvolání odkazu a historie zobrazení.
 - Bankovní účty s českým i zahraničním IBAN v CZK i cizích měnách, [import výpisů](docs/specs/bank-statements.md), kontrola duplicit a ruční i dávkové párování úhrad.
 - [Cizoměnové doklady a přehledy](docs/specs/report-currencies.md), uložené kurzy a návrh kurzu ČNB na vyžádání.
-- [Párování rozdílných měn](docs/specs/bank-foreign-matching.md) u běžných faktur a přehled uložených kurzových rozdílů bez účetního zaúčtování.
+- [Párování rozdílných měn](docs/specs/bank-foreign-matching.md) u faktur, záloh a vratek dobropisů a přehled uložených kurzových rozdílů bez účetního zaúčtování.
 - [Evidence DPH a orientační obrat](docs/specs/tax-dashboard.md) včetně samostatných pokladních plnění; nejde o daňové přiznání ani zákonný obrat.
 - Přijaté faktury a účtenky, originální přílohy, výdajové úhrady a přehled nákladů.
 - Zálohové faktury s vlastní číselnou řadou, PDF a ručními úhradami.
@@ -29,7 +29,10 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Obecný import kontaktů a ceníku CSV/XLSX s mapováním a kontrolou před zápisem.
 - [Import ceníku Money S3 XML](docs/specs/catalog-import.md): základní CZK ceny, náhled, konflikty a ochrana proti duplicitám.
 - Prodejky v CZK s kombinovanými úhradami a dávkovým zaúčtováním.
-- Inbox originálů, deduplikace, propojení s nákupem a náhled omezeného ISDOC.
+- [Inbox originálů](docs/specs/inbox.md), bezpečný náhled, kontrolovaný návrh ISDOC/QR, práce s dodavatelem a volitelný příjem přes vlastní bránu nebo IMAP.
+- Správa členů a vlastnictví profilů, přenosný archiv, štítky s filtry a koš nevystavených nepropojených návrhů.
+- Logo/podpis na nových PDF, hromadný tisk, dodací list, potvrzení úhrady a exportní snapshoty se zámkem obsahu.
+- Export běžných faktur do ISDOC 6.0.2, ruční kontrola DIČ přes RWS/VIES a [vlastní importní adaptéry](docs/INTEGRATION_ADAPTERS.md).
 - Přehled prodeje po ceníkových položkách s filtry období/typu, skutečnými částkami, zdrojovými doklady a exportem CSV/XLSX.
 - Skladové pohyby z faktur, nákupů a prodejek včetně oprav a vratek; ruční pohyby, inventury, souhrnný stav k datu a ruční ocenění i automatický průměr nákupních příjmů, ocenění vratek a rozvržení cenových oprav i vedlejších nákladů. Pořizovací ceny lze zadat také u počátečních stavů, ručních příjmů a inventurních přebytků.
 - Měsíční, kvartální, roční i kumulativní přehled prodeje/nákupu, meziroční srovnání a zdrojové doklady.
@@ -82,7 +85,7 @@ Pro nasazení na vlastní server použijte [produkční instalační postup](doc
 
 Tauri sdílí webové rozhraní a připojuje se k běžícímu Rust API. Vývojový desktop spustíte přes `pnpm dev:desktop` se samostatně běžícími DB a API; nespouštějte zároveň druhý Vite server. [Podrobnosti a nativní závislosti](docs/DEVELOPMENT.md#desktop).
 
-Instalátory v GitHub Releases, automatické aktualizace a osobní režim s přibaleným backendem/PostgreSQL jsou plánované. Na mobilu je dostupný responzivní web; instalovatelná PWA a offline režim zatím nejsou hotové.
+[Build matice instalátorů](docs/DESKTOP_RELEASES.md) připravuje draft GitHub Releases; lokálně je ověřené sestavení macOS DMG. Produkční podpisy, automatické aktualizace a osobní režim s přibaleným backendem/PostgreSQL se připravují. Na mobilu je dostupný responzivní web; instalovatelná PWA a offline režim zatím nejsou hotové.
 
 ## Technologie a struktura
 

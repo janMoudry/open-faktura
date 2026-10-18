@@ -8,9 +8,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -30,29 +28,18 @@
         },
         "direction": {
           "type": "string",
-          "enum": [
-            "all",
-            "income",
-            "expense"
-          ]
+          "enum": ["all", "income", "expense"]
         },
         "status": {
           "type": "string",
-          "enum": [
-            "all",
-            "matched",
-            "unmatched",
-            "partial"
-          ]
+          "enum": ["all", "matched", "unmatched", "partial"]
         },
         "page": {
           "type": "integer",
           "format": "int64"
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -68,10 +55,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -90,10 +74,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -112,11 +93,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "account_id",
-        "csv"
-      ],
+      "required": ["company_id", "account_id", "csv"],
       "additionalProperties": false
     }
   },
@@ -163,9 +140,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "account"
-              ]
+              "enum": ["account"]
             },
             "id": {
               "anyOf": [
@@ -218,11 +193,7 @@
                   ]
                 }
               },
-              "required": [
-                "name",
-                "iban",
-                "currency"
-              ]
+              "required": ["name", "iban", "currency"]
             },
             "archived": {
               "type": "boolean"
@@ -251,9 +222,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "import"
-              ]
+              "enum": ["import"]
             },
             "account_id": {
               "type": "string"
@@ -283,9 +252,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "manual"
-              ]
+              "enum": ["manual"]
             },
             "account_id": {
               "type": "string"
@@ -364,9 +331,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "match"
-              ]
+              "enum": ["match"]
             },
             "movement_id": {
               "type": "string"
@@ -377,12 +342,7 @@
             },
             "target_kind": {
               "type": "string",
-              "enum": [
-                "invoice",
-                "received",
-                "advance",
-                "credit"
-              ]
+              "enum": ["invoice", "received", "advance", "credit"]
             },
             "document_id": {
               "type": "string"
@@ -427,9 +387,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "unmatch"
-              ]
+              "enum": ["unmatch"]
             },
             "movement_id": {
               "type": "string"
@@ -463,12 +421,7 @@
             },
             "format": {
               "type": "string",
-              "enum": [
-                "camt053",
-                "fio_json",
-                "moneta_xml",
-                "rb_abo"
-              ]
+              "enum": ["camt053", "fio_json", "moneta_xml", "rb_abo"]
             },
             "filename": {
               "type": "string"
@@ -482,9 +435,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "statement"
-              ]
+              "enum": ["statement"]
             },
             "company_id": {
               "type": "string"
@@ -513,9 +464,7 @@
           "properties": {
             "action": {
               "type": "string",
-              "enum": [
-                "batch_match"
-              ]
+              "enum": ["batch_match"]
             },
             "movement_ids": {
               "type": "array",
@@ -561,9 +510,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "opening"
-              ]
+              "enum": ["opening"]
             },
             "request_id": {
               "type": "string",
@@ -594,9 +541,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "split"
-              ]
+              "enum": ["split"]
             },
             "movement_id": {
               "type": "string"
@@ -615,12 +560,7 @@
                 "properties": {
                   "target_kind": {
                     "type": "string",
-                    "enum": [
-                      "invoice",
-                      "received",
-                      "advance",
-                      "credit"
-                    ]
+                    "enum": ["invoice", "received", "advance", "credit"]
                   },
                   "document_id": {
                     "type": "string"
@@ -675,9 +615,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "foreign_match"
-              ]
+              "enum": ["foreign_match"]
             },
             "movement_id": {
               "type": "string"
@@ -688,10 +626,7 @@
             },
             "target_kind": {
               "type": "string",
-              "enum": [
-                "invoice",
-                "received"
-              ]
+              "enum": ["invoice", "received", "advance", "credit"]
             },
             "document_id": {
               "type": "string"
@@ -730,10 +665,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "rate",
-                    "units"
-                  ]
+                  "required": ["rate", "units"]
                 },
                 {
                   "type": "null"
@@ -773,12 +705,7 @@
         },
         "format": {
           "type": "string",
-          "enum": [
-            "camt053",
-            "fio_json",
-            "moneta_xml",
-            "rb_abo"
-          ]
+          "enum": ["camt053", "fio_json", "moneta_xml", "rb_abo"]
         },
         "filename": {
           "type": "string"
@@ -809,10 +736,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -834,10 +758,7 @@
           "uniqueItems": true
         }
       },
-      "required": [
-        "company_id",
-        "movement_ids"
-      ],
+      "required": ["company_id", "movement_ids"],
       "additionalProperties": false
     }
   },
@@ -859,10 +780,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "account_id"
-      ],
+      "required": ["company_id", "account_id"],
       "additionalProperties": false
     }
   },
@@ -878,10 +796,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "account_id"
-      ],
+      "required": ["company_id", "account_id"],
       "additionalProperties": false
     }
   },
@@ -919,9 +834,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "save"
-              ]
+              "enum": ["save"]
             },
             "provider": {
               "type": "string"
@@ -968,9 +881,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "disconnect"
-              ]
+              "enum": ["disconnect"]
             },
             "company_id": {
               "type": "string"
@@ -1001,9 +912,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "test"
-              ]
+              "enum": ["test"]
             },
             "company_id": {
               "type": "string"
@@ -1034,9 +943,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "sync"
-              ]
+              "enum": ["sync"]
             },
             "company_id": {
               "type": "string"
@@ -1067,21 +974,14 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "schedule"
-              ]
+              "enum": ["schedule"]
             },
             "enabled": {
               "type": "boolean"
             },
             "interval_minutes": {
               "type": "integer",
-              "enum": [
-                15,
-                60,
-                360,
-                1440
-              ]
+              "enum": [15, 60, 360, 1440]
             },
             "company_id": {
               "type": "string"
@@ -1114,9 +1014,7 @@
             },
             "action": {
               "type": "string",
-              "enum": [
-                "matching"
-              ]
+              "enum": ["matching"]
             },
             "enabled": {
               "type": "boolean"
@@ -1157,10 +1055,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -1179,10 +1074,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -1206,11 +1098,7 @@
           "maximum": 10000
         }
       },
-      "required": [
-        "company_id",
-        "from",
-        "to"
-      ],
+      "required": ["company_id", "from", "to"],
       "additionalProperties": false
     }
   }

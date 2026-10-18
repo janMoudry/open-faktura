@@ -77,7 +77,8 @@ export function BankForeignDialog({
             action: "foreign_match",
             movement_id: movement.id,
             revision: movement.revision,
-            target_kind: selected.target_kind as "invoice" | "received",
+            target_kind: selected.target_kind as
+              "invoice" | "received" | "advance" | "credit",
             document_id: selected.document_id,
             payment_id: selected.payment_id,
             target_revision: selected.revision,
@@ -117,18 +118,20 @@ export function BankForeignDialog({
             label={t("bankForeignDocument")}
             value={
               selected
-                ? `${selected.document_id}:${selected.payment_id ?? "new"}`
+                ? `${selected.target_kind}:${selected.document_id}:${selected.payment_id ?? "new"}`
                 : ""
             }
             disabled={cmd.busy}
             options={choices.map((c) => ({
-              value: `${c.document_id}:${c.payment_id ?? "new"}`,
+              value: `${c.target_kind}:${c.document_id}:${c.payment_id ?? "new"}`,
               label: `${c.number} · ${c.partner} · ${moneyText(c.payment_amount ?? c.outstanding, language, c.currency)} · ${c.payment_id ? t("bankPaymentId", { id: c.payment_id }) : t("bankCreatePayment")}`,
             }))}
             onChange={(id) => {
               const c =
                 choices.find(
-                  (c) => `${c.document_id}:${c.payment_id ?? "new"}` === id,
+                  (c) =>
+                    `${c.target_kind}:${c.document_id}:${c.payment_id ?? "new"}` ===
+                    id,
                 ) ?? null;
               setSelected(c);
               setDocumentAmount(c?.payment_amount ?? c?.outstanding ?? "");

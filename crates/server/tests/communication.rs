@@ -1,3 +1,5 @@
+#[path = "support/historical_documents.rs"]
+mod historical_documents;
 use faktura_application::{
     auth, company,
     draft::{self, Create, DraftStore, Error, Issue},
@@ -609,8 +611,8 @@ async fn upgrade_022_preserves_pdf_payments_and_existing_delivery(pool: PgPool) 
     };
     previous.run(&pool).await.unwrap();
     let (a, _, c, _) = setup(&pool).await;
-    let i = issued(&pool, &a, &c).await;
-    let original = PgDraft(pool.clone()).pdf(&a, &c, &i.id).await.unwrap();
+    let (i, historical_pdf) = historical_documents::invoice(&pool, &a, &c, create(KEY)).await;
+    let original = historical_pdf;
     // Insert the exact old row shape before the additive schema is available.
     sqlx::query("INSERT INTO invoice_delivery(company_id,document_id,actor_id,request_id,command,revision,snapshot,pdf,sender,reply_to,recipient,subject,body,message_id,status) VALUES($1,$2,$3,$4::text::uuid,'{}',$5,'{}',$6,'sender@example.test','','customer@example.test','Old mail','Old body','old@example.test','sent')")
  .bind(c.parse::<i64>().unwrap()).bind(i.id.parse::<i64>().unwrap()).bind(a.parse::<i64>().unwrap()).bind(KEY).bind(i.revision).bind(&original).execute(&pool).await.unwrap();

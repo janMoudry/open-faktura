@@ -330,15 +330,30 @@ pub(crate) async fn command_in_tx(
             v.number = Some(format!("DB{year}{n:04}"));
             static RENDERERS: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(2);
             let permit = RENDERERS.acquire().await.map_err(err)?;
+            let document_style: Option<serde_json::Value> =
+                sqlx::query_scalar("SELECT data FROM company_document_style WHERE company_id=$1")
+                    .bind(c)
+                    .fetch_optional(&mut **tx)
+                    .await
+                    .map_err(err)?;
+            let style: Option<faktura_application::document_style::Style> = document_style
+                .clone()
+                .map(serde_json::from_value)
+                .transpose()
+                .map_err(err)?;
             let pdf_doc = v.clone();
             let pdf = tokio::task::spawn_blocking(move || {
                 let _permit = permit;
-                crate::invoice_pdf::render_credit(&pdf_doc)
+                if let Some(style) = style.as_ref() {
+                    crate::invoice_pdf::render_credit_with_style(&pdf_doc, Some(style))
+                } else {
+                    crate::invoice_pdf::render_credit(&pdf_doc)
+                }
             })
             .await
             .map_err(err)?
             .map_err(err)?;
-            sqlx::query("UPDATE credit_note SET number=$3,status='issued',totals=$4,pdf=$5 WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(&v.number).bind(serde_json::to_value(&v.totals).map_err(err)?).bind(pdf).execute(&mut **tx).await.map_err(err)?;
+            sqlx::query("UPDATE credit_note SET number=$3,status='issued',totals=$4,pdf=$5,document_style=$6 WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(&v.number).bind(serde_json::to_value(&v.totals).map_err(err)?).bind(pdf).bind(document_style).execute(&mut **tx).await.map_err(err)?;
             "issue"
         }
         Action::Cancel => {

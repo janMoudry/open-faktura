@@ -1,5 +1,4 @@
-import { TaxDashboard } from "../components/organisms/TaxDashboard";
-import { FinancialDashboard } from "../components/organisms/FinancialDashboard";
+import { DashboardWidgets } from "../components/organisms/DashboardWidgets";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
@@ -159,15 +158,8 @@ export function OverviewPage() {
               date: formatCalendarDate(value.today, language),
             })}
           </p>
-          <FinancialDashboard
+          <DashboardWidgets
             key={companyId}
-            company={companyId}
-            today={value.today}
-            refresh={overview.refresh}
-            onExpired={onExpired}
-          />
-          <TaxDashboard
-            key={"tax-" + companyId}
             company={companyId}
             today={value.today}
             refresh={overview.refresh}

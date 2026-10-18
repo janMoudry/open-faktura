@@ -236,6 +236,173 @@
           }
         }
       }
+    },
+    "/api/companies/{company}/inbox/settings": {
+      "get": {
+        "operationId": "inbox_settings",
+        "description": "",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxSettings"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "inbox_configure",
+        "description": "Explicit opt-in with revision conflict. Provider names reference trusted installation config; never accepts a URL or secret.",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxSettings"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InboxSettings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/mail": {
+      "get": {
+        "operationId": "inbox_mail_history",
+        "description": "",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InboxMailDiagnostic"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "inbox_mail",
+        "description": "Authenticated custom gateway intake, opt-in required. Atomic attachment ingestion. Message-ID plus payload digest deduplicate; conflicts return 409. Sender is unverified metadata. No automatic accounting.",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxMailResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InboxMailIntake"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/{id}/extract-provider": {
+      "post": {
+        "operationId": "inbox_extract_provider",
+        "description": "External action: sends original to company enabled trusted provider. Editor role and explicit POST required. Output is untrusted editable proposal, never a saved document.",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedData"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -275,12 +442,7 @@
       "DraftAddress": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "street",
-          "city",
-          "postal_code",
-          "country"
-        ],
+        "required": ["street", "city", "postal_code", "country"],
         "properties": {
           "street": {
             "type": "string"
@@ -299,12 +461,7 @@
       "PaymentInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "amount",
-          "paid_on",
-          "method",
-          "note"
-        ],
+        "required": ["amount", "paid_on", "method", "note"],
         "properties": {
           "amount": {
             "type": "string",
@@ -316,10 +473,7 @@
           },
           "method": {
             "type": "string",
-            "enum": [
-              "cash",
-              "bank_transfer"
-            ]
+            "enum": ["cash", "bank_transfer"]
           },
           "note": {
             "type": "string",
@@ -330,12 +484,7 @@
       "ReceivedLine": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "description",
-          "rate",
-          "net",
-          "vat"
-        ],
+        "required": ["description", "rate", "net", "vat"],
         "properties": {
           "description": {
             "type": "string"
@@ -353,11 +502,7 @@
             "type": "object",
             "nullable": true,
             "additionalProperties": false,
-            "required": [
-              "catalog_id",
-              "quantity",
-              "unit"
-            ],
+            "required": ["catalog_id", "quantity", "unit"],
             "properties": {
               "catalog_id": {
                 "type": "string"
@@ -369,10 +514,7 @@
                 "type": "string"
               },
               "acquisition_unit_cost": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
               }
             }
@@ -467,34 +609,22 @@
           },
           "kind": {
             "type": "string",
-            "enum": [
-              "invoice",
-              "receipt"
-            ],
+            "enum": ["invoice", "receipt"],
             "default": "invoice"
           },
           "receipt_method": {
             "type": "string",
-            "enum": [
-              "cash",
-              "card"
-            ],
+            "enum": ["cash", "card"],
             "nullable": true
           },
           "stock_incidental_cost": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
           },
           "exchange_rate": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "rate",
-              "units"
-            ],
+            "required": ["rate", "units"],
             "properties": {
               "rate": {
                 "type": "string",
@@ -511,11 +641,7 @@
       "ReceivedTotals": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "net",
-          "vat",
-          "total"
-        ],
+        "required": ["net", "vat", "total"],
         "properties": {
           "net": {
             "type": "string"
@@ -554,11 +680,7 @@
           },
           "method": {
             "type": "string",
-            "enum": [
-              "cash",
-              "bank_transfer",
-              "card"
-            ]
+            "enum": ["cash", "bank_transfer", "card"]
           },
           "note": {
             "type": "string",
@@ -634,11 +756,7 @@
           },
           "payment_status": {
             "type": "string",
-            "enum": [
-              "unpaid",
-              "partial",
-              "paid"
-            ]
+            "enum": ["unpaid", "partial", "paid"]
           },
           "payments": {
             "type": "array",
@@ -651,11 +769,7 @@
       "ReceivedPage": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "items",
-          "total",
-          "page"
-        ],
+        "required": ["items", "total", "page"],
         "properties": {
           "items": {
             "type": "array",
@@ -676,10 +790,7 @@
       "ReceivedCreate": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "request_id",
-          "data"
-        ],
+        "required": ["request_id", "data"],
         "properties": {
           "request_id": {
             "type": "string",
@@ -693,11 +804,7 @@
       "ReceivedCommand": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "request_id",
-          "revision",
-          "action"
-        ],
+        "required": ["request_id", "revision", "action"],
         "properties": {
           "request_id": {
             "type": "string",
@@ -709,12 +816,7 @@
           },
           "action": {
             "type": "string",
-            "enum": [
-              "update",
-              "pay",
-              "reverse",
-              "cancel"
-            ]
+            "enum": ["update", "pay", "reverse", "cancel"]
           },
           "data": {
             "$ref": "#/components/schemas/ReceivedData"
@@ -733,51 +835,34 @@
           {
             "properties": {
               "action": {
-                "enum": [
-                  "update"
-                ]
+                "enum": ["update"]
               }
             },
-            "required": [
-              "data"
-            ]
+            "required": ["data"]
           },
           {
             "properties": {
               "action": {
-                "enum": [
-                  "pay"
-                ]
+                "enum": ["pay"]
               }
             },
-            "required": [
-              "payment"
-            ]
+            "required": ["payment"]
           },
           {
             "properties": {
               "action": {
-                "enum": [
-                  "reverse"
-                ]
+                "enum": ["reverse"]
               }
             },
-            "required": [
-              "payment_id",
-              "reason"
-            ]
+            "required": ["payment_id", "reason"]
           },
           {
             "properties": {
               "action": {
-                "enum": [
-                  "cancel"
-                ]
+                "enum": ["cancel"]
               }
             },
-            "required": [
-              "reason"
-            ]
+            "required": ["reason"]
           }
         ]
       },
@@ -801,10 +886,7 @@
           },
           "kind": {
             "type": "string",
-            "enum": [
-              "invoice",
-              "receipt"
-            ]
+            "enum": ["invoice", "receipt"]
           },
           "supplier": {
             "type": "string"
@@ -820,11 +902,7 @@
       "ExpensePage": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "items",
-          "total",
-          "page"
-        ],
+        "required": ["items", "total", "page"],
         "properties": {
           "items": {
             "type": "array",
@@ -843,12 +921,7 @@
       "ExpenseOverview": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "purchases",
-          "expenses",
-          "outstanding",
-          "overdue"
-        ],
+        "required": ["purchases", "expenses", "outstanding", "overdue"],
         "properties": {
           "purchases": {
             "type": "string"
@@ -915,11 +988,7 @@
       },
       "InboxPage": {
         "type": "object",
-        "required": [
-          "items",
-          "page",
-          "total"
-        ],
+        "required": ["items", "page", "total"],
         "additionalProperties": false,
         "properties": {
           "items": {
@@ -938,11 +1007,7 @@
       },
       "InboxUpload": {
         "type": "object",
-        "required": [
-          "request_id",
-          "filename",
-          "base64"
-        ],
+        "required": ["request_id", "filename", "base64"],
         "additionalProperties": false,
         "properties": {
           "request_id": {
@@ -960,13 +1025,7 @@
         "oneOf": [
           {
             "type": "object",
-            "required": [
-              "request_id",
-              "id",
-              "revision",
-              "action",
-              "archived"
-            ],
+            "required": ["request_id", "id", "revision", "action", "archived"],
             "additionalProperties": false,
             "properties": {
               "request_id": {
@@ -980,9 +1039,7 @@
               },
               "action": {
                 "type": "string",
-                "enum": [
-                  "archive"
-                ]
+                "enum": ["archive"]
               },
               "archived": {
                 "type": "boolean"
@@ -991,13 +1048,7 @@
           },
           {
             "type": "object",
-            "required": [
-              "request_id",
-              "id",
-              "revision",
-              "action",
-              "data"
-            ],
+            "required": ["request_id", "id", "revision", "action", "data"],
             "additionalProperties": false,
             "properties": {
               "request_id": {
@@ -1011,9 +1062,7 @@
               },
               "action": {
                 "type": "string",
-                "enum": [
-                  "convert"
-                ]
+                "enum": ["convert"]
               },
               "data": {
                 "$ref": "#/components/schemas/ReceivedData"
@@ -1042,9 +1091,7 @@
               },
               "action": {
                 "type": "string",
-                "enum": [
-                  "attach"
-                ]
+                "enum": ["attach"]
               },
               "received_id": {
                 "type": "string"
@@ -1055,12 +1102,7 @@
       },
       "InboxAudit": {
         "type": "object",
-        "required": [
-          "id",
-          "revision",
-          "action",
-          "created_at"
-        ],
+        "required": ["id", "revision", "action", "created_at"],
         "properties": {
           "id": {
             "type": "string"
@@ -1075,6 +1117,111 @@
             "type": "string"
           }
         }
+      },
+      "InboxSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "email_enabled": {
+            "type": "boolean"
+          },
+          "extraction_provider": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["revision", "email_enabled", "extraction_provider"]
+      },
+      "InboxMailIntake": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "message_id": {
+            "type": "string",
+            "maxLength": 998
+          },
+          "sender": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 998
+          },
+          "attachments": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/InboxUpload"
+            }
+          }
+        },
+        "required": [
+          "request_id",
+          "message_id",
+          "sender",
+          "subject",
+          "attachments"
+        ]
+      },
+      "InboxMailResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "message_id": {
+            "type": "string"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InboxDocument"
+            }
+          }
+        },
+        "required": ["message_id", "documents"]
+      },
+      "InboxMailDiagnostic": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "message_id": {
+            "type": "string"
+          },
+          "sender": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["completed"]
+          },
+          "attachment_count": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "message_id",
+          "sender",
+          "subject",
+          "status",
+          "attachment_count",
+          "created_at"
+        ]
       }
     }
   }

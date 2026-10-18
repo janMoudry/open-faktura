@@ -461,7 +461,7 @@ export interface components {
           /** Format: int64 */
           revision: number;
           /** @enum {string} */
-          target_kind: "invoice" | "received";
+          target_kind: "invoice" | "received" | "advance" | "credit";
           document_id: string;
           /** Format: int64 */
           target_revision: number;
@@ -702,7 +702,8 @@ export interface components {
       movement_number: string;
       document_id: string;
       document_number: string;
-      target_kind: string;
+      /** @enum {string} */
+      target_kind: "invoice" | "received" | "advance" | "credit";
       bank_amount: string;
       /** Format: date */
       booked_on: string;

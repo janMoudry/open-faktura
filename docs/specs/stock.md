@@ -208,3 +208,25 @@ Ověření P18-03e (17. 10. 2026): `pnpm test:stock` 10 testů, regrese
 `catalog.spec.ts` CS/EN desktop/mobile včetně pořizovací ceny a automatické
 hodnoty skladu. `pnpm check` a `pnpm build:web` prošly. Numerická shoda
 s referenčním iDokladem zůstává neověřená.
+
+## P19-01p — Fyzický nákup skladu z cizoměnové faktury
+
+Vlastní rozšíření 18. 10. 2026. Přijatá běžná faktura může obsahovat
+explicitní StockReceipt i v podporované cizí měně. Finanční řádky, závazek
+a jeho kurz zůstávají v měně dokladu. Fyzické množství se účtuje do skladu
+stejnou transakční cestou a stejnými oprávněními jako u CZK nákupu.
+
+`acquisition_unit_cost` a `stock_incidental_cost` jsou nadále výslovné CZK
+částky. Nikdy se neodvozují z cizoměnové prodejní ceny, DPH ani kurzu
+faktury. Uživatel může ponechat pořizovací cenu neznámou; ta není nula a
+průběžný průměr pak respektuje existující pravidla neznámého ocenění.
+Vedlejší náklady se rozvrhují podle těchto CZK pořizovacích hodnot a
+nezvyšují cizoměnový závazek. Historické snapshoty se nepřepisují.
+
+Např. závazek 100 EUR při kurzu 25, příjem 2 ks s explicitní cenou 20 CZK/ks
+a vedlejšími náklady 10 CZK: závazek 100 EUR, sklad 2 ks / hodnota 50 CZK,
+průměr 25 CZK/ks. Kurz 25 zde nesmí cenu skladu přepočíst na 1250 CZK.
+Test `foreign_purchase_physical_receipt_keeps_explicit_czk_valuation`
+ověřuje tento nezávislý příklad, replay, profil, unknown cenu a její vliv
+na ocenění. Příjem účtenkou v cizí měně zůstává odmítnutý; tato změna také
+nezavádí zahraniční prodej z CZK ceníku ani sklad s jinou oceňovací měnou.

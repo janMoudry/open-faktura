@@ -1,0 +1,99 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Invoice auxiliary outputs",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/document-output": {
+      "post": {
+        "operationId": "document_output",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Download",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/rtf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft, absent cached PDF, or no active monetary payments"
+          },
+          "422": {
+            "description": "Invalid request or output limit"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Request": {
+        "type": "object",
+        "required": [
+          "ids",
+          "kind",
+          "language"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "bulk_pdf",
+              "rtf",
+              "delivery_note",
+              "payment_confirmation"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

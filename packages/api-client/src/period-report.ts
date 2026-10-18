@@ -65,3 +65,22 @@ export async function taxReport(
   if (!r.ok) throw new SalesFailure(r.status, "unavailable");
   return r.json();
 }
+
+export async function exportTaxEvidence(
+  base: string,
+  company: string,
+  request: components["schemas"]["TaxExportRequest"],
+): Promise<Blob> {
+  const r = await fetch(
+    `${base.replace(/\/$/, "")}/api/companies/${encodeURIComponent(company)}/reports/tax/export`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "X-Faktura-Request": "1" },
+      body: JSON.stringify(request),
+      signal: AbortSignal.timeout(30000),
+    },
+  );
+  if (!r.ok) throw new SalesFailure(r.status, "unavailable");
+  return r.blob();
+}

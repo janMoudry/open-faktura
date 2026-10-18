@@ -947,3 +947,101 @@ Přečteno 18. 10. 2026; standard 1.2 (červen 2021) na
 https://qr-platba.cz/wp-content/uploads/1645-standard-qr-v1-2-cerven-2021.pdf.
 Vlastní rozhodnutí: přijmout zahraniční IBAN v profilu/dokladu, zachovat QR
 jen CZ/CZK. Živé ověření iDokladu či mobilních bank nebylo provedeno.
+
+## E-080 — ISDOC 6.0.2: formální exportní kontrakt (18. 10. 2026)
+
+Primární veřejný standard Ministerstva vnitra, verze 6.0.2 z 23. 3. 2022:
+https://isdoc.cz/6.0.2/, https://isdoc.cz/6.0.2/doc/isdoc.html,
+https://isdoc.cz/6.0.2/xsd/isdoc-invoice-6.0.2.xsd.
+Staticky přečtené XSD/Schematron, nikoli pozorování iDokladu nebo příjmu do
+Money/Pohody. XSD je s původní licencí u syntetických testů, SHA-256
+fb5de36fe7b5517acb8aa0c7950d91f8e28910e63b8cdcaaf7db0b0f4f0420bb.
+Schéma rozlišuje typy dokumentů, lokální/foreign částky a rate/units;
+AmountType je obecný decimal. P19-03a exportuje uložené běžné faktury,
+neodvozuje z něj automaticky jiný účetní formát, podpis nebo daňové přiznání.
+Náš explicitně omezený převod a validace: specs/isdoc-export.md.
+
+## E-081 — Registr DPH RWS: V2 typ subjektu a účty (18. 10. 2026)
+
+Primární zdroje Finanční správy:
+https://financnisprava.gov.cz/cs/dane/dane-elektronicky/danovy-portal/registr-dph,
+https://podpora.mojedane.gov.cz/cs/seznam-okruhu/rozhrani-pro-treti-strany/informace-o-webove-sluzbe-pro-zjistovani-4381,
+WSDL https://adisrws.mfcr.cz/adistc/axis2/services/rozhraniCRPDPH.rozhraniCRPDPHSOAP?wsdl
+(SHA-256 7e878ee0721507fc91f94e457ecb5ddca5c0ccc750d06035848cc185c35b3385).
+Veřejná dokumentace uvádí rozšíření o identifikovanou osobu od 20. 6. 2023.
+Statický kontrakt rozlišuje druh subjektu od příznaku nespolehlivosti,
+technický status, data a standardní/nestandardní účty včetně ukončení.
+Naše ruční ověření P19-02 podle specs/vat-registry.md nemění kontakt ani
+daňový režim. Automatické testy používají pouze syntetický provider/XML;
+žádná konkrétní firma nebyla živě dotázaná.
+
+## E-082 — VIES: EU a Severní Irsko (18. 10. 2026)
+
+Primární veřejný web Evropské komise
+https://ec.europa.eu/taxation_customs/vies/?lang=en (v7.3.0-HF1) a
+https://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl
+(SHA-256 a5de093d23585cb3ff4d6c2a4367ba6003de48b428e30bb99548f2d184829279).
+Přečtený SOAP checkVat kontrakt obsahuje zemi, číslo, boolean valid, datum
+a volitelný název/adresu. Technické chyby nejsou záporným potvrzením.
+Oficiální UI uvádí ukončení podpory GB od 1. 1. 2021 a samostatnou XI.
+P19-02b je ruční ověření pro fakturační použití podle specs/vies.md;
+není určováním režimu DPH ani české spolehlivosti. Žádné živé dotazy
+na obchodníka ani ukládání cizích registračních dat do fixture neproběhly.
+
+## E-083 — ISDOC.PDF a QR Faktura SID (18. 10. 2026)
+
+Primární veřejné specifikace ISDOC 6.0.2:
+https://isdoc.cz/6.0.2/doc/isdoc.html a podpůrný oficiální projekt
+https://github.com/isdoc/isdoc.pdf. KDP ČR, QR Faktura SID 1.0:
+https://www.kdpcr.cz/informace/qr-faktura/popis-formatu a
+https://www.kdpcr.cz/informace/qr-faktura/integrace-s-qr-platbou.
+Přečteno 18. 10. 2026; jde o dokumentaci formátů, nikoli pozorování iDokladu.
+ISDOC.PDF vkládá účetní XML do PDF; QR Faktura nese souhrnné účetní atributy,
+zatímco samotná SPD QR Platba není účetním dokladem. X-INV vkládá SID do SPD
+s přesunem společných platebních atributů. Plná konformita PDF/A, všechny
+ISDOC režimy nebo podpisy z těchto podkladů nevyplývají.
+
+P17 používá konzervativní klasický PDF subset, samostatné ISDOC 6.0.1/6.0.2
+běžných faktur CZK/podporovaných měn s uloženým kurzem a QR v PNG/JPEG.
+Zachovává původní částky, kontroluje součty, neověřuje digitální podpisy.
+P20-04b generuje SID/Platba+F z immutable snapshotu podle specs/payment-qr.md;
+šest CS/EN PDF (payment/invoice/combined) bylo 18. 10. 2026 vyrastrovaných
+Popplerem 150 DPI a nezávisle přečtených zxing-cpp 2.3.0 s přesnou shodou
+celého payloadu. Syntetický ISDOC export/import CZK+JPY a SID/SPD roundtrip
+jsou technické testy našeho kontraktu, nikoli živá shoda účetního systému.
+
+## E-084 — Nativní IMAP a MIME, omezené kontrakty (18. 10. 2026)
+
+IETF RFC 9051 (srpen 2021), https://www.rfc-editor.org/rfc/rfc9051.html,
+zejména UID/UIDVALIDITY, EXAMINE a BODY.PEEK; primární protokolová dokumentace
+přečtena 18. 10. 2026. Staticky přečtené Rust kontrakty imap 3.0.0-alpha.15
+https://docs.rs/imap/3.0.0-alpha.15/imap/ a mailparse 0.16.1
+https://docs.rs/mailparse/0.16.1/mailparse/. LOGIN/app-password přes ověřený
+implicitní TLS; XOAUTH2 a jiné specifické autentizační integrace nejsou
+implementované. Není doloženo přihlášení ke konkrétní živé poštovní službě.
+
+P17-03b/c jsou vlastní návrhová pravidla: privátní instalační reference
+konfigurace, firemní opt-in, nezávislý opt-in pětiminutového workeru, původní
+UID epochy/kurzor, limity těla/částí/sítě, atomický příjem každé zprávy a
+příloh, explicitní odmítnutí UID, revize, claim a opakované ověřování práv.
+Dva izolované PostgreSQL scénáře a čtyři unit/loopback scénáře pokrývají
+replay, změnu epochy, souběh workerů i odebrání práv/vypnutí během I/O.
+Žádný test nečetl skutečnou schránku; zprávy se nemažou ani neoznačují přečtené.
+
+## E-085 — Vlastní gateway a vytěžovací kontrakty (18. 10. 2026)
+
+`inbox/mail`, `inbox/{id}/extract-provider` a `bank/notifications` jsou
+výslovné vlastní integrační návrhy Open Faktury, nikoli reverse-engineering
+konkrétní mailové, AI nebo bankovní služby. Smlouvy a limity jsou v
+specs/inbox.md, specs/inbox-mailbox.md a specs/bank-notification-gateway.md.
+Gateway má standardní autentizovanou relaci, explicitní opt-in, Message-ID,
+hash původních příloh, replay a diagnostiku. Bankovní přílohy znovu používají
+stávající parsery podle specs/bank-statements.md; neexistuje univerzální
+parser textů bankovních e-mailů ani implicitní párování.
+
+Vytěžovací provider je privátní důvěryhodná instalační reference HTTPS,
+nikoli URL z klienta. Explicitní síťová akce předá originál a očekává
+validované ReceivedData jako návrh k ruční kontrole. Není to hotová
+specifická integrace libovolného AI modelu. Loopback testy používají
+syntetické requesty a ověřují velikost, redirect, validaci soukromých vazeb;
+žádný skutečný účetní originál nebyl odeslán externímu poskytovateli.

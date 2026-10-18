@@ -1,0 +1,424 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Company administration and portable data archive",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/administration": {
+      "get": {
+        "operationId": "company_administration",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Company or member not accessible"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid fields or archive limit"
+          }
+        }
+      },
+      "post": {
+        "operationId": "company_administration_execute",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Company or member not accessible"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid fields or archive limit"
+          }
+        }
+      }
+    },
+    "/api/companies/trash": {
+      "get": {
+        "operationId": "company_trash",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Snapshot"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Company or member not accessible"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid fields or archive limit"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/archive": {
+      "get": {
+        "operationId": "company_archive",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Company or member not accessible"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Invalid fields or archive limit"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Command": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "add_member"
+                ]
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 254
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "editor",
+                  "viewer"
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "revision",
+              "action",
+              "email",
+              "role"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "set_role"
+                ]
+              },
+              "user_id": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "editor",
+                  "viewer"
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "revision",
+              "action",
+              "user_id",
+              "role"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "remove_member"
+                ]
+              },
+              "user_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "request_id",
+              "revision",
+              "action",
+              "user_id"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "transfer"
+                ]
+              },
+              "user_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "request_id",
+              "revision",
+              "action",
+              "user_id"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "leave"
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "revision",
+              "action"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "restore"
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "revision",
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Snapshot": {
+        "type": "object",
+        "properties": {
+          "company_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "owner",
+                    "editor",
+                    "viewer"
+                  ]
+                },
+                "email": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id",
+                "role",
+                "email",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "company_id",
+          "revision",
+          "deleted",
+          "members"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -22,10 +22,7 @@
         },
         "value_mode": {
           "type": "string",
-          "enum": [
-            "gross",
-            "net"
-          ],
+          "enum": ["gross", "net"],
           "default": "gross"
         },
         "cumulative": {
@@ -38,19 +35,11 @@
         },
         "grouping": {
           "type": "string",
-          "enum": [
-            "month",
-            "quarter",
-            "year"
-          ],
+          "enum": ["month", "quarter", "year"],
           "default": "month"
         }
       },
-      "required": [
-        "company_id",
-        "from",
-        "to"
-      ],
+      "required": ["company_id", "from", "to"],
       "additionalProperties": false
     }
   },
@@ -72,9 +61,7 @@
           "default": false
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -104,9 +91,50 @@
           "maximum": 10000
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tax_evidence_export",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "search": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "year": {
+              "type": "integer",
+              "minimum": 1900
+            },
+            "quarterly": {
+              "type": "boolean",
+              "default": false
+            },
+            "turnover_sources": {
+              "type": "boolean",
+              "default": false
+            },
+            "page": {
+              "type": "integer",
+              "description": "Ignored for export; all matching sources are included within the export limit."
+            }
+          }
+        },
+        "format": {
+          "type": "string",
+          "enum": ["csv", "xlsx"]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["cs", "en"]
+        }
+      },
+      "required": ["company_id", "search", "format", "language"],
       "additionalProperties": false
     }
   }

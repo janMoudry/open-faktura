@@ -20,6 +20,7 @@ export function useRecurring(company: Company, id: string, source: string) {
   const { language } = useAppTranslation();
   const { onExpired, setPageDirty, navigateAfterSave } = useWorkspace();
   const initial = useRef<RecurringData>({
+    rate_policy: "stored",
     name: "",
     schedule: {
       first_on: newDraft(company, language).issued_on!,

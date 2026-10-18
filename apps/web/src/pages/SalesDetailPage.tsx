@@ -1,3 +1,5 @@
+import { DocumentExports } from "../components/organisms/DocumentExports";
+import { DocumentTags } from "../components/organisms/DocumentTags";
 import { DocumentCurrencyFields } from "../components/organisms/DocumentCurrencyFields";
 import { AdvanceDetail } from "../components/organisms/AdvanceDetail";
 import { DocumentAttachments } from "../components/organisms/DocumentAttachments";
@@ -693,6 +695,23 @@ function Editor({
             disabled={busy}
           />
         </div>
+      )}
+      {record && (
+        <DocumentTags
+          key={`sales-tags-${record.id}`}
+          company={company.id}
+          editable={canWrite}
+          target={{ kind: "sales", id: record.id }}
+        />
+      )}
+      {record && (
+        <DocumentExports
+          key={`exports-${record.id}`}
+          company={company.id}
+          target={{ kind: "sales", id: record.id, revision: record.revision }}
+          editable={canWrite}
+          owner={company.role === "owner"}
+        />
       )}
     </div>
   );

@@ -17,10 +17,7 @@
           "default": 1
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -74,11 +71,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "share"
-      ],
+      "required": ["company_id", "id", "share"],
       "additionalProperties": false
     }
   },
@@ -103,11 +96,7 @@
           "default": 1
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "share"
-      ],
+      "required": ["company_id", "id", "share"],
       "additionalProperties": false
     }
   }

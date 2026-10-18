@@ -53,7 +53,12 @@ export function RecurringEditor({
   const schedule = (v: Partial<RecurringData["schedule"]>) =>
     patch({ schedule: { ...d.schedule, ...v } });
   const invoice = (v: Partial<RecurringData["invoice"]>) =>
-    patch({ invoice: { ...d.invoice, ...v } });
+    patch({
+      invoice: { ...d.invoice, ...v },
+      ...(v.calculation?.currency === "CZK"
+        ? { rate_policy: "stored" as const }
+        : {}),
+    });
   const calculation = useInvoiceCalculation(
     company.id,
     d.invoice.calculation,
@@ -332,6 +337,23 @@ export function RecurringEditor({
             }
           />
         </section>
+        {d.invoice.calculation.currency !== "CZK" && (
+          <div className="invoice-section space-y-field">
+            <Select
+              label={t("recRatePolicy")}
+              value={d.rate_policy ?? "stored"}
+              disabled={readOnly}
+              onChange={(v) =>
+                patch({ rate_policy: v as "stored" | "cnb_issue_date" })
+              }
+              options={[
+                { value: "stored", label: t("recRateStored") },
+                { value: "cnb_issue_date", label: t("recRateCnb") },
+              ]}
+            />
+            <p className="text-sm text-muted">{t("recRateHint")}</p>
+          </div>
+        )}
         <InvoiceLines
           value={d.invoice.calculation}
           onChange={(v) => invoice({ calculation: v })}

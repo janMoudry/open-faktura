@@ -1,3 +1,6 @@
+import { DocumentExports } from "../components/organisms/DocumentExports";
+import { DraftTrashAction } from "../components/organisms/DraftTrashAction";
+import { DocumentTags } from "../components/organisms/DocumentTags";
 import { DocumentCurrencyFields } from "../components/organisms/DocumentCurrencyFields";
 import { AdvanceDeductions } from "../components/organisms/AdvanceDeductions";
 import { AdvanceSettlementPicker } from "../components/organisms/AdvanceSettlementPicker";
@@ -315,17 +318,27 @@ function Editor({
             <Badge>{t("draftListStatus")}</Badge>
           </div>
         </div>
-        {!creating && editable && !dirty && (
-          <Link
-            className="ui-button ui-button-secondary ui-button-md"
-            to={`../new?copy=${encodeURIComponent(id)}`}
-            relative="path"
-          >
-            <Icon name="copy" />
-            {t("draftCopy")}
-          </Link>
-        )}
-        {editorActions}
+        <div className="page-heading-actions">
+          {!creating && editable && !dirty && (
+            <Link
+              className="ui-button ui-button-secondary ui-button-md"
+              to={`../new?copy=${encodeURIComponent(id)}`}
+              relative="path"
+            >
+              <Icon name="copy" />
+              {t("draftCopy")}
+            </Link>
+          )}
+          {draft && editable && (
+            <DraftTrashAction
+              company={company.id}
+              id={draft.id}
+              revision={draft.revision}
+              disabled={dirty || disabled}
+            />
+          )}
+          {editorActions}
+        </div>
       </div>
       {error && (
         <Alert tone="danger" role="alert">
@@ -346,6 +359,22 @@ function Editor({
             </Button>
           )}
         </Alert>
+      )}
+      {draft && (
+        <DocumentExports
+          key={`exports-${draft.id}`}
+          company={company.id}
+          target={{ kind: "invoice", id: draft.id, revision: draft.revision }}
+          editable={canEdit}
+          owner={company.role === "owner"}
+        />
+      )}
+      {draft && (
+        <DocumentTags
+          company={company.id}
+          editable={editable}
+          target={{ kind: "invoice", id: draft.id }}
+        />
       )}
       {saved && (
         <Alert tone="success" role="status">
@@ -681,6 +710,31 @@ function Editor({
                       />
                     </div>
                   </details>
+                  <div className="max-w-sm">
+                    <Select
+                      label={t("invoiceQrFormat")}
+                      value={data.qr_format ?? "payment"}
+                      disabled={disabled}
+                      options={[
+                        { value: "payment", label: t("invoiceQrPayment") },
+                        { value: "invoice", label: t("invoiceQrInvoice") },
+                        {
+                          value: "payment_invoice",
+                          label: t("invoiceQrCombined"),
+                        },
+                      ]}
+                      onChange={(v) =>
+                        change({
+                          ...data,
+                          qr_format: v as
+                            "payment" | "invoice" | "payment_invoice",
+                        })
+                      }
+                    />
+                    <p className="text-sm text-muted">
+                      {t("invoiceQrFormatHint")}
+                    </p>
+                  </div>
                   <div className="max-w-sm">
                     <Select
                       label={t("draftLanguage")}

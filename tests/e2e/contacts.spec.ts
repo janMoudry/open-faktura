@@ -57,10 +57,12 @@ for (const english of [false, true])
         stdio: "ignore",
       });
       await expect
-        .poll(async () =>
-          fetch(`http://127.0.0.1:${port}/api/ready`)
-            .then((r) => r.status)
-            .catch(() => 0),
+        .poll(
+          async () =>
+            fetch(`http://127.0.0.1:${port}/api/ready`)
+              .then((r) => r.status)
+              .catch(() => 0),
+          { timeout: 20000 },
         )
         .toBe(200);
       await page.route("**/api/**", async (route) => {
@@ -272,6 +274,58 @@ for (const english of [false, true])
         "Studio Test",
       );
       const contactUrl = page.url();
+      // Synthetic official-registry boundary; no live taxpayer data or network call.
+      let vatUnavailable = true;
+      await page.route("**/vat-registry?*", (route) =>
+        route.fulfill({
+          status: vatUnavailable ? 503 : 200,
+          json: vatUnavailable
+            ? { code: "unavailable" }
+            : {
+                vat_number: "CZ00006947",
+                subject_type: "identified_person",
+                reliability: "reliable",
+                generated_on: "2026-10-18",
+                checked_at: "2026-10-18T00:00:00Z",
+                source: "CZ_RWS",
+                accounts: [
+                  {
+                    number: "SYNTHETIC-ACCOUNT",
+                    published_on: "2020-01-01",
+                    ended_on: null,
+                  },
+                ],
+              },
+        }),
+      );
+      const vatButton = page.getByRole("button", {
+        name: text(
+          "Ověřit DIČ v Registru DPH",
+          "Check VAT number in Czech registry",
+        ),
+        exact: true,
+      });
+      await vatButton.click();
+      await expect(vatButton.locator("..").getByRole("alert")).toContainText(
+        text(
+          "Registr DPH je nedostupný.",
+          "The Czech VAT registry is unavailable.",
+        ),
+      );
+      vatUnavailable = false;
+      await vatButton.click();
+      await expect(
+        page.getByText(text("Identifikovaná osoba", "Identified person"), {
+          exact: false,
+        }),
+      ).toBeVisible();
+      await expect(
+        page.getByText("SYNTHETIC-ACCOUNT", { exact: false }),
+      ).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        "Studio Test",
+      );
+
       await page
         .getByRole("tab", {
           name: text("Základní údaje", "Basic details"),

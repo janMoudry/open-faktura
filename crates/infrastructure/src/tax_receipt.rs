@@ -197,13 +197,29 @@ impl TaxReceiptStore for PgTaxReceipt {
                 .await
                 .map_err(err)?;
         doc.id = ident.to_string();
-        let for_pdf = doc.clone();
-        let pdf =
-            tokio::task::spawn_blocking(move || crate::invoice_pdf::render_tax_receipt(&for_pdf))
+        let document_style: Option<serde_json::Value> =
+            sqlx::query_scalar("SELECT data FROM company_document_style WHERE company_id=$1")
+                .bind(c)
+                .fetch_optional(&mut *tx)
                 .await
-                .map_err(err)?
                 .map_err(err)?;
-        sqlx::query("INSERT INTO tax_receipt(id,company_id,advance_id,payment_id,actor_id,request_id,command,number,snapshot,pdf) OVERRIDING SYSTEM VALUE VALUES($1,$2,$3,$4,$5,$6::text::uuid,$7,$8,$9,$10)").bind(ident).bind(c).bind(id(&cmd.advance_id)?).bind(id(&cmd.payment_id)?).bind(a).bind(&cmd.request_id).bind(command).bind(&doc.number).bind(serde_json::to_value(&doc).map_err(err)?).bind(pdf).execute(&mut *tx).await.map_err(err)?;
+        let style: Option<faktura_application::document_style::Style> = document_style
+            .clone()
+            .map(serde_json::from_value)
+            .transpose()
+            .map_err(err)?;
+        let for_pdf = doc.clone();
+        let pdf = tokio::task::spawn_blocking(move || {
+            if let Some(style) = style.as_ref() {
+                crate::invoice_pdf::render_tax_receipt_with_style(&for_pdf, Some(style))
+            } else {
+                crate::invoice_pdf::render_tax_receipt(&for_pdf)
+            }
+        })
+        .await
+        .map_err(err)?
+        .map_err(err)?;
+        sqlx::query("INSERT INTO tax_receipt(id,company_id,advance_id,payment_id,actor_id,request_id,command,number,snapshot,pdf,document_style) OVERRIDING SYSTEM VALUE VALUES($1,$2,$3,$4,$5,$6::text::uuid,$7,$8,$9,$10,$11)").bind(ident).bind(c).bind(id(&cmd.advance_id)?).bind(id(&cmd.payment_id)?).bind(a).bind(&cmd.request_id).bind(command).bind(&doc.number).bind(serde_json::to_value(&doc).map_err(err)?).bind(pdf).bind(document_style).execute(&mut *tx).await.map_err(err)?;
         let row=sqlx::query("UPDATE sales_document SET revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2 RETURNING *").bind(c).bind(id(&cmd.advance_id)?).fetch_one(&mut *tx).await.map_err(err)?;
         crate::sales::audit(&mut tx, a, &crate::sales::map(row)?, "tax_receipt_issue").await?;
         tx.commit().await.map_err(err)?;

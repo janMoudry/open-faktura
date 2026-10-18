@@ -1,6 +1,6 @@
 # Funkce Open Faktury
 
-Přehled dostupných funkcí a plánovaného rozšíření. Aktualizováno 17. 10. 2026.
+Přehled dostupných funkcí a plánovaného rozšíření. Aktualizováno 18. 10. 2026.
 Podrobný [checklist](docs/FEATURE_CHECKLIST.md) rozepisuje jednotlivé funkce. Stav dodávek, testů a otevřených pravidel sleduje [implementační plán](docs/IMPLEMENTATION_PLAN.md).
 
 [Podrobný checklist hotových a chybějících funkcí](docs/FEATURE_CHECKLIST.md).
@@ -30,22 +30,22 @@ Podrobný [checklist](docs/FEATURE_CHECKLIST.md) rozepisuje jednotlivé funkce. 
 
 ## Současná omezení
 
-- Podporovaný základ firemní agendy je české prostředí a CZK; další měny a daňové situace vyžadují navazující moduly.
+- České prostředí je základ agendy. Vydané a přijaté faktury, zálohy, dobropisy a bankovní účty podporují také cizí měny s uloženými kurzy. Hotovostní doklady a některé návaznosti zůstávají omezené; viz [aktuální stav](docs/P16_P20_COMPLETION.md).
 - Importní předvolby pro konkrétní služby zatím nejsou ověřené adaptéry. Obecný import nepřenáší zdrojová PDF ani přílohy.
-- Sklad má ruční i dokladové pohyby, stavy k datu, ruční ocenění a konzervativní průměr z pořizovacích cen nákupních příjmů. Vratky, cenové opravy a vedlejší náklady jsou zahrnuté; pořizovací ocenění ručních příjmů, počátečních stavů a inventurních přebytků je zahrnuté. Přehled prodeje položek nabízí filtry, zdrojové doklady a CSV/XLSX. Money S3 má import základního ceníku XML s náhledem a deduplikací; zbývají adaptéry S4/S5.
+- Sklad má ruční i dokladové pohyby, stavy k datu, ruční ocenění a konzervativní průměr z pořizovacích cen nákupních příjmů. Vratky, cenové opravy a vedlejší náklady jsou zahrnuté; pořizovací ocenění ručních příjmů, počátečních stavů a inventurních přebytků je zahrnuté. Přehled prodeje položek nabízí filtry, zdrojové doklady a CSV/XLSX. Money S3 má import základního ceníku XML s náhledem a deduplikací; S4/S5 bez doloženého kontraktu řeší obecné mapování nebo vlastní adaptér provozovatele.
 - Desktop vyžaduje samostatný backend a PostgreSQL. Osobní režim bez ruční správy serveru a podepsané instalátory nejsou hotové.
-- Pozvánky, rozšířená správa uživatelů a vzdálené MCP přihlášení přes OAuth se připravují.
+- Správa členství pracuje s existujícími účty. E-mailové pozvánky a vzdálené MCP přihlášení přes OAuth se připravují.
 - Výpočty mají vlastní [specifikaci](docs/specs/invoice-calculation.md); numerická shoda s externími systémy není potvrzená.
 
 ## Plánované rozšíření
 
 | Oblast | Plánovaný rozsah |
 | --- | --- |
-| Prodej | Rozšíření oprav daňových dokladů, cizí měny a kurzy |
+| Prodej | Rozšíření daňových režimů a vyúčtování záloh s rozdílnými kurzy |
 | Automatizace | Pravidelné faktury, upomínky a poděkování implementovány v rozsahu P14-01/02; zbývají pravidelné zálohy, proměnné a další hromadné operace |
 | Nákup | Základ přijatých faktur, účtenek, závazků a výdajových úhrad je hotový; zbývá dodavatelská role, rozšířený editor, cizí měny a další výstupy |
-| Finance | Banka, pokladna, import a párování pohybů, prodejky |
-| Sklad | Příjmy a výdeje, vazby na doklady a historie pohybů |
+| Finance | Základ banky, pokladny a prodejek je hotový; zbývají úplné daňové klasifikace a ověření konkrétních externích zařízení |
+| Sklad | Pohyby, dokladové vazby a ocenění jsou hotové; neověřené externí formáty lze doplnit vlastním adaptérem |
 | Příjem dokumentů | Inbox, ISDOC/QR a volitelné vytěžování dokumentů |
 | Přehledy a integrace | Rozšířené přehledy, registry, účetní exporty, daňové podklady a integrační události |
 | Správa agendy | Štítky, koš, uzávěrky, hromadné akce a úpravy vzhledu dokladů |
@@ -57,16 +57,5 @@ Celý rozsah zůstává součástí plánu; tabulka nepředstavuje termín dodá
 
 Pravidla jednotlivých modulů popisují [specifikace](docs/README.md#specifikace-modulů). Historický průzkum trhu se zdroji je zachován v [referenčním soupisu](docs/research/FEATURES_REFERENCE.md); slouží k dohledání původu požadavků, nikoli jako seznam současných funkcí Open Faktury.
 
-Vyúčtování záloh v P13-03: [rozsah, rezervace a uložené daňové odpočty](docs/specs/advance-settlement.md). Dobropisy s PDF, zápočtem a evidencí vratek: [P13-04](docs/specs/credit-notes.md).
 
-Pravidelné CZK faktury, kalendář opakování a volitelné vystavení/odeslání: [P14-01](docs/specs/recurring-invoices.md).
-
-Implementováno P16-01 (13. 10. 2026): profilové bankovní účty v CZK, evidence
-pohybů, dokumentovaný CSV import s náhledem/deduplikací a ruční párování vydaných
-faktur, přijatých faktur a existujících karetních úhrad účtenek. Odpojení a audit,
-CS/EN, REST/MCP. [Specifikace](docs/specs/banking.md).
-P16-02 přidává adaptéry veřejných formátů a návrhy shod; skutečné exportní varianty
-ještě nejsou plně ověřené. P16-03 umožňuje hromadně potvrdit přesné jednoznačné
-shody z aktuální stránky. [Rozsah P16-02](docs/specs/bank-statements.md),
-[rozsah P16-03](docs/specs/bank-batch-matching.md). Průběžné párování notifikací,
-rozdělení pohybů, přeplatky, zálohy, cizí měny zůstávají otevřené. P16-04 přidává CZK pokladní evidenci, saldo a ruční vazby na hotovostní úhrady; automatické vytváření dokladů, tisk a prodejky ještě chybí.
+Aktuální rozlišení hotových funkcí a zbývající práce je soustředěné v [přehledu P16–P20](docs/P16_P20_COMPLETION.md). Historické poznámky v implementačním plánu popisují stav v době jednotlivých dodávek, nikoli dnešní omezení.

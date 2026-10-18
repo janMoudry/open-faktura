@@ -12,25 +12,14 @@
         },
         "price_mode": {
           "type": "string",
-          "enum": [
-            "net",
-            "gross"
-          ]
+          "enum": ["net", "gross"]
         },
         "tax_mode": {
           "type": "string",
-          "enum": [
-            "non_payer",
-            "vat_payer"
-          ]
+          "enum": ["non_payer", "vat_payer"]
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "price_mode",
-        "tax_mode"
-      ],
+      "required": ["company_id", "id", "price_mode", "tax_mode"],
       "additionalProperties": false
     }
   },
@@ -63,9 +52,7 @@
           "default": 25
         }
       },
-      "required": [
-        "company_id"
-      ],
+      "required": ["company_id"],
       "additionalProperties": false
     }
   },
@@ -81,10 +68,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "company_id",
-        "id"
-      ],
+      "required": ["company_id", "id"],
       "additionalProperties": false
     }
   },
@@ -144,33 +128,20 @@
             },
             "currency": {
               "type": "string",
-              "enum": [
-                "CZK"
-              ]
+              "enum": ["CZK"]
             },
             "price_mode": {
               "type": "string",
-              "enum": [
-                "net",
-                "gross"
-              ]
+              "enum": ["net", "gross"]
             },
             "vat_percent": {
               "type": "string",
-              "enum": [
-                "0",
-                "12",
-                "21"
-              ]
+              "enum": ["0", "12", "21"]
             }
           }
         }
       },
-      "required": [
-        "company_id",
-        "request_id",
-        "data"
-      ],
+      "required": ["company_id", "request_id", "data"],
       "additionalProperties": false
     }
   },
@@ -236,35 +207,20 @@
             },
             "currency": {
               "type": "string",
-              "enum": [
-                "CZK"
-              ]
+              "enum": ["CZK"]
             },
             "price_mode": {
               "type": "string",
-              "enum": [
-                "net",
-                "gross"
-              ]
+              "enum": ["net", "gross"]
             },
             "vat_percent": {
               "type": "string",
-              "enum": [
-                "0",
-                "12",
-                "21"
-              ]
+              "enum": ["0", "12", "21"]
             }
           }
         }
       },
-      "required": [
-        "company_id",
-        "id",
-        "revision",
-        "archived",
-        "data"
-      ],
+      "required": ["company_id", "id", "revision", "archived", "data"],
       "additionalProperties": false
     }
   }

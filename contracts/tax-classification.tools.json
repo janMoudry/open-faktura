@@ -1,0 +1,144 @@
+[
+  {
+    "name": "tax_classification_summary",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "year": {
+          "type": "integer",
+          "minimum": 1900
+        }
+      },
+      "required": ["company_id", "year"]
+    }
+  },
+  {
+    "name": "tax_classification_get",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "credit_note",
+            "tax_receipt",
+            "retail",
+            "received",
+            "purchase_receipt",
+            "cash"
+          ]
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id", "kind", "id"]
+    }
+  },
+  {
+    "name": "tax_classification_set",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "credit_note",
+            "tax_receipt",
+            "retail",
+            "received",
+            "purchase_receipt",
+            "cash"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "turnover_included",
+            "claimed_input_vat_czk",
+            "claim_on",
+            "reason"
+          ],
+          "properties": {
+            "turnover_included": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "claimed_input_vat_czk": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "claim_on": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "kind",
+        "id",
+        "request_id",
+        "revision",
+        "fingerprint",
+        "data"
+      ]
+    }
+  }
+]

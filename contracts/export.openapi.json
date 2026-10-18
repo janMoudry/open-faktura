@@ -126,10 +126,7 @@
           },
           "date_field": {
             "type": "string",
-            "enum": [
-              "issued_on",
-              "due_on"
-            ],
+            "enum": ["issued_on", "due_on"],
             "default": "issued_on"
           },
           "date_from": {
@@ -147,22 +144,22 @@
           "amount_max": {
             "type": "string",
             "pattern": "^\\d{1,17}(\\.\\d{1,2})?$"
+          },
+          "tag_id": {
+            "type": "string",
+            "default": "",
+            "maxLength": 40
           }
         }
       },
       "InvoicesSelection": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "kind",
-          "search"
-        ],
+        "required": ["kind", "search"],
         "properties": {
           "kind": {
             "type": "string",
-            "enum": [
-              "invoices"
-            ]
+            "enum": ["invoices"]
           },
           "search": {
             "$ref": "#/components/schemas/InvoicesSearch"
@@ -192,22 +189,22 @@
             "minimum": 1,
             "maximum": 100,
             "default": 25
+          },
+          "tag_id": {
+            "type": "string",
+            "default": "",
+            "maxLength": 40
           }
         }
       },
       "ContactsSelection": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "kind",
-          "search"
-        ],
+        "required": ["kind", "search"],
         "properties": {
           "kind": {
             "type": "string",
-            "enum": [
-              "contacts"
-            ]
+            "enum": ["contacts"]
           },
           "search": {
             "$ref": "#/components/schemas/ContactsSearch"
@@ -217,26 +214,15 @@
       "ExportRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "format",
-          "language",
-          "columns",
-          "selection"
-        ],
+        "required": ["format", "language", "columns", "selection"],
         "properties": {
           "format": {
             "type": "string",
-            "enum": [
-              "csv",
-              "xlsx"
-            ]
+            "enum": ["csv", "xlsx"]
           },
           "language": {
             "type": "string",
-            "enum": [
-              "cs",
-              "en"
-            ]
+            "enum": ["cs", "en"]
           },
           "columns": {
             "type": "array",

@@ -1,3 +1,4 @@
+import { DocumentTagFilter } from "../components/organisms/DocumentTagFilter";
 import { advanceStatus } from "../utils/advance";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
@@ -33,6 +34,7 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
   const { company, onExpired } = useWorkspace();
   const { t, language } = useAppTranslation();
   const [params, setParams] = useSearchParams();
+  const tagId = params.get("tag") ?? "";
   const query = params.get("q") ?? "";
   const status = params.get("status") ?? "all";
   const archived = params.get("archived") === "true";
@@ -46,6 +48,7 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
   const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState("");
   const key = JSON.stringify([
+    tagId,
     companyId,
     kind,
     query,
@@ -67,6 +70,7 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
       companyId,
       {
         kind,
+        tag_id: tagId,
         query,
         status: kind !== "template" ? status : "all",
         archived,
@@ -101,6 +105,13 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
               : "salesTemplates",
         )}
       </Heading>
+      <DocumentTagFilter
+        company={companyId}
+        value={tagId}
+        onChange={(tag) =>
+          setParams({ ...Object.fromEntries(params), tag, page: "1" })
+        }
+      />
       <div className="workspace-panel register-sheet">
         <div className="invoice-list-tabs">
           <FilterTabs

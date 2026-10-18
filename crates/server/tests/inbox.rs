@@ -308,3 +308,93 @@ async fn extraction_and_attach_existing_preserve_scope_and_source(p: PgPool) {
         1
     );
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn gateway_opt_in_atomic_dedup_conflict_and_isolation(p: PgPool) {
+    let (a, _, c, other) = setup(&p).await;
+    let s = PgInbox(p.clone());
+    fn input() -> inbox::MailIntake {
+        inbox::MailIntake {
+            request_id: key(),
+            message_id: "<synthetic-inbox@example.test>".into(),
+            sender: "sender@example.test".into(),
+            subject: "Synthetic intake".into(),
+            attachments: vec![upload()],
+        }
+    }
+    assert!(s.mail(&a, &c, input()).await.is_err());
+    assert_eq!(s.mail_history(&a, &c).await.unwrap().len(), 0);
+    let settings = s
+        .configure(
+            &a,
+            &c,
+            inbox::Settings {
+                revision: 0,
+                email_enabled: true,
+                extraction_provider: None,
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(settings.revision, 1);
+    assert!(s
+        .configure(
+            &a,
+            &c,
+            inbox::Settings {
+                revision: 0,
+                email_enabled: false,
+                extraction_provider: None
+            }
+        )
+        .await
+        .is_err());
+    let original = input();
+    let encoded = serde_json::to_value(&original).unwrap();
+    let result = s.mail(&a, &c, original).await.unwrap();
+    assert_eq!(result.documents.len(), 1);
+    let mut retry: inbox::MailIntake = serde_json::from_value(encoded.clone()).unwrap();
+    retry.request_id = key();
+    let replay = s.mail(&a, &c, retry).await.unwrap();
+    assert_eq!(replay.documents[0].id, result.documents[0].id);
+    assert_eq!(s.list(&a, &c, Default::default()).await.unwrap().total, 1);
+    let mut conflict: inbox::MailIntake = serde_json::from_value(encoded).unwrap();
+    conflict.subject = "Changed".into();
+    assert!(s.mail(&a, &c, conflict).await.is_err());
+    let history = s.mail_history(&a, &c).await.unwrap();
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].status, "completed");
+    let mut second = input();
+    second.message_id = "second-message@example.test".into();
+    let second_key = second.request_id.clone();
+    s.mail(&a, &c, second).await.unwrap();
+    let mut collision = input();
+    collision.request_id = second_key;
+    assert!(s.mail(&a, &c, collision).await.is_err());
+
+    assert!(s.mail_history(&a, &other).await.unwrap().is_empty());
+    let mut invalid = input();
+    invalid.message_id = "invalid-batch".into();
+    let mut second = upload();
+    second.filename = "../escape.pdf".into();
+    invalid.attachments.push(second);
+    assert!(s.mail(&a, &c, invalid).await.is_err());
+    assert_eq!(s.mail_history(&a, &c).await.unwrap().len(), 2);
+    s.configure(
+        &a,
+        &c,
+        inbox::Settings {
+            revision: 1,
+            email_enabled: false,
+            extraction_provider: None,
+        },
+    )
+    .await
+    .unwrap();
+    assert!(s.mail(&a, &c, input()).await.is_err());
+    assert!(s
+        .extract_provider(&a, &c, &result.documents[0].id)
+        .await
+        .is_err());
+}

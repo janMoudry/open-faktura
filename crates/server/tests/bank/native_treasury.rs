@@ -712,3 +712,255 @@ async fn upgrade056_keeps_treasury_matching_disabled(p: PgPool) {
     assert!(status.matching_enabled);
     assert!(!status.matching_treasury);
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn cross_treasury_advance_existing_replay_report_and_detach(p: PgPool) {
+    let (a, _, c, other) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::cross_currency::usd(&bank, &a, &c).await;
+    let d = advance_case(&p, &a, &c, false).await;
+    advance::register(
+        &PgAdvance(p.clone()),
+        &a,
+        &c,
+        &d.id,
+        advance::Register {
+            request_id: key(),
+            revision: d.revision,
+            payment: faktura_domain::payment::PaymentInput {
+                amount: "100".into(),
+                paid_on: "2026-10-01".parse().unwrap(),
+                method: "bank_transfer".into(),
+                note: "Existing EUR receipt".into(),
+            },
+        },
+    )
+    .await
+    .unwrap();
+    let m = dated_movement(&bank, &a, &c, &ac, "110", "2026-10-18".parse().unwrap()).await;
+    let choices = bank.foreign_candidates(&a, &c, &m.id, "").await.unwrap();
+    let choice = choices
+        .iter()
+        .find(|v| v.target_kind == "advance" && v.payment_id.is_some())
+        .unwrap();
+    let cmd = super::cross_currency::command(&m, choice, "110", "100", "22.5");
+    let json = serde_json::to_value(&cmd).unwrap();
+    assert!(bank
+        .execute(&a, &other, serde_json::from_value(json.clone()).unwrap())
+        .await
+        .is_err());
+    let matched = result(bank.execute(&a, &c, cmd).await.unwrap());
+    assert!(!matched.matches[0].created_payment);
+    assert_eq!(
+        matched.matches[0].foreign.as_ref().unwrap().difference_czk,
+        "-25.00"
+    );
+    assert_eq!(
+        matched.revision,
+        result(
+            bank.execute(&a, &c, serde_json::from_value(json).unwrap())
+                .await
+                .unwrap()
+        )
+        .revision
+    );
+    let report = bank
+        .foreign_report(
+            &a,
+            &c,
+            banking::ForeignReportQuery {
+                from: "2026-10-01".parse().unwrap(),
+                to: "2026-10-31".parse().unwrap(),
+                page: None,
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(report.items[0].target_kind, "advance");
+    assert_eq!(report.items[0].document_id, d.id);
+    unlink(&bank, &a, &c, &matched).await;
+    let payments = PgAdvance(p).payments(&a, &c, &d.id).await.unwrap();
+    assert_eq!(payments.len(), 1);
+    assert!(!payments[0].reversed);
+}
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn cross_treasury_new_refund_uses_original_rate_and_reverses(p: PgPool) {
+    let (a, _, c, _) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::cross_currency::usd(&bank, &a, &c).await;
+    let invoice = super::foreign_tests::foreign_invoice(&p, &a, &c).await;
+    let store = PgCredit(p.clone());
+    let mut d = credit_note::create(
+        &store,
+        &a,
+        &c,
+        credit_note::Create {
+            request_id: key(),
+            invoice_id: invoice.id,
+        },
+    )
+    .await
+    .unwrap();
+    d.data.reason = "Synthetic refund".into();
+    let d = credit_note::command(
+        &store,
+        &a,
+        &c,
+        &d.id,
+        credit_note::Command {
+            request_id: key(),
+            revision: d.revision,
+            action: credit_note::Action::Update { data: d.data },
+        },
+    )
+    .await
+    .unwrap();
+    let d = credit_note::command(
+        &store,
+        &a,
+        &c,
+        &d.id,
+        credit_note::Command {
+            request_id: key(),
+            revision: d.revision,
+            action: credit_note::Action::Issue,
+        },
+    )
+    .await
+    .unwrap();
+    let m = dated_movement(&bank, &a, &c, &ac, "-110", d.data.issued_on).await;
+    let choices = bank.foreign_candidates(&a, &c, &m.id, "").await.unwrap();
+    let choice = choices.iter().find(|v| v.target_kind == "credit").unwrap();
+    let mut invalid = super::cross_currency::command(&m, choice, "110", "101", "22.5");
+    assert!(bank.execute(&a, &c, invalid).await.is_err());
+    invalid = super::cross_currency::command(&m, choice, "110", "100", "22.5");
+    if let Action::ForeignMatch { target_kind, .. } = &mut invalid.action {
+        *target_kind = "advance".into();
+    }
+    assert!(bank.execute(&a, &c, invalid).await.is_err());
+    let matched = result(
+        bank.execute(
+            &a,
+            &c,
+            super::cross_currency::command(&m, choice, "110", "100", "22.5"),
+        )
+        .await
+        .unwrap(),
+    );
+    assert_eq!(
+        matched.matches[0].foreign.as_ref().unwrap().difference_czk,
+        "25.00"
+    );
+    assert_eq!(store.get(&a, &c, &d.id).await.unwrap().refunded, "100.00");
+    unlink(&bank, &a, &c, &matched).await;
+    assert_eq!(store.get(&a, &c, &d.id).await.unwrap().refunded, "0.00");
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn cross_treasury_new_advance_does_not_confuse_invoice_id(p: PgPool) {
+    let (a, _, c, _) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::cross_currency::usd(&bank, &a, &c).await;
+    let invoice = super::foreign_tests::foreign_invoice(&p, &a, &c).await;
+    let advance = advance_case(&p, &a, &c, false).await;
+    assert_eq!(invoice.id, advance.id);
+    let m = dated_movement(&bank, &a, &c, &ac, "110", "2026-10-18".parse().unwrap()).await;
+    let choices = bank.foreign_candidates(&a, &c, &m.id, "").await.unwrap();
+    assert!(choices.iter().any(|v| v.target_kind == "invoice"));
+    let choice = choices
+        .iter()
+        .find(|v| v.target_kind == "advance" && v.payment_id.is_none())
+        .unwrap();
+    let matched = result(
+        bank.execute(
+            &a,
+            &c,
+            super::cross_currency::command(&m, choice, "110", "100", "22.5"),
+        )
+        .await
+        .unwrap(),
+    );
+    assert_eq!(matched.matches[0].target_kind, "advance");
+    assert!(matched.matches[0].created_payment);
+    assert!(PgPayment(p.clone())
+        .get(&a, &c, &invoice.id)
+        .await
+        .unwrap()
+        .items
+        .is_empty());
+    assert_eq!(
+        PgAdvance(p.clone())
+            .payments(&a, &c, &advance.id)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+    unlink(&bank, &a, &c, &matched).await;
+    assert!(PgAdvance(p).payments(&a, &c, &advance.id).await.unwrap()[0].reversed);
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn cross_treasury_tax_receipt_keeps_bank_link_and_payment(p: PgPool) {
+    use faktura_application::tax_receipt;
+    use faktura_infrastructure::tax_receipt::PgTaxReceipt;
+    let (a, _, c, _) = setup(&p).await;
+    let bank = PgBank(p.clone());
+    let ac = super::cross_currency::usd(&bank, &a, &c).await;
+    let d = advance_case(&p, &a, &c, true).await;
+    let on = d.data.invoice.issued_on.unwrap();
+    let m = dated_movement(&bank, &a, &c, &ac, "150", on).await;
+    let choices = bank.foreign_candidates(&a, &c, &m.id, "").await.unwrap();
+    let candidate = choices.iter().find(|v| v.target_kind == "advance").unwrap();
+    let matched = result(
+        bank.execute(
+            &a,
+            &c,
+            super::cross_currency::command(&m, candidate, "150", "121", "22.5"),
+        )
+        .await
+        .unwrap(),
+    );
+    let d = sales::get(&PgSales(p.clone()), &a, &c, &d.id)
+        .await
+        .unwrap();
+    tax_receipt::issue(
+        &PgTaxReceipt(p.clone()),
+        &a,
+        &c,
+        tax_receipt::Issue {
+            request_id: key(),
+            revision: d.revision,
+            advance_id: d.id.clone(),
+            payment_id: matched.matches[0].payment_id.clone(),
+            issued_on: on,
+            description: "Synthetic tax receipt after cross-currency match".into(),
+            language: "cs".into(),
+        },
+    )
+    .await
+    .unwrap();
+    assert!(bank
+        .execute(
+            &a,
+            &c,
+            Command {
+                request_id: key(),
+                action: Action::Unmatch {
+                    movement_id: matched.id.clone(),
+                    revision: matched.revision,
+                    reason: "Must preserve tax receipt source".into(),
+                }
+            }
+        )
+        .await
+        .is_err());
+    let retained = bank.get(&a, &c, &matched.id).await.unwrap();
+    assert_eq!(retained.revision, matched.revision);
+    assert!(retained.matches[0].detached_at.is_none());
+    assert!(!PgAdvance(p).payments(&a, &c, &d.id).await.unwrap()[0].reversed);
+}

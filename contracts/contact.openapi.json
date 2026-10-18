@@ -58,6 +58,17 @@
               "maximum": 100,
               "default": 25
             }
+          },
+          {
+            "name": "tag_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "maxLength": 40
+            },
+            "description": "Filter assigned company tag before pagination; empty means all."
           }
         ],
         "responses": {
@@ -569,12 +580,7 @@
       "Address": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "street",
-          "city",
-          "postal_code",
-          "country"
-        ],
+        "required": ["street", "city", "postal_code", "country"],
         "properties": {
           "street": {
             "type": "string",
@@ -597,11 +603,7 @@
       "DeliveryAddress": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "name",
-          "address"
-        ],
+        "required": ["id", "name", "address"],
         "properties": {
           "id": {
             "type": "string",
@@ -619,11 +621,7 @@
       "Person": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "email",
-          "phone"
-        ],
+        "required": ["name", "email", "phone"],
         "properties": {
           "name": {
             "type": "string",
@@ -719,11 +717,7 @@
           },
           "payment_method": {
             "type": "string",
-            "enum": [
-              "",
-              "cash",
-              "bank_transfer"
-            ]
+            "enum": ["", "cash", "bank_transfer"]
           },
           "bank_account": {
             "type": "string",
@@ -742,13 +736,7 @@
       "Contact": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "company_id",
-          "revision",
-          "archived",
-          "data"
-        ],
+        "required": ["id", "company_id", "revision", "archived", "data"],
         "properties": {
           "id": {
             "type": "string",
@@ -773,12 +761,7 @@
       "ContactPage": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "items",
-          "total",
-          "page",
-          "page_size"
-        ],
+        "required": ["items", "total", "page", "page_size"],
         "properties": {
           "items": {
             "type": "array",
@@ -800,10 +783,7 @@
       "CreateContact": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "request_id",
-          "data"
-        ],
+        "required": ["request_id", "data"],
         "properties": {
           "request_id": {
             "type": "string",
@@ -817,11 +797,7 @@
       "UpdateContact": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "revision",
-          "archived",
-          "data"
-        ],
+        "required": ["revision", "archived", "data"],
         "properties": {
           "revision": {
             "type": "integer",
@@ -838,9 +814,7 @@
       "Error": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "code"
-        ],
+        "required": ["code"],
         "properties": {
           "code": {
             "type": "string",
