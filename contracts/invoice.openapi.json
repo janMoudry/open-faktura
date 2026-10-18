@@ -934,6 +934,10 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -959,7 +963,19 @@
           "currency": {
             "type": "string",
             "enum": [
-              "CZK"
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
             ]
           },
           "tax_mode": {
@@ -994,6 +1010,24 @@
               "$ref": "#/components/schemas/InvoiceLine"
             },
             "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
           }
         }
       },
@@ -1085,7 +1119,19 @@
           "currency": {
             "type": "string",
             "enum": [
-              "CZK"
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
             ]
           },
           "lines": {
@@ -1327,6 +1373,10 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -1353,7 +1403,19 @@
           "currency": {
             "type": "string",
             "enum": [
-              "CZK"
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
             ]
           },
           "tax_mode": {
@@ -1386,6 +1448,24 @@
               "$ref": "#/components/schemas/DraftLine"
             },
             "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
           }
         }
       },
@@ -1400,7 +1480,8 @@
           "totals",
           "number",
           "issued_at",
-          "settlement"
+          "settlement",
+          "advances"
         ],
         "properties": {
           "id": {
@@ -1435,6 +1516,14 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/Settlement"
+              }
+            ],
+            "nullable": true
+          },
+          "advances": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdvanceSettlement"
               }
             ],
             "nullable": true
@@ -1783,6 +1872,142 @@
             "type": "string"
           }
         }
+      },
+      "AdvanceTaxDeduction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InvoiceTotals"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "totals"
+        ]
+      },
+      "AdvanceSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "payment_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tax_receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdvanceTaxDeduction"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "paid",
+          "payment_ids",
+          "tax_receipts"
+        ]
+      },
+      "AdvanceSettlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdvanceSource"
+            }
+          },
+          "credited": {
+            "type": "string"
+          },
+          "rounding_adjustment": {
+            "type": "string"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "minimum_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "version",
+          "sources",
+          "credited",
+          "rounding_adjustment",
+          "customer",
+          "supplier",
+          "tax_mode",
+          "minimum_date"
+        ]
       }
     },
     "securitySchemes": {

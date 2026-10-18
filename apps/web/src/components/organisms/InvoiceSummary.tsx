@@ -11,7 +11,7 @@ export function InvoiceSummary({
   totalLabel,
 }: {
   calculation: DraftData["calculation"];
-  totals: InvoiceTotals | null;
+  totals: Omit<InvoiceTotals, "calculation_version"> | null;
   loading?: boolean;
   failed?: boolean;
   totalLabel?: string;
@@ -23,6 +23,12 @@ export function InvoiceSummary({
       aria-label={t("draftSummary")}
       aria-busy={loading}
     >
+      {calculation.exchange_rate && (
+        <p className="text-sm text-muted">
+          {t("exchangeRate")}: {calculation.exchange_rate.rate} CZK /{" "}
+          {calculation.exchange_rate.units} {calculation.currency}
+        </p>
+      )}
       <div className="max-w-md ml-auto space-y-control text-sm tabular-nums">
         {loading ? (
           <p role="status">{t("draftCalculating")}</p>
@@ -46,9 +52,11 @@ export function InvoiceSummary({
                   >
                     <dt>
                       {t("draftVat")} {row.vat_percent} % ·{" "}
-                      {moneyText(row.amounts.net, language)}
+                      {moneyText(row.amounts.net, language, totals.currency)}
                     </dt>
-                    <dd>{moneyText(row.amounts.vat, language)}</dd>
+                    <dd>
+                      {moneyText(row.amounts.vat, language, totals.currency)}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -58,14 +66,16 @@ export function InvoiceSummary({
             {/[1-9]/.test(totals.rounding) && (
               <div className="flex justify-between gap-inline">
                 <span>{t("draftRounding")}</span>
-                <span>{moneyText(totals.rounding, language)}</span>
+                <span>
+                  {moneyText(totals.rounding, language, totals.currency)}
+                </span>
               </div>
             )}
             <dl className="border-t border-border pt-field text-xl font-semibold">
               <div className="flex justify-between gap-field">
                 <dt>{totalLabel ?? t("draftTotal")}</dt>
                 <dd className="whitespace-nowrap">
-                  {moneyText(totals.payable, language)}
+                  {moneyText(totals.payable, language, totals.currency)}
                 </dd>
               </div>
             </dl>

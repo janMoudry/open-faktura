@@ -1,0 +1,2 @@
+id;name;code;barcode;unit;unit_price;currency;vat_percent
+catalog-001;Synthetic mapped service;MAP-001;000123;h;1250,50;CZK;21

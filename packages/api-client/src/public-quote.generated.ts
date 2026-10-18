@@ -76,7 +76,20 @@ export interface components {
       /** @enum {string} */
       calculation_version: "of-czk-v1" | "import-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       lines: components["schemas"]["InvoiceLineResult"][];
       tax_summary: components["schemas"]["InvoiceTaxSummary"][];
       amounts: components["schemas"]["InvoiceAmounts"];
@@ -130,12 +143,26 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     DraftCalculation: {
       /** @enum {string} */
       calculation_version: "of-czk-v1" | "import-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       /** @enum {string} */
       tax_mode: "non_payer" | "vat_payer";
       /** @enum {string} */
@@ -144,6 +171,10 @@ export interface components {
       /** @enum {string} */
       rounding: "none" | "whole_czk";
       lines: components["schemas"]["DraftLine"][];
+      exchange_rate?: {
+        rate: string;
+        units: string;
+      };
     };
     PublicQuote: {
       number: string;

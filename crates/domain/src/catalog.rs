@@ -95,6 +95,7 @@ impl CatalogData {
             return Err(vec!["unit_price".into()]);
         }
         Ok(Line {
+            catalog_id: None,
             id,
             description: checked.name,
             unit: checked.unit,

@@ -1,3 +1,5 @@
+import { TaxDashboard } from "../components/organisms/TaxDashboard";
+import { FinancialDashboard } from "../components/organisms/FinancialDashboard";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { Alert, Button, Heading, formatCalendarDate } from "@open-faktura/ui";
@@ -68,6 +70,20 @@ export function OverviewPage() {
               date: formatCalendarDate(value.today, language),
             })}
           </p>
+          <FinancialDashboard
+            key={companyId}
+            company={companyId}
+            today={value.today}
+            refresh={attempt}
+            onExpired={onExpired}
+          />
+          <TaxDashboard
+            key={"tax-" + companyId}
+            company={companyId}
+            today={value.today}
+            refresh={attempt}
+            onExpired={onExpired}
+          />
           <div className="grid gap-field sm:grid-cols-2 lg:grid-cols-4">
             {(
               [

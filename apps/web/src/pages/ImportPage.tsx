@@ -1,3 +1,9 @@
+import { CatalogImportMapping } from "../components/organisms/CatalogImportMapping";
+import {
+  mapCatalogImport,
+  suggestCatalogMapping,
+  requiredCatalogFields,
+} from "../utils/catalogImport";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import {
@@ -19,6 +25,7 @@ import {
   listImports,
   parseImportTable,
   prepareImport,
+  prepareMoneyImport,
   InvoiceCalculationFailure,
   type ImportBatch,
   type ImportRecord,
@@ -59,6 +66,14 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
     [busy, setBusy] = useState(false),
     [error, setError] = useState<AppKey | "">(""),
     [filename, setFilename] = useState("");
+  const [moneyCzk, setMoneyCzk] = useState(false);
+  const [tableKind, setTableKind] = useState<"contact" | "catalog">("contact");
+  const [catalogMapping, setCatalogMapping] = useState(() =>
+    suggestCatalogMapping([]),
+  );
+  const [priceMode, setPriceMode] = useState<"" | "net" | "gross">("");
+  const [decimalSeparator, setDecimalSeparator] = useState<"." | ",">(".");
+  const catalogTable = source === "generic" && tableKind === "catalog";
   const request = useRef<{ body: string; id: string } | null>(null);
   const mounted = useRef(true);
   useEffect(() => {
@@ -104,7 +119,36 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
     setFilename("");
     await run(async () => {
       if (file.size > 2000000) throw new InvoiceCalculationFailure(422, "file");
-      if (file.name.toLowerCase().endsWith(".json")) {
+      if (source === "money_s3") {
+        if (
+          !moneyCzk ||
+          !agenda.trim() ||
+          !file.name.toLowerCase().endsWith(".xml")
+        )
+          throw new InvoiceCalculationFailure(422, "file");
+        const xml = new TextDecoder("utf-8", { fatal: true }).decode(
+          await file.arrayBuffer(),
+        );
+        const payload = {
+          xml,
+          agenda: agenda.trim(),
+          domestic_currency: "CZK" as const,
+        };
+        const body = JSON.stringify(payload);
+        if (request.current?.body !== body)
+          request.current = { body, id: crypto.randomUUID() };
+        const value = await prepareMoneyImport(apiUrl, companyId, {
+          ...payload,
+          request_id: request.current.id,
+        });
+        if (mounted.current) {
+          setBatch(value);
+          setSkip([]);
+          setConfirmed(false);
+          setFilename(file.name);
+          setHistory(await listImports(apiUrl, companyId));
+        }
+      } else if (file.name.toLowerCase().endsWith(".json")) {
         const value: unknown = JSON.parse(await file.text());
         if (!Array.isArray(value) || !value.length || value.length > 500)
           throw new InvoiceCalculationFailure(422, "file");
@@ -124,6 +168,7 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
         if (mounted.current) {
           setTable(result);
           setMapping(suggestImportMapping(result.headers));
+          setCatalogMapping(suggestCatalogMapping(result.headers));
           setFilename(file.name);
         }
       }
@@ -134,7 +179,16 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
       const payload = {
         source,
         agenda: agenda.trim(),
-        records: table ? mapImportContacts(table, mapping) : records!,
+        records: table
+          ? catalogTable
+            ? mapCatalogImport(
+                table,
+                catalogMapping,
+                priceMode as "net" | "gross",
+                decimalSeparator,
+              )
+            : mapImportContacts(table, mapping)
+          : records!,
       };
       const body = JSON.stringify(payload);
       if (request.current?.body !== body)
@@ -181,6 +235,7 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
         {t("navImport")}
       </Heading>
       <p className="text-muted">{t("importIntro")}</p>
+      {batch?.source === "money_s3" && <Alert>{t("importGuideMoney")}</Alert>}
       {error && (
         <Alert tone="danger" role="alert">
           {t(error)}{" "}
@@ -225,7 +280,9 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
               </Button>
             </div>
           </div>
-          <Alert tone="warning">{t("importLimits")}</Alert>
+          {batch.rows.some((row) => row.kind === "invoice") && (
+            <Alert tone="warning">{t("importLimits")}</Alert>
+          )}
           <ImportPreview
             batch={batch}
             company={companyId}
@@ -279,11 +336,18 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
                 label={t("importSource")}
                 value={source}
                 disabled={busy}
-                onChange={(v) => setSource(v as typeof source)}
+                onChange={(v) => {
+                  setSource(v as typeof source);
+                  setRecords(null);
+                  setTable(null);
+                  setFilename("");
+                  setMoneyCzk(false);
+                }}
                 options={[
                   { value: "idoklad", label: "iDoklad" },
                   { value: "fakturaonline", label: "FakturaOnline" },
                   { value: "generic", label: t("importGeneric") },
+                  { value: "money_s3", label: "Money S3 (XML)" },
                 ]}
               />
               <Field
@@ -297,19 +361,23 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
             </div>
             <Alert>
               {t(
-                source === "idoklad"
-                  ? "importGuideIdoklad"
-                  : source === "fakturaonline"
-                    ? "importGuideFaktura"
-                    : "importGuideGeneric",
+                source === "money_s3"
+                  ? "importGuideMoney"
+                  : source === "idoklad"
+                    ? "importGuideIdoklad"
+                    : source === "fakturaonline"
+                      ? "importGuideFaktura"
+                      : "importGuideGeneric",
               )}{" "}
               {source !== "generic" && (
                 <a
                   className="underline underline-offset-4"
                   href={
-                    source === "idoklad"
-                      ? "https://www.idoklad.cz/podpora/adresar-kontakty"
-                      : "https://www.fakturaonline.cz/navody/pokrocile-funkce/statistiky-vystavenych-faktur"
+                    source === "money_s3"
+                      ? "https://money.cz/navod/s3xmlde/"
+                      : source === "idoklad"
+                        ? "https://www.idoklad.cz/podpora/adresar-kontakty"
+                        : "https://www.fakturaonline.cz/navody/pokrocile-funkce/statistiky-vystavenych-faktur"
                   }
                   target="_blank"
                   rel="noreferrer"
@@ -318,31 +386,99 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
                 </a>
               )}
             </Alert>
-            <p className="text-sm text-muted">{t("importFormats")}</p>
-            <a
-              className="text-sm underline underline-offset-4"
-              href="/import-format.json"
-              download
-            >
-              {t("importTemplate")}
-            </a>
-            <div className="grid gap-field sm:grid-cols-2">
+            {source === "generic" && (
               <Select
-                label={t("importDelimiter")}
-                disabled={busy || !!table}
-                value={delimiter}
-                onChange={(v) => setDelimiter(v as typeof delimiter)}
+                label={t("importTableKind")}
+                value={tableKind}
+                disabled={busy}
+                onChange={(v) => {
+                  setTableKind(v as "contact" | "catalog");
+                  setTable(null);
+                  setRecords(null);
+                  setFilename("");
+                }}
                 options={[
-                  { value: ";", label: t("importSemicolon") },
-                  { value: ",", label: t("importComma") },
-                  { value: "tab", label: t("importTab") },
+                  { value: "contact", label: t("navContacts") },
+                  { value: "catalog", label: t("importCatalog") },
                 ]}
               />
+            )}
+            {catalogTable && (
+              <>
+                <Alert>{t("importCatalogGuide")}</Alert>
+                <a
+                  className="text-sm underline underline-offset-4"
+                  href="/catalog-import.csv"
+                  download
+                >
+                  {t("importCatalogTemplate")}
+                </a>
+                <div className="grid gap-field sm:grid-cols-2">
+                  <Select
+                    label={t("importCatalogPriceMode")}
+                    required
+                    value={priceMode}
+                    disabled={busy}
+                    onChange={(v) => setPriceMode(v as typeof priceMode)}
+                    options={[
+                      { value: "", label: t("importNotMapped") },
+                      { value: "net", label: t("itemSalesNet") },
+                      { value: "gross", label: t("itemSalesGross") },
+                    ]}
+                  />
+                  <Select
+                    label={t("importCatalogDecimal")}
+                    value={decimalSeparator}
+                    disabled={busy}
+                    onChange={(v) => setDecimalSeparator(v as "." | ",")}
+                    options={[
+                      { value: ".", label: t("importCatalogDot") },
+                      { value: ",", label: t("importCatalogComma") },
+                    ]}
+                  />
+                </div>
+              </>
+            )}
+            {source === "money_s3" ? (
+              <Checkbox
+                label={t("importMoneyCzk")}
+                checked={moneyCzk}
+                onChange={(e) => setMoneyCzk(e.target.checked)}
+              />
+            ) : (
+              <p className="text-sm text-muted">{t("importFormats")}</p>
+            )}
+            {source !== "money_s3" && !catalogTable && (
+              <a
+                className="text-sm underline underline-offset-4"
+                href="/import-format.json"
+                download
+              >
+                {t("importTemplate")}
+              </a>
+            )}
+            <div className="grid gap-field sm:grid-cols-2">
+              {source !== "money_s3" && (
+                <Select
+                  label={t("importDelimiter")}
+                  disabled={busy || !!table}
+                  value={delimiter}
+                  onChange={(v) => setDelimiter(v as typeof delimiter)}
+                  options={[
+                    { value: ";", label: t("importSemicolon") },
+                    { value: ",", label: t("importComma") },
+                    { value: "tab", label: t("importTab") },
+                  ]}
+                />
+              )}
               <Field
                 type="file"
                 label={t("importFile")}
-                accept=".csv,.xlsx,.json"
-                disabled={busy}
+                accept={source === "money_s3" ? ".xml" : ".csv,.xlsx,.json"}
+                disabled={
+                  busy ||
+                  (source === "money_s3" && (!moneyCzk || !agenda.trim()))
+                }
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) void load(f);
@@ -359,30 +495,45 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
             {table && (
               <>
                 <Heading level={3} size="card">
-                  {t("importMapping")}
+                  {t(catalogTable ? "importCatalogMapping" : "importMapping")}
                 </Heading>
-                <p className="text-sm text-muted">{t("importMappingHint")}</p>
-                <div className="grid gap-field sm:grid-cols-2 lg:grid-cols-3">
-                  {importFields.map((k) => (
-                    <Select
-                      key={k}
-                      label={t(`importField_${k}` as AppKey)}
-                      required={["key", "name", "country"].includes(k)}
-                      value={String(mapping[k])}
-                      disabled={busy}
-                      onChange={(v) =>
-                        setMapping({ ...mapping, [k]: Number(v) })
-                      }
-                      options={[
-                        { value: "-1", label: t("importNotMapped") },
-                        ...table.headers.map((h, i) => ({
-                          value: String(i),
-                          label: h,
-                        })),
-                      ]}
-                    />
-                  ))}
-                </div>
+                <p className="text-sm text-muted">
+                  {t(
+                    catalogTable
+                      ? "importCatalogMappingHint"
+                      : "importMappingHint",
+                  )}
+                </p>
+                {catalogTable ? (
+                  <CatalogImportMapping
+                    headers={table.headers}
+                    mapping={catalogMapping}
+                    onChange={setCatalogMapping}
+                    disabled={busy}
+                  />
+                ) : (
+                  <div className="grid gap-field sm:grid-cols-2 lg:grid-cols-3">
+                    {importFields.map((k) => (
+                      <Select
+                        key={k}
+                        label={t(`importField_${k}` as AppKey)}
+                        required={["key", "name", "country"].includes(k)}
+                        value={String(mapping[k])}
+                        disabled={busy}
+                        onChange={(v) =>
+                          setMapping({ ...mapping, [k]: Number(v) })
+                        }
+                        options={[
+                          { value: "-1", label: t("importNotMapped") },
+                          ...table.headers.map((h, i) => ({
+                            value: String(i),
+                            label: h,
+                          })),
+                        ]}
+                      />
+                    ))}
+                  </div>
+                )}
                 <div
                   className="overflow-x-auto"
                   tabIndex={0}
@@ -416,9 +567,12 @@ function ImportWorkspace({ companyId }: { companyId: string }) {
                 !agenda.trim() ||
                 (!table && !records) ||
                 (!!table &&
-                  ["key", "name", "country"].some(
-                    (k) => mapping[k as ImportField] < 0,
-                  ))
+                  (catalogTable
+                    ? !priceMode ||
+                      requiredCatalogFields.some((k) => catalogMapping[k] < 0)
+                    : ["key", "name", "country"].some(
+                        (k) => mapping[k as ImportField] < 0,
+                      )))
               }
               onClick={() => void preview()}
             >

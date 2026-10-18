@@ -12,6 +12,8 @@ pub struct Prepare {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Row {
+    #[serde(default)]
+    pub catalog: Option<faktura_domain::catalog::CatalogData>,
     pub index: i32,
     pub kind: String,
     pub key: String,
@@ -57,10 +59,15 @@ pub async fn prepare(
     input: Prepare,
 ) -> Result<Batch> {
     if uuid::Uuid::parse_str(&input.request_id).is_err()
-        || !["idoklad", "fakturaonline", "generic"].contains(&input.source.as_str())
+        || !["idoklad", "fakturaonline", "generic", "money_s3"].contains(&input.source.as_str())
         || input.agenda.trim().is_empty()
         || input.agenda.len() > 200
         || input.agenda.chars().any(char::is_control)
+        || (input.source == "money_s3"
+            && input
+                .records
+                .iter()
+                .any(|r| !matches!(r, Record::Catalog { .. })))
         || input.records.is_empty()
         || input.records.len() > 500
     {
@@ -79,4 +86,13 @@ pub async fn apply(
         return Err(Error::Invalid(vec!["skip".into()]));
     }
     store.apply(actor, company, id, input).await
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MoneyPrepare {
+    pub request_id: String,
+    pub agenda: String,
+    pub domestic_currency: String,
+    pub xml: String,
 }

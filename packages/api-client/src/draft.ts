@@ -1,3 +1,4 @@
+import { isDocumentCurrency } from "./invoice";
 import { parseSettlement } from "./payment";
 import type { components } from "./invoice.generated";
 import { InvoiceCalculationFailure, parseInvoiceTotals } from "./invoice";
@@ -109,7 +110,7 @@ function parse(v: any): InvoiceDraft {
         l.vat_percent,
       ].every((x) => typeof x === "string"),
     ) ||
-    c.currency !== "CZK" ||
+    !isDocumentCurrency(c.currency) ||
     !["of-czk-v1", "import-v1"].includes(c.calculation_version) ||
     !["non_payer", "vat_payer"].includes(c.tax_mode) ||
     !["net", "gross"].includes(c.price_mode) ||

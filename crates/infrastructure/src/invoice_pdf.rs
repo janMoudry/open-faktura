@@ -49,12 +49,21 @@ impl Element for QuoteLineSpace {
     }
 }
 pub fn render(invoice: &Draft) -> Result<Vec<u8>, genpdf::error::Error> {
-    render_document(invoice, false)
+    render_document(invoice, false, false, None, None)
 }
 pub fn render_quote(invoice: &Draft) -> Result<Vec<u8>, genpdf::error::Error> {
-    render_document(invoice, true)
+    render_document(invoice, true, false, None, None)
 }
-fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::error::Error> {
+pub fn render_advance(invoice: &Draft) -> Result<Vec<u8>, genpdf::error::Error> {
+    render_document(invoice, false, true, None, None)
+}
+fn render_document(
+    invoice: &Draft,
+    quote: bool,
+    advance: bool,
+    tax_receipt: Option<&str>,
+    credit: Option<&str>,
+) -> Result<Vec<u8>, genpdf::error::Error> {
     let regular = FontData::new(
         include_bytes!("../assets/NotoSans-Regular.ttf").to_vec(),
         None,
@@ -79,7 +88,20 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
     let totals = invoice.totals.as_ref().expect("issued invoice totals");
     let heading = format!(
         "{} {number}",
-        if quote {
+        if credit.is_some() {
+            if d.calculation.tax_mode == TaxMode::VatPayer {
+                label("Opravný daňový doklad", "Credit note")
+            } else {
+                label("Dobropis", "Credit note")
+            }
+        } else if tax_receipt.is_some() {
+            label(
+                "Daňový doklad k přijaté platbě",
+                "Tax receipt for advance payment",
+            )
+        } else if advance {
+            label("Zálohová faktura", "Proforma invoice")
+        } else if quote {
             label("Cenová nabídka", "Quotation")
         } else {
             label("Faktura", "Invoice")
@@ -97,7 +119,29 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
     doc.set_page_decorator(decorator);
     doc.push(Break::new(1));
     doc.push(Paragraph::new(heading).styled(Style::new().bold().with_font_size(22)));
-    if !quote && d.calculation.tax_mode == TaxMode::VatPayer {
+    if let Some(number) = credit {
+        doc.push(Paragraph::new(format!(
+            "{}: {number}",
+            label("Oprava faktury", "Correction of invoice")
+        )));
+    }
+    if let Some(number) = tax_receipt {
+        doc.push(Paragraph::new(format!(
+            "{}: {number}",
+            label("Zálohová faktura", "Proforma invoice")
+        )));
+        doc.push(Paragraph::new(label(
+            "Již uhrazeno — neplaťte znovu",
+            "Already paid — do not pay again",
+        )));
+    }
+    if advance {
+        doc.push(Paragraph::new(label(
+            "Není daňovým dokladem",
+            "Not a tax invoice",
+        )));
+    }
+    if credit.is_none() && !quote && !advance && d.calculation.tax_mode == TaxMode::VatPayer {
         doc.push(Paragraph::new(label("Daňový doklad", "Tax invoice")));
     }
     doc.push(Break::new(1));
@@ -110,13 +154,20 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
     ] {
         doc.push(Paragraph::new(title).styled(Style::new().bold()));
         doc.push(Paragraph::new(text(&party.name)));
-        doc.push(Paragraph::new(text(&format!(
-            "{}, {} {}, {}",
-            party.address.street,
-            party.address.postal_code,
-            party.address.city,
-            party.address.country
-        ))));
+        let locality = format!("{} {}", party.address.postal_code, party.address.city);
+        let address = [
+            party.address.street.as_str(),
+            locality.as_str(),
+            party.address.country.as_str(),
+        ]
+        .into_iter()
+        .map(str::trim)
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+        .join(", ");
+        if !address.is_empty() {
+            doc.push(Paragraph::new(text(&address)));
+        }
         for (key, value) in [
             (label("IČO", "Registration no."), &party.registration_number),
             (label("DIČ", "VAT ID"), &party.vat_number),
@@ -141,7 +192,7 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
         ),
         (
             label("Datum zdanitelného plnění", "Tax date"),
-            if quote { None } else { d.tax_on },
+            if quote || advance { None } else { d.tax_on },
         ),
     ] {
         if let Some(date) = value {
@@ -190,6 +241,15 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
         })
         .styled(Style::new().with_font_size(8)),
     );
+    if let Some(rate) = &d.calculation.exchange_rate {
+        doc.push(Paragraph::new(format!(
+            "{}: {} CZK / {} {}",
+            label("Kurz", "Exchange rate"),
+            rate.rate,
+            rate.units,
+            totals.currency
+        )));
+    }
     let money = |s: &str| {
         format!(
             "{} {}",
@@ -198,7 +258,11 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
             } else {
                 s.replace('.', ",")
             },
-            if en { "CZK" } else { "Kč" }
+            if totals.currency == "CZK" && !en {
+                "Kč"
+            } else {
+                &totals.currency
+            }
         )
     };
     for (i, (line, result)) in d.calculation.lines.iter().zip(&totals.lines).enumerate() {
@@ -228,6 +292,39 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
             money(&result.amounts.vat),
             label("Celkem", "Total"),
             money(&result.amounts.gross)
+        )));
+    }
+    if let Some(settlement) = &invoice.advances {
+        doc.push(Break::new(1));
+        doc.push(
+            Paragraph::new(label("Odpočty záloh", "Advance deductions"))
+                .styled(Style::new().bold()),
+        );
+        for source in &settlement.sources {
+            doc.push(Paragraph::new(format!(
+                "{}: -{}",
+                source.number,
+                money(&source.paid)
+            )));
+            for tax in &source.tax_receipts {
+                doc.push(Paragraph::new(tax.number.clone()));
+                for row in &tax.totals.tax_summary {
+                    doc.push(Paragraph::new(format!(
+                        "{} {} %: -{} {} · -{} {}",
+                        label("DPH", "VAT"),
+                        row.vat_percent,
+                        money(&row.amounts.net),
+                        label("základ", "net"),
+                        money(&row.amounts.vat),
+                        label("daň", "tax")
+                    )));
+                }
+            }
+        }
+        doc.push(Paragraph::new(format!(
+            "{}: -{}",
+            label("Zaplacené zálohy celkem", "Total advances received"),
+            money(&settlement.credited)
         )));
     }
     if quote {
@@ -265,7 +362,11 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
     doc.push(
         Paragraph::new(format!(
             "{}: {}",
-            if quote {
+            if credit.is_some() {
+                label("Dobropisovaná částka", "Credited amount")
+            } else if tax_receipt.is_some() {
+                label("Přijatá platba celkem", "Total received payment")
+            } else if quote {
                 label("Cena celkem", "Total price")
             } else {
                 label("Celkem k úhradě", "Total payable")
@@ -274,6 +375,25 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
         ))
         .styled(Style::new().bold().with_font_size(16)),
     );
+    if !quote && credit.is_none() && tax_receipt.is_none() {
+        if let Some(payload) = faktura_domain::payment_qr::payload(
+            &d.payment,
+            &totals.payable,
+            &totals.currency,
+            d.due_on,
+        ) {
+            doc.push(QuoteLineSpace(48.0));
+            doc.push(Paragraph::new(label("QR Platba", "QR payment")).styled(Style::new().bold()));
+            doc.push(crate::payment_qr::pdf_image(&payload)?);
+            doc.push(
+                Paragraph::new(label(
+                    "Původní částka dokladu; zohledněte již provedené úhrady.",
+                    "Original document amount; account for payments already made.",
+                ))
+                .styled(Style::new().with_font_size(8)),
+            );
+        }
+    }
     if !d.note.is_empty() {
         doc.push(Break::new(1));
         doc.push(Paragraph::new(text(&d.note)));
@@ -281,4 +401,68 @@ fn render_document(invoice: &Draft, quote: bool) -> Result<Vec<u8>, genpdf::erro
     let mut output = Vec::new();
     doc.render(&mut output)?;
     Ok(output)
+}
+
+/// Same immutable renderer, with an explicit document type and payment caption.
+pub fn render_tax_receipt(
+    receipt: &faktura_application::tax_receipt::Document,
+) -> Result<Vec<u8>, genpdf::error::Error> {
+    let draft = Draft {
+        advances: None,
+        id: receipt.id.clone(),
+        company_id: receipt.company_id.clone(),
+        revision: 1,
+        data: receipt.data.clone(),
+        totals: Some(receipt.totals.clone()),
+        number: Some(receipt.number.clone()),
+        settlement: None,
+        issued_at: None,
+    };
+    render_document(&draft, false, false, Some(&receipt.advance_number), None)
+}
+
+pub fn render_credit(
+    credit: &faktura_application::credit_note::Document,
+) -> Result<Vec<u8>, genpdf::error::Error> {
+    let mut d = credit.source.clone();
+    d.number = credit.number.clone();
+    d.advances = None;
+    d.totals = Some(credit.totals.clone());
+    d.data.issued_on = Some(credit.data.issued_on);
+    d.data.tax_on = Some(credit.data.tax_on);
+    d.data.due_on = Some(credit.data.due_on);
+    d.data.language = credit.data.language.clone();
+    d.data.note = format!(
+        "{}: {}",
+        if credit.data.language == "en" {
+            "Reason for correction"
+        } else {
+            "Zdůvodnění opravy"
+        },
+        credit.data.reason
+    );
+    d.data.calculation.price_mode = faktura_domain::invoice::PriceMode::Gross;
+    d.data.calculation.discount_percent = "0".into();
+    d.data.calculation.lines = credit
+        .totals
+        .lines
+        .iter()
+        .map(|r| {
+            let mut line = credit
+                .source
+                .data
+                .calculation
+                .lines
+                .iter()
+                .find(|l| l.id == r.id)
+                .expect("stored credit source line")
+                .clone();
+            line.quantity = "1".into();
+            line.unit = String::new();
+            line.discount_percent = "0".into();
+            line.unit_price = r.amounts.gross.clone();
+            line
+        })
+        .collect();
+    render_document(&d, false, false, None, Some(&credit.invoice_number))
 }

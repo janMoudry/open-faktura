@@ -16,7 +16,7 @@ function parse(v: any): ImportBatch {
     !v.rows.every(
       (r: any) =>
         Number.isSafeInteger(r.index) &&
-        ["contact", "invoice"].includes(r.kind) &&
+        ["contact", "invoice", "catalog"].includes(r.kind) &&
         [r.key, r.label].every((x) => typeof x === "string") &&
         [
           "ready",
@@ -133,4 +133,12 @@ export async function parseImportTable(
   )
     throw new InvoiceCalculationFailure(502, "invalid_response");
   return v;
+}
+
+export async function prepareMoneyImport(
+  base: string,
+  company: string,
+  input: components["schemas"]["MoneyPrepare"],
+): Promise<ImportBatch> {
+  return parse(await request(base, company, "/money", input));
 }

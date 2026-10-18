@@ -16,6 +16,87 @@ import { AuthPage } from "../pages/AuthPage";
 import { useAppTranslation } from "../locales";
 import { NotFoundPage } from "../pages/NotFoundPage";
 
+const ReportsPage = lazy(() =>
+  import("../pages/ReportsPage").then((m) => ({ default: m.ReportsPage })),
+);
+const ItemSalesPage = lazy(() =>
+  import("../pages/ItemSalesPage").then((m) => ({ default: m.ItemSalesPage })),
+);
+const StockPage = lazy(() =>
+  import("../pages/StockPage").then((m) => ({ default: m.StockPage })),
+);
+const InboxPage = lazy(() =>
+  import("../pages/InboxPage").then((m) => ({ default: m.InboxPage })),
+);
+const RetailPage = lazy(() =>
+  import("../pages/RetailPage").then((m) => ({ default: m.RetailPage })),
+);
+const BankPage = lazy(() =>
+  import("../pages/BankPage").then((m) => ({ default: m.BankPage })),
+);
+const BankMovementPage = lazy(() =>
+  import("../pages/BankMovementPage").then((m) => ({
+    default: m.BankMovementPage,
+  })),
+);
+const CashPage = lazy(() =>
+  import("../pages/CashPage").then((m) => ({ default: m.CashPage })),
+);
+const CashMovementPage = lazy(() =>
+  import("../pages/CashMovementPage").then((m) => ({
+    default: m.CashMovementPage,
+  })),
+);
+const ReceivedInvoicesPage = lazy(() =>
+  import("../pages/ReceivedInvoicesPage").then((m) => ({
+    default: m.ReceivedInvoicesPage,
+  })),
+);
+const ReceivedInvoicePage = lazy(() =>
+  import("../pages/ReceivedInvoicePage").then((m) => ({
+    default: m.ReceivedInvoicePage,
+  })),
+);
+const PurchaseReportPage = lazy(() =>
+  import("../pages/PurchaseReportPage").then((m) => ({
+    default: m.PurchaseReportPage,
+  })),
+);
+const RecurringListPage = lazy(() =>
+  import("../pages/RecurringListPage").then((m) => ({
+    default: m.RecurringListPage,
+  })),
+);
+const RecurringDetailPage = lazy(() =>
+  import("../pages/RecurringDetailPage").then((m) => ({
+    default: m.RecurringDetailPage,
+  })),
+);
+const CreditNotesPage = lazy(() =>
+  import("../pages/CreditNotesPage").then((m) => ({
+    default: m.CreditNotesPage,
+  })),
+);
+const CreditNotePage = lazy(() =>
+  import("../pages/CreditNotePage").then((m) => ({
+    default: m.CreditNotePage,
+  })),
+);
+const TaxReceiptsPage = lazy(() =>
+  import("../pages/TaxReceiptsPage").then((m) => ({
+    default: m.TaxReceiptsPage,
+  })),
+);
+const TaxReceiptPage = lazy(() =>
+  import("../pages/TaxReceiptPage").then((m) => ({
+    default: m.TaxReceiptPage,
+  })),
+);
+const PublicInvoicePage = lazy(() =>
+  import("../pages/PublicInvoicePage").then((m) => ({
+    default: m.PublicInvoicePage,
+  })),
+);
 const PublicQuotePage = lazy(() =>
   import("../pages/PublicQuotePage").then((m) => ({
     default: m.PublicQuotePage,
@@ -90,7 +171,7 @@ function AccessLayout() {
       />
     );
   const known =
-    /^\/(?:login|setup|workspace|companies(?:\/[^/]+(?:\/(?:contacts|invoices|overview|imports|catalog|quotes|templates)(?:\/[^/]+)?)?)?|invoices(?:\/.*)?)?$/.test(
+    /^\/(?:login|setup|workspace|companies(?:\/[^/]+(?:\/(?:reports|stock|inbox|retail|cash|bank|contacts|invoices|received-invoices|receipts|expense-payments|expense-overview|overview|imports|catalog|quotes|templates|advances|tax-receipts|credit-notes|recurring)(?:\/[^/]+)?)?)?|invoices(?:\/.*)?)?$/.test(
       pathname,
     );
   return (
@@ -145,6 +226,14 @@ function UnavailablePage() {
 }
 const router = createHashRouter([
   {
+    path: "/shared/invoice/:token",
+    element: (
+      <Suspense fallback={null}>
+        <PublicInvoicePage />
+      </Suspense>
+    ),
+  },
+  {
     path: "/shared/quote/:token",
     element: (
       <Suspense fallback={null}>
@@ -170,8 +259,98 @@ const router = createHashRouter([
           { path: "workspace", element: <CompanyPage /> },
           { path: "companies", element: <CompanyPage /> },
           { path: "companies/:companyId", element: <CompanyPage /> },
+          { path: "companies/:companyId/bank", element: <BankPage /> },
+          {
+            path: "companies/:companyId/bank/:movementId",
+            element: <BankMovementPage />,
+          },
+          { path: "companies/:companyId/cash", element: <CashPage /> },
+          {
+            path: "companies/:companyId/cash/:movementId",
+            element: <CashMovementPage />,
+          },
+          {
+            path: "companies/:companyId/received-invoices",
+            element: <ReceivedInvoicesPage />,
+          },
+          {
+            path: "companies/:companyId/received-invoices/:receivedId",
+            element: <ReceivedInvoicePage />,
+          },
+          {
+            path: "companies/:companyId/receipts",
+            element: <ReceivedInvoicesPage kind="receipt" />,
+          },
+          {
+            path: "companies/:companyId/receipts/:receivedId",
+            element: <ReceivedInvoicePage kind="receipt" />,
+          },
+          {
+            path: "companies/:companyId/expense-payments",
+            element: <PurchaseReportPage key="payments" view="payments" />,
+          },
+          {
+            path: "companies/:companyId/expense-overview",
+            element: <PurchaseReportPage key="overview" view="overview" />,
+          },
           { path: "companies/:companyId/overview", element: <OverviewPage /> },
           { path: "companies/:companyId/imports", element: <ImportPage /> },
+          {
+            path: "companies/:companyId/recurring",
+            element: <RecurringListPage />,
+          },
+          {
+            path: "companies/:companyId/recurring/:recurringId",
+            element: <RecurringDetailPage />,
+          },
+          {
+            path: "companies/:companyId/reports",
+            element: <ReportsPage />,
+          },
+          {
+            path: "companies/:companyId/item-sales",
+            element: <ItemSalesPage />,
+          },
+          {
+            path: "companies/:companyId/stock",
+            element: <StockPage />,
+          },
+          {
+            path: "companies/:companyId/inbox",
+            element: <InboxPage />,
+          },
+          {
+            path: "companies/:companyId/retail",
+            element: <RetailPage />,
+          },
+          {
+            path: "companies/:companyId/retail/:retailId",
+            element: <RetailPage />,
+          },
+          {
+            path: "companies/:companyId/credit-notes",
+            element: <CreditNotesPage />,
+          },
+          {
+            path: "companies/:companyId/credit-notes/:creditId",
+            element: <CreditNotePage />,
+          },
+          {
+            path: "companies/:companyId/tax-receipts",
+            element: <TaxReceiptsPage />,
+          },
+          {
+            path: "companies/:companyId/tax-receipts/:taxId",
+            element: <TaxReceiptPage />,
+          },
+          {
+            path: "companies/:companyId/advances",
+            element: <SalesListPage kind="advance" />,
+          },
+          {
+            path: "companies/:companyId/advances/:salesId",
+            element: <SalesDetailPage kind="advance" />,
+          },
           {
             path: "companies/:companyId/quotes",
             element: <SalesListPage kind="quote" />,

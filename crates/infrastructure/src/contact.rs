@@ -49,6 +49,10 @@ async fn audit(
 impl ContactStore for PgContact {
     async fn list(&self, actor: &str, company: &str, search: Search) -> Result<ContactPage> {
         let mut tx = self.0.begin().await.map_err(unavailable)?;
+        sqlx::query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+            .execute(&mut *tx)
+            .await
+            .map_err(unavailable)?;
         let (_, company) = authorize(&mut tx, actor, company, false).await?;
         let predicate = "company_id=$1 AND archived=$2 AND strpos(lower(concat_ws(' ', data->>'name',data->>'registration_number',data->>'email')),lower($3))>0";
         let total: i64 =

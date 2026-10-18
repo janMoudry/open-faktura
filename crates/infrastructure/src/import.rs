@@ -54,10 +54,11 @@ async fn check(
     agenda: &str,
     record: &Record,
 ) -> Result<(String, Vec<String>, Option<i64>)> {
-    if let Some(row)=sqlx::query("SELECT data,COALESCE(contact_id,invoice_id) AS target FROM import_identity WHERE company_id=$1 AND source=$2 AND agenda=$3 AND kind=$4 AND source_key=$5").bind(company).bind(source).bind(agenda).bind(record.kind()).bind(record.key()).fetch_optional(&mut **tx).await.map_err(fail)? {
+    if let Some(row)=sqlx::query("SELECT data,COALESCE(contact_id,invoice_id,catalog_id) AS target FROM import_identity WHERE company_id=$1 AND source=$2 AND agenda=$3 AND kind=$4 AND source_key=$5").bind(company).bind(source).bind(agenda).bind(record.kind()).bind(record.key()).fetch_optional(&mut **tx).await.map_err(fail)? {
   return Ok(if row.get::<Value,_>("data")==serde_json::to_value(record).map_err(fail)? {("duplicate".into(),vec![],Some(row.get("target")))} else {("conflict".into(),vec!["changed_source".into()],None)});
  }
     let collision:bool=match record {
+ Record::Catalog{data,..}=>sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM catalog WHERE company_id=$1 AND (($2<>'' AND lower(data->>'code')=lower($2)) OR ($3<>'' AND data->>'barcode'=$3) OR lower(data->>'name')=lower($4)))").bind(company).bind(&data.code).bind(&data.barcode).bind(&data.name).fetch_one(&mut **tx).await.map_err(fail)?,
  Record::Contact{data,..}=>sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM contact WHERE company_id=$1 AND (($2<>'' AND data->>'registration_number'=$2) OR ($3<>'' AND lower(data->>'email')=lower($3)) OR lower(data->>'name')=lower($4)))").bind(company).bind(&data.registration_number).bind(&data.email).bind(&data.name).fetch_one(&mut **tx).await.map_err(fail)?,
  Record::Invoice{number,payments,..}=>{
  let future:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM company WHERE id=$1 AND $2::text::date > (now() AT TIME ZONE (settings->>'timezone'))::date)").bind(company).bind(payments.iter().map(|p|p.paid_on.to_string()).max()).fetch_one(&mut **tx).await.map_err(fail)?;
@@ -116,7 +117,12 @@ async fn report(tx: &mut Transaction<'_, Postgres>, company: i64, id: uuid::Uuid
                 }
             }
         }
+        let catalog = match serde_json::from_value::<Record>(r.get("data")).map_err(fail)? {
+            Record::Catalog { data, .. } => Some(*data),
+            _ => None,
+        };
         rows.push(Row {
+            catalog,
             index: r.get("position"),
             kind: r.get("kind"),
             key: r.get("source_key"),
@@ -136,13 +142,22 @@ async fn report(tx: &mut Transaction<'_, Postgres>, company: i64, id: uuid::Uuid
         agenda: batch.get("agenda"),
         status: batch.get("status"),
         rows,
-        limitations: vec![
-            "unverified_source_presets".into(),
-            "domestic_czk_only".into(),
-            "original_pdf_and_attachments_not_transferred".into(),
-            "number_series_unchanged".into(),
-            "no_automatic_rollback".into(),
-        ],
+        limitations: if batch.get::<String, _>("source") == "money_s3" {
+            vec![
+                "money_s3_base_price_subset".into(),
+                "domestic_czk_only".into(),
+                "stock_and_price_tiers_not_transferred".into(),
+                "no_automatic_rollback".into(),
+            ]
+        } else {
+            vec![
+                "unverified_source_presets".into(),
+                "domestic_czk_only".into(),
+                "original_pdf_and_attachments_not_transferred".into(),
+                "number_series_unchanged".into(),
+                "no_automatic_rollback".into(),
+            ]
+        },
         totals: totals
             .into_iter()
             .map(|(currency, t)| CurrencyTotal {
@@ -280,7 +295,7 @@ impl ImportStore for PgImport {
                         let inserted = insert(&mut tx, actor, company, &record, contact).await?;
                         target = Some(inserted);
                         status = "imported".into();
-                        sqlx::query("INSERT INTO import_identity(company_id,source,agenda,kind,source_key,data,contact_id,invoice_id,batch_id,position) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)").bind(company).bind(&b.source).bind(&b.agenda).bind(record.kind()).bind(record.key()).bind(serde_json::to_value(&record).map_err(fail)?).bind(if record.kind()=="contact"{target}else{None}).bind(if record.kind()=="invoice"{target}else{None}).bind(id).bind(position).execute(&mut *tx).await.map_err(conflict)?;
+                        sqlx::query("INSERT INTO import_identity(company_id,source,agenda,kind,source_key,data,contact_id,invoice_id,batch_id,position,catalog_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)").bind(company).bind(&b.source).bind(&b.agenda).bind(record.kind()).bind(record.key()).bind(serde_json::to_value(&record).map_err(fail)?).bind(if record.kind()=="contact"{target}else{None}).bind(if record.kind()=="invoice"{target}else{None}).bind(id).bind(position).bind(if record.kind()=="catalog"{target}else{None}).execute(&mut *tx).await.map_err(conflict)?;
                     }
                 }
                 sqlx::query("UPDATE import_row SET status=$3,fields=$4,target_id=$5 WHERE batch_id=$1 AND position=$2").bind(id).bind(position).bind(status).bind(json!(fields)).bind(target).execute(&mut *tx).await.map_err(fail)?;
@@ -301,6 +316,12 @@ async fn insert(
 ) -> Result<i64> {
     let request = uuid::Uuid::new_v4();
     match record {
+        Record::Catalog { data, .. } => {
+            let data = serde_json::to_value(data).map_err(fail)?;
+            let id:i64=sqlx::query_scalar("INSERT INTO catalog(company_id,creator_id,request_id,initial_data,data) VALUES($1,$2,$3,$4,$4) RETURNING id").bind(company).bind(actor).bind(request).bind(&data).fetch_one(&mut **tx).await.map_err(conflict)?;
+            sqlx::query("INSERT INTO catalog_audit(company_id,catalog_id,revision,actor_id,action,data,archived) VALUES($1,$2,1,$3,'create',$4,false)").bind(company).bind(id).bind(actor).bind(data).execute(&mut **tx).await.map_err(fail)?;
+            Ok(id)
+        }
         Record::Contact { data, .. } => {
             let data = serde_json::to_value(data).map_err(fail)?;
             let id:i64=sqlx::query_scalar("INSERT INTO contact(company_id,creator_id,request_id,initial_data,data) VALUES($1,$2,$3,$4,$4) RETURNING id").bind(company).bind(actor).bind(request).bind(&data).fetch_one(&mut **tx).await.map_err(conflict)?;

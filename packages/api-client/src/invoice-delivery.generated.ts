@@ -58,6 +58,8 @@ export interface components {
       finished_at: string | null;
       share_id: string | null;
       attachments: components["schemas"]["Attachment"][];
+      /** @enum {string} */
+      purpose: "document" | "reminder" | "thanks";
     };
     DeliveryHistory: {
       configured: boolean;
@@ -78,6 +80,11 @@ export interface components {
       subject: string;
       body: string;
       attachment_ids?: string[];
+      /** @enum {string} */
+      purpose?: "reminder" | "thanks";
+      settlement_revision?: number;
+      /** @description Existing active invoice link. Server appends the URL; PDF remains in private history, not the email attachment. */
+      share_id?: string | null;
     };
     Attachment: {
       id: string;

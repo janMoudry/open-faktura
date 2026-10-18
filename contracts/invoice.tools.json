@@ -24,7 +24,19 @@
     "currency": {
       "type": "string",
       "enum": [
-        "CZK"
+        "CZK",
+        "EUR",
+        "USD",
+        "GBP",
+        "CHF",
+        "PLN",
+        "HUF",
+        "JPY",
+        "SEK",
+        "NOK",
+        "DKK",
+        "CAD",
+        "AUD"
       ]
     },
     "tax_mode": {
@@ -103,10 +115,32 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
       "maxItems": 500
+    },
+    "exchange_rate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rate",
+        "units"
+      ],
+      "properties": {
+        "rate": {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+        },
+        "units": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      }
     }
   }
 }

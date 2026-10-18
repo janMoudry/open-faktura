@@ -134,11 +134,14 @@ pub async fn line(
     if item.archived {
         return Err(Error::Invalid(vec!["archived".into()]));
     }
-    item.data
+    let mut line = item
+        .data
         .invoice_line(
             uuid::Uuid::new_v4().to_string(),
             options.price_mode,
             options.tax_mode,
         )
-        .map_err(Error::Invalid)
+        .map_err(Error::Invalid)?;
+    line.catalog_id = Some(item.id);
+    Ok(line)
 }

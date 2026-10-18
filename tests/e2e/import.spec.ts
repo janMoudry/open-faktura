@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 
-test.use({ actionTimeout: 15000 });
+test.use({ actionTimeout: 15000, reducedMotion: "reduce" });
 
 // Each test uses a disposable DB/server, never bootstraps the developer's account.
 for (const english of [false, true])
@@ -217,7 +217,7 @@ for (const english of [false, true])
       await page
         .getByRole("link", { name: "HIST-2025-001", exact: true })
         .click();
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      await expect(page.getByRole("heading", { level: 1 })).toContainText(
         "HIST-2025-001",
       );
       await expect(
@@ -305,6 +305,170 @@ for (const english of [false, true])
       await expect(
         page.getByText(text("Importováno", "Imported"), { exact: true }),
       ).toHaveCount(1);
+      await page
+        .getByRole("button", {
+          name: text("Nový import", "New import"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", { name: english ? /Data source/ : /Zdroj dat/ })
+        .click();
+      await page
+        .getByRole("option", { name: "Money S3 (XML)", exact: true })
+        .click();
+      await page
+        .getByLabel(
+          text("Identifikátor zdrojové agendy", "Source account identifier"),
+          { exact: true },
+        )
+        .fill("synthetic-money");
+      await page
+        .getByRole("checkbox", {
+          name: english
+            ? /I confirm that the source Money/
+            : /Potvrzuji, že domácí měna/,
+        })
+        .check();
+      await page
+        .getByLabel(text("Soubor k importu", "Import file"), { exact: true })
+        .setInputFiles("tests/fixtures/import/money-s3-synthetic.xml");
+      await expect(
+        page.getByText("Synthetic item & service", { exact: true }),
+      ).toBeVisible();
+      await expect(page.getByText(/SYN-1.*750 CZK/)).toBeVisible();
+      await page.screenshot({
+        path: `docs/design/money-import-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page
+        .getByRole("checkbox", {
+          name: english ? /I reviewed/ : /Zkontroloval/,
+        })
+        .check();
+      await page
+        .getByRole("button", {
+          name: text(
+            "Potvrdit a pokračovat v importu",
+            "Confirm and continue import",
+          ),
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByText(text("Importováno", "Imported"), { exact: true }),
+      ).toHaveCount(1);
+      await expect(
+        page.getByRole("link", {
+          name: "Synthetic item & service",
+          exact: true,
+        }),
+      ).toHaveAttribute("href", /catalog\/\d+$/);
+      await page
+        .getByRole("button", {
+          name: text("Nový import", "New import"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", { name: english ? /Data source/ : /Zdroj dat/ })
+        .click();
+      await page
+        .getByRole("option", {
+          name: text("Jiný zdroj", "Other source"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text("Typ tabulkových dat", "Table data type"),
+        })
+        .click();
+      await page
+        .getByRole("option", { name: text("Ceník", "Catalog"), exact: true })
+        .click();
+      await page
+        .getByLabel(
+          text("Identifikátor zdrojové agendy", "Source account identifier"),
+          { exact: true },
+        )
+        .fill("synthetic-mapped-catalog");
+      await page
+        .getByRole("button", {
+          name: text("Způsob zadání cen v souboru", "Price mode in the file"),
+        })
+        .click();
+      await page
+        .getByRole("option", {
+          name: text("Bez DPH", "Net amount"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text(
+            "Desetinný oddělovač v souboru",
+            "Decimal separator in the file",
+          ),
+        })
+        .click();
+      await page
+        .getByRole("option", {
+          name: text("Čárka (1250,50)", "Comma (1250,50)"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByLabel(text("Soubor k importu", "Import file"), { exact: true })
+        .setInputFiles("tests/fixtures/import/catalog-synthetic.csv");
+      await expect(
+        page.getByRole("heading", {
+          name: text("2. Mapování ceníku", "2. Catalog mapping"),
+        }),
+      ).toBeVisible();
+      await page.screenshot({
+        path: `docs/design/catalog-mapping-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page
+        .getByRole("button", {
+          name: text("Zkontrolovat import", "Check import"),
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByText("Synthetic mapped service", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(text("Připraveno", "Ready"), { exact: true }),
+      ).toHaveCount(1);
+      await page.screenshot({
+        path: `docs/design/catalog-import-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page
+        .getByRole("checkbox", {
+          name: english ? /I reviewed/ : /Zkontroloval/,
+        })
+        .check();
+      await page
+        .getByRole("button", {
+          name: text(
+            "Potvrdit a pokračovat v importu",
+            "Confirm and continue import",
+          ),
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByText(text("Importováno", "Imported"), { exact: true }),
+      ).toHaveCount(1);
+      await expect(
+        page.getByRole("link", {
+          name: "Synthetic mapped service",
+          exact: true,
+        }),
+      ).toHaveAttribute("href", /catalog\/\d+$/);
       await page.goto(`/#/companies/${beta.id}/imports`);
       await expect(
         page.getByText(

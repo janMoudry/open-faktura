@@ -1,0 +1,111 @@
+[
+  {
+    "name": "communication_settings",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "communication_save",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reminders": {
+          "type": "boolean"
+        },
+        "thanks": {
+          "type": "boolean"
+        },
+        "first_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "repeat_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "minimum_total": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "revision",
+        "reminders",
+        "thanks",
+        "first_days",
+        "repeat_days",
+        "minimum_total"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "communication_preview",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "reminder",
+            "thanks"
+          ]
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "purpose"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "communication_pause",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "paused": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "paused"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

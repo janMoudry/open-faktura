@@ -484,6 +484,43 @@
           }
         }
       }
+    },
+    "/api/companies/{company}/imports/money": {
+      "post": {
+        "operationId": "import_money",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoneyPrepare"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Money S3 native XML preview; no catalog writes until apply",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportBatch"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -854,6 +891,10 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -879,7 +920,19 @@
           "currency": {
             "type": "string",
             "enum": [
-              "CZK"
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
             ]
           },
           "tax_mode": {
@@ -914,6 +967,24 @@
               "$ref": "#/components/schemas/InvoiceLine"
             },
             "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
           }
         }
       },
@@ -1005,7 +1076,19 @@
           "currency": {
             "type": "string",
             "enum": [
-              "CZK"
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
             ]
           },
           "lines": {
@@ -1247,6 +1330,10 @@
               "12",
               "21"
             ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -1273,7 +1360,19 @@
           "currency": {
             "type": "string",
             "enum": [
-              "CZK"
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
             ]
           },
           "tax_mode": {
@@ -1306,6 +1405,24 @@
               "$ref": "#/components/schemas/DraftLine"
             },
             "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
           }
         }
       },
@@ -1771,6 +1888,29 @@
               "payments"
             ],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "key",
+              "data"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "catalog"
+                ]
+              },
+              "key": {
+                "type": "string"
+              },
+              "data": {
+                "$ref": "#/components/schemas/CatalogData"
+              }
+            }
           }
         ]
       },
@@ -1786,7 +1926,8 @@
             "enum": [
               "idoklad",
               "fakturaonline",
-              "generic"
+              "generic",
+              "money_s3"
             ]
           },
           "agenda": {
@@ -1856,6 +1997,14 @@
           },
           "target_id": {
             "type": "string",
+            "nullable": true
+          },
+          "catalog": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogData"
+              }
+            ],
             "nullable": true
           }
         },
@@ -2001,6 +2150,96 @@
           "rows"
         ],
         "additionalProperties": false
+      },
+      "CatalogData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "code",
+          "barcode",
+          "unit",
+          "quantity",
+          "unit_price",
+          "currency",
+          "price_mode",
+          "vat_percent"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "barcode": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,4})?$",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,4})?$",
+            "maxLength": 24
+          },
+          "currency": {
+            "type": "string",
+            "description": "Raw source value; supported values are checked per row during import preview."
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "description": "Raw source value; supported values are checked per row during import preview."
+          }
+        }
+      },
+      "MoneyPrepare": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "agenda",
+          "xml",
+          "domestic_currency"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agenda": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "xml": {
+            "type": "string",
+            "maxLength": 2000000
+          },
+          "domestic_currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          }
+        }
       }
     },
     "securitySchemes": {

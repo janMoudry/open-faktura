@@ -1,0 +1,135 @@
+[
+  {
+    "name": "advance_pdf",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "advance_payments",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "advance_register",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "payment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "paid_on",
+            "method",
+            "note"
+          ],
+          "properties": {
+            "amount": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d{1,2})?$"
+            },
+            "paid_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "cash",
+                "bank_transfer"
+              ]
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 500
+            }
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "request_id",
+        "revision",
+        "payment"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "advance_reverse",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "payment": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "payment",
+        "revision",
+        "reason"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

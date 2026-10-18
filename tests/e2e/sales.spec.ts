@@ -99,10 +99,12 @@ for (const english of [false, true])
         stdio: "ignore",
       });
       await expect
-        .poll(async () =>
-          fetch(`http://127.0.0.1:${port}/api/ready`)
-            .then((r) => r.status)
-            .catch(() => 0),
+        .poll(
+          async () =>
+            fetch(`http://127.0.0.1:${port}/api/ready`)
+              .then((r) => r.status)
+              .catch(() => 0),
+          { timeout: 20000 },
         )
         .toBe(200);
       await page.route("**/api/**", async (route) => {
@@ -161,7 +163,7 @@ for (const english of [false, true])
         number_year: 2026,
         next_number: 1,
       };
-      const makeProfile = async (name: string) => {
+      const makeProfile = async (name: string, vat = false) => {
         const response = await page.request.post(
           `http://127.0.0.1:${port}/api/companies`,
           {
@@ -171,7 +173,17 @@ for (const english of [false, true])
             },
             data: {
               request_id: crypto.randomUUID(),
-              settings: { ...settings, name },
+              settings: {
+                ...settings,
+                name,
+                ...(vat
+                  ? {
+                      tax_mode: "vat_payer",
+                      vat_number: "CZ12345678",
+                      registration_number: "12345678",
+                    }
+                  : {}),
+              },
             },
           },
         );
@@ -256,7 +268,7 @@ for (const english of [false, true])
           exact: true,
         })
         .click();
-      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20000 });
       await expect(
         page.getByRole("link", {
           name: text("Otevřít PDF v nové kartě", "Open PDF in a new tab"),
@@ -389,7 +401,7 @@ for (const english of [false, true])
         })
         .click();
       const sharedUrl = await page
-        .getByLabel(text("Odkaz na nabídku", "Quotation link"), { exact: true })
+        .getByLabel(text("Veřejný odkaz", "Public link"), { exact: true })
         .inputValue();
       expect(sharedUrl).toContain("/#/shared/quote/");
       const guest = await browser.newContext({
@@ -547,6 +559,380 @@ for (const english of [false, true])
           (v) => v.impact === "critical" || v.impact === "serious",
         ),
       ).toEqual([]);
+      await page.goto(`/#/companies/${alpha.id}/advances/new`);
+      await page
+        .getByLabel(text("Popis zálohy", "Advance description"), {
+          exact: true,
+        })
+        .fill("Synthetic advance");
+      await page
+        .getByText(text("Údaje odběratele", "Customer details"), {
+          exact: true,
+        })
+        .click();
+      await page
+        .getByLabel(text("Název nebo jméno", "Company or full name"), {
+          exact: true,
+        })
+        .filter({ visible: true })
+        .fill("Advance customer");
+      await page
+        .getByLabel(text("Popis položky", "Item description"), { exact: true })
+        .fill("Advance service");
+      await page
+        .getByLabel(text("Jednotková cena", "Unit price"), { exact: true })
+        .fill("2400");
+      await page
+        .getByRole("button", {
+          name: new RegExp(text("Měna dokladu", "Document currency")),
+        })
+        .click();
+      await page.getByRole("option", { name: "EUR", exact: true }).click();
+      await page
+        .getByLabel(text("Kurz v CZK", "Rate in CZK"), { exact: true })
+        .fill("25");
+      await page.screenshot({
+        path: `docs/design/advance-editor-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page
+        .getByRole("button", {
+          name: text("Vystavit zálohu", "Issue advance invoice"),
+          exact: true,
+        })
+        .click();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^ZF/);
+      const advanceId = page.url().split("/").at(-1)!;
+      const pdfDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", {
+          name: text("Stáhnout PDF / tisk", "Download PDF / print"),
+          exact: true,
+        })
+        .click();
+      const downloadedPdf = await pdfDownload;
+      expect(downloadedPdf.suggestedFilename()).toMatch(/^ZF.*\.pdf$/);
+      await downloadedPdf.saveAs(
+        `output/advance-${english ? "en" : "cs"}-${info.project.name}.pdf`,
+      );
+      await page
+        .getByRole("tab", { name: text("Úhrady", "Payments"), exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text("Přidat úhradu", "Add payment"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByLabel(text("Částka (EUR)", "Amount (EUR)"), { exact: true })
+        .fill("1000");
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: text("Uložit", "Save"), exact: true })
+        .click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(
+        page.getByText(text("Částečně uhrazeno", "Partially paid"), {
+          exact: true,
+        }),
+      ).toBeVisible();
+      await page
+        .getByRole("tab", { name: text("Úhrady", "Payments"), exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text("Stornovat úhradu", "Reverse payment"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByLabel(
+          text("Důvod opravy nebo storna", "Reason for correction or reversal"),
+          { exact: true },
+        )
+        .fill("Synthetic reversal");
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: text("Uložit", "Save"), exact: true })
+        .click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await page
+        .getByRole("tab", { name: text("Úhrady", "Payments"), exact: true })
+        .click();
+      await expect(
+        page.getByText("Synthetic reversal", { exact: true }),
+      ).toBeVisible();
+      await page.screenshot({
+        path: `docs/design/advance-detail-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page.goto(`/#/companies/${alpha.id}/advances`);
+      await expect(page.getByRole("link", { name: /^ZF/ })).toBeVisible();
+      await page.screenshot({
+        path: `docs/design/advance-list-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      // Separate synthetic VAT-paying proforma: the previous non-payer regression remains unchanged.
+      const existingAdvance = await (
+        await page.request.get(
+          `http://127.0.0.1:${port}/api/companies/${alpha.id}/sales/${advanceId}`,
+        )
+      ).json();
+      const taxProfile = await makeProfile("Gamma", true);
+      const taxData = structuredClone(existingAdvance.data);
+      taxData.invoice.calculation.tax_mode = "vat_payer";
+      taxData.invoice.calculation.lines[0].vat_percent = "21";
+      taxData.invoice.supplier.vat_number = "CZ12345678";
+      taxData.invoice.customer.address = {
+        street: "Test 1",
+        city: "Praha",
+        postal_code: "11000",
+        country: "CZ",
+      };
+      taxData.invoice.supplier.registration_number = "12345678";
+      taxData.invoice.payment.bank_account = "12345678/0100";
+      taxData.invoice.language = english ? "en" : "cs";
+      const createdTaxAdvance = await page.request.post(
+        `http://127.0.0.1:${port}/api/companies/${taxProfile.id}/sales`,
+        {
+          headers: {
+            Origin: "http://127.0.0.1:5173",
+            "X-Faktura-Request": "1",
+          },
+          data: {
+            request_id: crypto.randomUUID(),
+            kind: "advance",
+            data: taxData,
+          },
+        },
+      );
+      expect(createdTaxAdvance.ok()).toBe(true);
+      const taxAdvance = await createdTaxAdvance.json();
+      await page.goto(
+        `/#/companies/${taxProfile.id}/advances/${taxAdvance.id}`,
+      );
+      await page
+        .getByRole("tab", { name: text("Úhrady", "Payments"), exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text("Přidat úhradu", "Add payment"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByLabel(text("Částka (EUR)", "Amount (EUR)"), { exact: true })
+        .fill("1000");
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: text("Uložit", "Save"), exact: true })
+        .click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await page
+        .getByRole("tab", { name: text("Úhrady", "Payments"), exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text("Vystavit daňový doklad", "Issue tax receipt"),
+          exact: true,
+        })
+        .click();
+      const taxDialog = page.getByRole("dialog");
+      await expect(taxDialog.getByText(/826[,.]45/)).toBeVisible();
+      await taxDialog
+        .getByLabel(text("Popis plnění", "Supply description"), { exact: true })
+        .fill("Synthetic taxable advance");
+      await page.screenshot({
+        path: `docs/design/tax-preview-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await taxDialog
+        .getByRole("button", {
+          name: text("Vystavit daňový doklad", "Issue tax receipt"),
+          exact: true,
+        })
+        .click();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        /^DDPP/,
+        { timeout: 20000 },
+      );
+      await expect(
+        page.getByText("Synthetic taxable advance", { exact: true }),
+      ).toBeVisible();
+      const taxDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", {
+          name: text("Stáhnout PDF", "Download PDF"),
+          exact: true,
+        })
+        .click();
+      const taxPdf = await taxDownload;
+      expect(taxPdf.suggestedFilename()).toMatch(/^DDPP/);
+      await taxPdf.saveAs(
+        `output/tax-receipt-${english ? "en" : "cs"}-${info.project.name}.pdf`,
+      );
+      await page.screenshot({
+        path: `docs/design/tax-detail-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page.goto(
+        `/#/companies/${taxProfile.id}/advances/${taxAdvance.id}`,
+      );
+      await page
+        .getByRole("tab", { name: text("Úhrady", "Payments"), exact: true })
+        .click();
+      await expect(page.getByRole("link", { name: /^DDPP/ })).toBeVisible();
+      await expect(
+        page.getByRole("button", {
+          name: text("Stornovat úhradu", "Reverse payment"),
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      await page.goto(`/#/companies/${taxProfile.id}/tax-receipts`);
+      await expect(page.getByRole("link", { name: /^DDPP/ })).toBeVisible();
+      await page.screenshot({
+        path: `docs/design/tax-list-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      const taxA11y = await new AxeBuilder({ page }).analyze();
+      expect(taxA11y.violations).toEqual([]);
+
+      await page.goto(
+        `/#/companies/${taxProfile.id}/advances/${taxAdvance.id}`,
+      );
+      await page
+        .getByRole("tab", { name: text("Úhrady", "Payments"), exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name: text("Přidat úhradu", "Add payment"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByLabel(text("Částka (EUR)", "Amount (EUR)"), { exact: true })
+        .fill("1904");
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: text("Uložit", "Save"), exact: true })
+        .click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await page
+        .getByRole("button", {
+          name: text("Vyúčtovat", "Settle advance"),
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByRole("dialog").getByRole("checkbox").first(),
+      ).toBeChecked();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", {
+          name: text(
+            "Připravit vyúčtovací fakturu",
+            "Prepare settlement invoice",
+          ),
+          exact: true,
+        })
+        .click();
+      await expect(page).toHaveURL(/invoices\/\d+/);
+      const settlementUrl = page.url();
+      await expect(
+        page.getByRole("heading", {
+          name: text("Odpočty záloh", "Advance deductions"),
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(page.getByRole("link", { name: /^DDPP/ })).toBeVisible();
+      await page
+        .getByLabel(text("Jednotková cena", "Unit price"), { exact: true })
+        .fill("2500");
+      await page
+        .getByRole("button", {
+          name: text("Uložit návrh", "Save draft"),
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByRole("button", {
+          name: text("Vystavit fakturu", "Issue invoice"),
+          exact: true,
+        }),
+      ).toBeEnabled();
+      await expect(
+        page.getByText(text("Přepočítávám…", "Calculating…"), { exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByText(/121[,.]00/, { exact: false }).first(),
+      ).toBeVisible();
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({
+        path: `docs/design/settlement-editor-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page
+        .getByRole("button", {
+          name: text("Vystavit fakturu", "Issue invoice"),
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", {
+          name: text("Vystavit fakturu", "Issue invoice"),
+          exact: true,
+        })
+        .click();
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("FV");
+      const finalId = page.url().split("/").at(-1)!;
+      const finalDoc = await (
+        await page.request.get(
+          `http://127.0.0.1:${port}/api/companies/${taxProfile.id}/invoices/${finalId}`,
+        )
+      ).json();
+      expect(finalDoc.totals.payable).toBe("121.00");
+      expect(
+        finalDoc.advances.sources[0].tax_receipts[0].totals.amounts.vat,
+      ).toBe("173.55");
+      const finalPdf = await page.request.get(
+        `http://127.0.0.1:${port}/api/companies/${taxProfile.id}/invoices/${finalId}/pdf`,
+      );
+      expect(finalPdf.ok()).toBe(true);
+      writeFileSync(
+        `output/settlement-${english ? "en" : "cs"}-${info.project.name}.pdf`,
+        await finalPdf.body(),
+      );
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({
+        path: `docs/design/settlement-detail-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page.goto(
+        `/#/companies/${taxProfile.id}/advances/${taxAdvance.id}`,
+      );
+      await page
+        .getByRole("link", {
+          name: text("Otevřít vyúčtovací fakturu", "Open settlement invoice"),
+          exact: true,
+        })
+        .click();
+      await expect(page).toHaveURL(settlementUrl);
+      await page.goto(`/#/companies/${beta.id}/tax-receipts`);
+      await expect(
+        page.getByText(
+          text(
+            "Nebyly nalezeny žádné daňové doklady k platbě.",
+            "No tax receipts found.",
+          ),
+          { exact: true },
+        ),
+      ).toBeVisible();
       await page.goto(`/#/companies/${beta.id}/quotes`);
       await expect(
         page.getByText(

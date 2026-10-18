@@ -31,7 +31,8 @@
           "enum": [
             "idoklad",
             "fakturaonline",
-            "generic"
+            "generic",
+            "money_s3"
           ]
         },
         "agenda": {
@@ -463,7 +464,19 @@
                           "currency": {
                             "type": "string",
                             "enum": [
-                              "CZK"
+                              "CZK",
+                              "EUR",
+                              "USD",
+                              "GBP",
+                              "CHF",
+                              "PLN",
+                              "HUF",
+                              "JPY",
+                              "SEK",
+                              "NOK",
+                              "DKK",
+                              "CAD",
+                              "AUD"
                             ]
                           },
                           "tax_mode": {
@@ -537,10 +550,34 @@
                                     "12",
                                     "21"
                                   ]
+                                },
+                                "catalog_id": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
                                 }
                               }
                             },
                             "maxItems": 500
+                          },
+                          "exchange_rate": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "rate",
+                              "units"
+                            ],
+                            "properties": {
+                              "rate": {
+                                "type": "string",
+                                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+                              },
+                              "units": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                              }
+                            }
                           }
                         }
                       },
@@ -603,7 +640,19 @@
                       "currency": {
                         "type": "string",
                         "enum": [
-                          "CZK"
+                          "CZK",
+                          "EUR",
+                          "USD",
+                          "GBP",
+                          "CHF",
+                          "PLN",
+                          "HUF",
+                          "JPY",
+                          "SEK",
+                          "NOK",
+                          "DKK",
+                          "CAD",
+                          "AUD"
                         ]
                       },
                       "lines": {
@@ -764,6 +813,85 @@
                   "payments"
                 ],
                 "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind",
+                  "key",
+                  "data"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "catalog"
+                    ]
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "name",
+                      "code",
+                      "barcode",
+                      "unit",
+                      "quantity",
+                      "unit_price",
+                      "currency",
+                      "price_mode",
+                      "vat_percent"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 1
+                      },
+                      "code": {
+                        "type": "string",
+                        "maxLength": 80
+                      },
+                      "barcode": {
+                        "type": "string",
+                        "maxLength": 80
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 20
+                      },
+                      "quantity": {
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d{1,4})?$",
+                        "maxLength": 24
+                      },
+                      "unit_price": {
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d{1,4})?$",
+                        "maxLength": 24
+                      },
+                      "currency": {
+                        "type": "string",
+                        "description": "Raw source value; supported values are checked per row during import preview."
+                      },
+                      "price_mode": {
+                        "type": "string",
+                        "enum": [
+                          "net",
+                          "gross"
+                        ]
+                      },
+                      "vat_percent": {
+                        "type": "string",
+                        "description": "Raw source value; supported values are checked per row during import preview."
+                      }
+                    }
+                  }
+                }
               }
             ]
           }
@@ -820,6 +948,44 @@
         "company_id",
         "id",
         "skip"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "import_money",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "agenda": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "xml": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "domestic_currency": {
+          "type": "string",
+          "enum": [
+            "CZK"
+          ]
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "agenda",
+        "xml",
+        "domestic_currency"
       ],
       "additionalProperties": false
     }

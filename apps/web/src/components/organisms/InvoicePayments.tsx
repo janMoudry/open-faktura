@@ -34,7 +34,9 @@ export function InvoicePayments({
   id,
   editable,
   onSummary,
+  currency = "CZK",
 }: {
+  currency?: string;
   company: string;
   id: string;
   editable: boolean;
@@ -69,13 +71,19 @@ export function InvoicePayments({
     }
     setError(
       e instanceof InvoiceCalculationFailure
-        ? e.status === 409
-          ? "paymentConflict"
-          : e.status === 422
-            ? "paymentInvalid"
-            : e.status === 403
-              ? "companyForbidden"
-              : "requestFailed"
+        ? e.fields.includes("cash_automatic_date")
+          ? "cashAutomaticDate"
+          : e.fields.includes("cash_link")
+            ? "cashLinkedPayment"
+            : e.fields.includes("bank_link")
+              ? "bankLinkedPayment"
+              : e.status === 409
+                ? "paymentConflict"
+                : e.status === 422
+                  ? "paymentInvalid"
+                  : e.status === 403
+                    ? "companyForbidden"
+                    : "requestFailed"
         : "requestFailed",
     );
   };
@@ -229,7 +237,7 @@ export function InvoicePayments({
                   <div key={label}>
                     <dt className="text-muted">{t(label)}</dt>
                     <dd className="font-semibold">
-                      {moneyText(amount, language)}
+                      {moneyText(amount, language, currency)}
                     </dd>
                   </div>
                 ))}
@@ -263,7 +271,11 @@ export function InvoicePayments({
                           "invoiceListActions",
                         ] as const
                       ).map((k) => (
-                        <TableHead key={k}>{t(k)}</TableHead>
+                        <TableHead key={k}>
+                          {k === "paymentAmount"
+                            ? t("paymentAmountCurrency", { currency: currency })
+                            : t(k)}
+                        </TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
@@ -274,7 +286,7 @@ export function InvoicePayments({
                           {formatCalendarDate(p.paid_on, language)}
                         </TableCell>
                         <TableCell className="font-semibold tabular-nums whitespace-nowrap">
-                          {moneyText(p.amount, language)}
+                          {moneyText(p.amount, language, currency)}
                         </TableCell>
                         <TableCell>
                           {t(p.method === "cash" ? "cash" : "bankTransfer")}
@@ -358,7 +370,7 @@ export function InvoicePayments({
                 <div key={label}>
                   <dt className="text-muted">{t(label)}</dt>
                   <dd className="mt-inline font-semibold">
-                    {moneyText(amount, language)}
+                    {moneyText(amount, language, currency)}
                   </dd>
                 </div>
               ))}
@@ -367,7 +379,7 @@ export function InvoicePayments({
           {dialog !== "reverse" && (
             <>
               <Field
-                label={t("paymentAmount")}
+                label={t("paymentAmountCurrency", { currency: currency })}
                 value={input.amount}
                 inputMode="decimal"
                 required
@@ -391,7 +403,9 @@ export function InvoicePayments({
                 disabled={busy}
                 options={[
                   { value: "bank_transfer", label: t("bankTransfer") },
-                  { value: "cash", label: t("cash") },
+                  ...(currency === "CZK"
+                    ? [{ value: "cash", label: t("cash") }]
+                    : []),
                 ]}
                 onChange={(method) =>
                   setInput({

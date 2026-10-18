@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MoneyData><SeznamZasoba><Zasoba>
+<konfigurace><SDPH_Prod>21</SDPH_Prod></konfigurace>
+<StavZasoby><Zasoba>19</Zasoba></StavZasoby>
+<KmKarta><Popis>Synthetic item &amp; service</Popis><MJ>ks</MJ><GUID>{00000000-0000-4000-8000-000000000001}</GUID><Katalog>SYN-1</Katalog></KmKarta>
+<Sklad><GUID>{00000000-0000-4000-8000-000000000002}</GUID></Sklad>
+<PC><SDPH>1</SDPH><Mena><Kod/></Mena><VypPrCeny>V</VypPrCeny><Cena1><Cena>750</Cena><Sleva>0</Sleva></Cena1></PC>
+<PC><Hladina><Zkrat>VIP</Zkrat></Hladina><Cena1><Cena>675</Cena></Cena1></PC>
+</Zasoba></SeznamZasoba></MoneyData>

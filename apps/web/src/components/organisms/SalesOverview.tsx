@@ -30,7 +30,13 @@ export function SalesOverview({ document: d }: { document: SalesDocument }) {
       <section className="invoice-section">
         <dl className="invoice-facts max-w-3xl mx-auto">
           {fact(
-            t(d.kind === "quote" ? "salesDescription" : "salesName"),
+            t(
+              d.kind === "advance"
+                ? "advanceDescription"
+                : d.kind === "quote"
+                  ? "salesDescription"
+                  : "salesName",
+            ),
             d.data.name,
           )}
           {fact(t("draftCustomer"), v.customer?.name ?? "")}
@@ -60,10 +66,13 @@ export function SalesOverview({ document: d }: { document: SalesDocument }) {
             {t("salesDates")}
           </Heading>
           <dl className="invoice-facts mt-field">
-            {d.kind === "quote" && (
+            {d.kind !== "template" && (
               <>
                 {fact(t("draftIssued"), date(v.issued_on))}
-                {fact(t("salesValidUntil"), date(v.due_on))}
+                {fact(
+                  t(d.kind === "advance" ? "draftDue" : "salesValidUntil"),
+                  date(v.due_on),
+                )}
               </>
             )}
             {fact(t("salesMaturity"), String(d.data.maturity_days))}
@@ -129,7 +138,11 @@ export function SalesOverview({ document: d }: { document: SalesDocument }) {
                   <TableCell>{line.description || "—"}</TableCell>
                   <TableCell>
                     {line.unit_price
-                      ? moneyText(line.unit_price, language)
+                      ? moneyText(
+                          line.unit_price,
+                          language,
+                          d.data.invoice.calculation.currency,
+                        )
                       : "—"}
                   </TableCell>
                   <TableCell>{line.quantity}</TableCell>
@@ -140,6 +153,7 @@ export function SalesOverview({ document: d }: { document: SalesDocument }) {
                           d.totals.lines.find((l) => l.id === line.id)?.amounts
                             .gross ?? "0",
                           language,
+                          d.data.invoice.calculation.currency,
                         )
                       : "—"}
                   </TableCell>

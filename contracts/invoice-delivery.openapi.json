@@ -256,6 +256,14 @@
             "items": {
               "$ref": "#/components/schemas/Attachment"
             }
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "document",
+              "reminder",
+              "thanks"
+            ]
           }
         },
         "required": [
@@ -273,7 +281,8 @@
           "error_code",
           "finished_at",
           "share_id",
-          "attachments"
+          "attachments",
+          "purpose"
         ]
       },
       "DeliveryHistory": {
@@ -344,6 +353,22 @@
             "items": {
               "type": "string"
             }
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "reminder",
+              "thanks"
+            ]
+          },
+          "settlement_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "share_id": {
+            "type": "string",
+            "description": "Existing active invoice link. Server appends the URL; PDF remains in private history, not the email attachment.",
+            "nullable": true
           }
         },
         "required": [

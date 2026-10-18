@@ -1,0 +1,19 @@
+{
+  "accountStatement": {
+    "info": { "iban": "CZ6508000000192000145399", "currency": "CZK" },
+    "transactionList": {
+      "transaction": [
+        {
+          "column22": { "value": 123456789012 },
+          "column0": { "value": "2026-10-01+0200" },
+          "column1": { "value": 999999999999.99 },
+          "column14": { "value": "CZK" },
+          "column5": { "value": "000123" },
+          "column10": { "value": "Synthetic customer" },
+          "column16": { "value": "Payment" },
+          "column25": null
+        }
+      ]
+    }
+  }
+}

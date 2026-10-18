@@ -25,7 +25,8 @@
               "type": "string",
               "enum": [
                 "invoice",
-                "quote"
+                "quote",
+                "received"
               ]
             }
           },
@@ -94,7 +95,8 @@
               "type": "string",
               "enum": [
                 "invoice",
-                "quote"
+                "quote",
+                "received"
               ]
             }
           },
@@ -172,7 +174,8 @@
               "type": "string",
               "enum": [
                 "invoice",
-                "quote"
+                "quote",
+                "received"
               ]
             }
           },
@@ -247,7 +250,8 @@
               "type": "string",
               "enum": [
                 "invoice",
-                "quote"
+                "quote",
+                "received"
               ]
             }
           },

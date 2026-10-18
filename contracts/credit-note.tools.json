@@ -1,0 +1,290 @@
+[
+  {
+    "name": "credit_list",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "invoice_id": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "credit_create",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "invoice_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "invoice_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "credit_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "credit_command",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "update",
+            "issue",
+            "cancel",
+            "offset",
+            "refund",
+            "reverse"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "issued_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "tax_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "due_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "language": {
+              "type": "string",
+              "enum": [
+                "cs",
+                "en"
+              ]
+            },
+            "lines": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "string",
+                    "pattern": "^\\d+(\\.\\d{1,2})?$"
+                  },
+                  "return_quantity": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "amount"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "reason",
+            "issued_on",
+            "tax_on",
+            "due_on",
+            "language",
+            "lines"
+          ],
+          "additionalProperties": false
+        },
+        "amount": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "bank_transfer",
+            "cash"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "event_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "request_id",
+        "revision",
+        "action"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "update"
+              ]
+            }
+          },
+          "required": [
+            "data"
+          ]
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "issue"
+              ]
+            }
+          },
+          "required": []
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "cancel"
+              ]
+            }
+          },
+          "required": []
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "offset"
+              ]
+            }
+          },
+          "required": []
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "refund"
+              ]
+            }
+          },
+          "required": [
+            "amount",
+            "date",
+            "method",
+            "reason"
+          ]
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "reverse"
+              ]
+            }
+          },
+          "required": [
+            "event_id",
+            "reason"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "credit_pdf",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

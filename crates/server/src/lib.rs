@@ -94,3 +94,37 @@ pub mod invoice_delivery;
 pub mod smtp;
 
 pub mod attachment;
+
+pub mod export;
+
+pub mod advance;
+
+pub mod tax_receipt;
+
+pub mod advance_settlement;
+
+pub mod credit_note;
+
+pub mod recurring;
+
+pub mod communication;
+
+pub mod invoice_share;
+
+pub mod received;
+
+pub mod banking;
+
+pub mod cash;
+
+pub mod retail;
+
+pub mod inbox;
+
+pub mod stock;
+
+pub mod preferences;
+
+pub mod period_report;
+
+pub mod exchange_rate;

@@ -8,11 +8,13 @@ import {
 import { apiUrl } from "../../services/status";
 import { useAppTranslation } from "../../locales";
 export function InvoiceCustomerPicker({
+  label,
   company,
   disabled,
   onSelect,
   onExpired,
 }: {
+  label?: string;
   company: string;
   disabled: boolean;
   onSelect: (c: Contact) => void;
@@ -58,7 +60,7 @@ export function InvoiceCustomerPicker({
   }, [company, query, refresh, onExpired]);
   return (
     <Autocomplete
-      label={t("draftFindCustomer")}
+      label={label ?? t("draftFindCustomer")}
       value={query}
       onChange={setQuery}
       onFocus={() => setRefresh((v) => v + 1)}

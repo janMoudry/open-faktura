@@ -160,6 +160,48 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         pool: pool.clone(),
         mail: delivery.mail.clone(),
     };
+    let communication_store = faktura_infrastructure::communication::PgCommunication(pool.clone());
+    let recurring_store = faktura_infrastructure::recurring::PgRecurring(pool.clone());
+    let recurring_mail = invoice_delivery.clone();
+    let mut recurring_shutdown = delivery_shutdown.clone();
+    let recurring_worker = tokio::spawn(async move {
+        loop {
+            if *recurring_shutdown.borrow() {
+                break;
+            }
+            if communication_store
+                .process_one(&recurring_mail)
+                .await
+                .is_err()
+            {
+                tracing::warn!("Invoice communication unavailable");
+            }
+            if recurring_store.process_one().await.is_err() {
+                tracing::warn!("Recurring generation unavailable");
+            }
+            if recurring_store.enqueue_one(&recurring_mail).await.is_err() {
+                tracing::warn!("Recurring delivery enqueue unavailable");
+            }
+            tokio::select! { _=recurring_shutdown.changed()=>{}, _=tokio::time::sleep(std::time::Duration::from_secs(2))=>{} }
+        }
+    });
+    let bank_store = faktura_infrastructure::bank_connection::PgConnection::new(pool.clone());
+    let bank_matching = faktura_infrastructure::banking::PgBank(pool.clone());
+    let mut bank_shutdown = delivery_shutdown.clone();
+    let bank_worker = tokio::spawn(async move {
+        loop {
+            if *bank_shutdown.borrow() {
+                break;
+            }
+            if bank_matching.process_matching_one().await.is_err() {
+                tracing::warn!("Bank matching worker unavailable");
+            }
+            if bank_store.process_one().await.is_err() {
+                tracing::warn!("Bank synchronization worker unavailable");
+            }
+            tokio::select! { _=bank_shutdown.changed()=>{}, _=tokio::time::sleep(std::time::Duration::from_secs(5))=>{} }
+        }
+    });
     let invoice_worker = invoice_delivery.clone();
     let worker_store = delivery.clone();
     let delivery_worker = tokio::spawn(async move {
@@ -188,6 +230,81 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         base_url: faktura_infrastructure::share::base_url_from_env()?,
     };
     let app = faktura_server::router(pool.clone())
+        .merge(faktura_server::advance_settlement::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::banking::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::retail::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::inbox::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::period_report::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::stock::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::preferences::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::cash::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::received::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::credit_note::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::communication::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::recurring::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::tax_receipt::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::advance::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::export::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
         .merge(faktura_server::attachment::router(
             pool.clone(),
             origins.clone(),
@@ -206,6 +323,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             origins.clone(),
             secure,
             invoice_delivery,
+        ))
+        .merge(faktura_server::invoice_share::router(
+            faktura_infrastructure::invoice_share::PgInvoiceShare {
+                pool: pool.clone(),
+                base_url: share.base_url.clone(),
+            },
+            origins.clone(),
+            secure,
         ))
         .merge(faktura_server::share::router(
             share,
@@ -240,6 +365,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             secure,
         ))
         .merge(faktura_server::sales::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::exchange_rate::router(
             pool.clone(),
             origins.clone(),
             secure,
@@ -284,6 +414,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
     let _ = stop_delivery.send(true);
     let _ = delivery_worker.await;
+    let _ = recurring_worker.await;
+    let _ = bank_worker.await;
     pool.close().await;
     Ok(())
 }

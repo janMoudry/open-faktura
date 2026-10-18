@@ -1,0 +1,1161 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura advance settlement",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/advance-settlements": {
+      "get": {
+        "operationId": "settlementCandidates",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped operation. No-store. Configure reserves/releases advances; does not issue or send.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettlementCandidates"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision, replay or reservation conflict"
+          },
+          "422": {
+            "description": "Invalid selection, identity, dates or insufficient invoice total"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "settlementConfigure",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped operation. No-store. Configure reserves/releases advances; does not issue or send.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Draft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision, replay or reservation conflict"
+          },
+          "422": {
+            "description": "Invalid selection, identity, dates or insufficient invoice total"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettlementConfigure"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/invoices/{id}/advance-preview": {
+      "post": {
+        "operationId": "settlementPreview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped operation. No-store. Configure reserves/releases advances; does not issue or send.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceTotals"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision, replay or reservation conflict"
+          },
+          "422": {
+            "description": "Invalid selection, identity, dates or insufficient invoice total"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceCalculation"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InvoiceLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "InvoiceCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLine"
+            },
+            "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          }
+        }
+      },
+      "InvoiceAmounts": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "gross"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceLineResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amounts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTaxSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tax_mode",
+          "vat_percent",
+          "amounts"
+        ],
+        "properties": {
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "lines",
+          "tax_summary",
+          "amounts",
+          "rounding",
+          "payable"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineResult"
+            }
+          },
+          "tax_summary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceTaxSummary"
+            }
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "payable": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "PaymentSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bank_account",
+          "iban",
+          "variable_symbol",
+          "method"
+        ],
+        "properties": {
+          "bank_account": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          }
+        }
+      },
+      "DraftData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contact_id",
+          "supplier",
+          "customer",
+          "payment",
+          "calculation",
+          "issued_on",
+          "due_on",
+          "tax_on",
+          "language",
+          "order_number",
+          "note"
+        ],
+        "properties": {
+          "contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartySnapshot"
+              }
+            ],
+            "nullable": true
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSnapshot"
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/DraftCalculation"
+          },
+          "issued_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DraftCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DraftLine"
+            },
+            "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          }
+        }
+      },
+      "Draft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "company_id",
+          "revision",
+          "data",
+          "totals",
+          "number",
+          "issued_at",
+          "settlement",
+          "advances"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          },
+          "totals": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              }
+            ],
+            "nullable": true
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "issued_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "settlement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Settlement"
+              }
+            ],
+            "nullable": true
+          },
+          "advances": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdvanceSettlement"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "Settlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paid",
+          "outstanding",
+          "overpayment",
+          "status",
+          "overdue",
+          "revision",
+          "today"
+        ],
+        "properties": {
+          "paid": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partial",
+              "paid",
+              "overpaid"
+            ]
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "AdvanceTaxDeduction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InvoiceTotals"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "totals"
+        ]
+      },
+      "AdvanceSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "payment_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tax_receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdvanceTaxDeduction"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "paid",
+          "payment_ids",
+          "tax_receipts"
+        ]
+      },
+      "AdvanceSettlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdvanceSource"
+            }
+          },
+          "credited": {
+            "type": "string"
+          },
+          "rounding_adjustment": {
+            "type": "string"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "minimum_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "version",
+          "sources",
+          "credited",
+          "rounding_adjustment",
+          "customer",
+          "supplier",
+          "tax_mode",
+          "minimum_date"
+        ]
+      },
+      "SalesData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "maturity_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "created",
+              "sent",
+              "ordered",
+              "invoiced",
+              "rejected"
+            ]
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        },
+        "required": [
+          "name",
+          "maturity_days",
+          "status",
+          "invoice"
+        ]
+      },
+      "SalesDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "template",
+              "quote",
+              "advance"
+            ]
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "invoice_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SalesData"
+          },
+          "totals": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              }
+            ],
+            "nullable": true
+          },
+          "advance_paid": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "company_id",
+          "kind",
+          "revision",
+          "archived",
+          "number",
+          "invoice_id",
+          "data",
+          "totals",
+          "advance_paid"
+        ]
+      },
+      "SettlementConfigure": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invoice_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "revision": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1
+          },
+          "advances": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "id",
+                "revision"
+              ]
+            }
+          }
+        },
+        "required": [
+          "request_id",
+          "invoice_id",
+          "revision",
+          "advances"
+        ]
+      },
+      "SettlementCandidates": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesDocument"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page"
+        ]
+      }
+    }
+  }
+}

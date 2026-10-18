@@ -1,0 +1,114 @@
+[
+  {
+    "name": "invoice_sharelist",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 1
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "invoice_sharecreate",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "expires_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "request_id",
+        "revision",
+        "expires_days"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "invoice_sharerevoke",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "share": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "share"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "invoice_shareviews",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "share": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 1
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "share"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

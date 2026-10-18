@@ -70,6 +70,9 @@ use faktura_infrastructure::delivery::{MailConfig, PgDelivery};
 use std::sync::Arc;
 fn command(revision: i64, key: &str) -> SendQuote {
     SendQuote {
+        purpose: None,
+        settlement_revision: None,
+        automation_revision: None,
         attachment_ids: vec![],
         share_id: None,
         request_id: key.into(),

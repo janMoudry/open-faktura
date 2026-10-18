@@ -1,3 +1,4 @@
+import { RegisterExport } from "../components/organisms/RegisterExport";
 import { RegisterPagination } from "../components/molecules/RegisterPagination";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
@@ -91,6 +92,15 @@ export function ContactsPage() {
             {t("navContacts")}
           </Heading>
         </div>
+        <RegisterExport
+          key={companyId}
+          company={companyId}
+          onExpired={onExpired}
+          selection={{
+            kind: "contacts",
+            search: { query, archived, page: 1, page_size: 100 },
+          }}
+        />
       </div>
       <div className="workspace-panel register-sheet">
         <div className="invoice-list-tabs">

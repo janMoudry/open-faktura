@@ -1,4 +1,22 @@
 import type { components } from "./invoice.generated";
+export const documentCurrencies = [
+  "CZK",
+  "EUR",
+  "USD",
+  "GBP",
+  "CHF",
+  "PLN",
+  "HUF",
+  "JPY",
+  "SEK",
+  "NOK",
+  "DKK",
+  "CAD",
+  "AUD",
+] as const;
+export const isDocumentCurrency = (value: unknown): boolean =>
+  typeof value === "string" &&
+  (documentCurrencies as readonly string[]).includes(value);
 export type InvoiceCalculation = components["schemas"]["InvoiceCalculation"];
 export type InvoiceTotals = components["schemas"]["InvoiceTotals"];
 export class InvoiceCalculationFailure extends Error {
@@ -42,7 +60,7 @@ export function parseInvoiceTotals(value: any): InvoiceTotals {
   if (
     !value ||
     !["of-czk-v1", "import-v1"].includes(value.calculation_version) ||
-    value.currency !== "CZK" ||
+    !isDocumentCurrency(value.currency) ||
     !amounts(value.amounts) ||
     !money(value.rounding) ||
     !money(value.payable) ||

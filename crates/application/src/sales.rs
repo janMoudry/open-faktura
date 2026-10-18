@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub enum Kind {
     Template,
     Quote,
+    Advance,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -28,6 +29,7 @@ pub struct Document {
     pub invoice_id: Option<String>,
     pub data: Data,
     pub totals: Option<Totals>,
+    pub advance_paid: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Page {
@@ -119,7 +121,7 @@ pub fn validate(data: &Data, kind: &Kind) -> Result<()> {
             errors.push("issued_on".into());
         }
     }
-    if *kind == Kind::Quote {
+    if *kind != Kind::Template {
         if data
             .invoice
             .customer
@@ -148,6 +150,30 @@ pub fn validate(data: &Data, kind: &Kind) -> Result<()> {
             errors.push("lines".into());
         }
     }
+    if *kind == Kind::Advance {
+        if data.invoice.calculation.currency != "CZK" && data.invoice.payment.method == "cash" {
+            errors.push("currency".into());
+        }
+        if data.status != "created" {
+            errors.push("status".into());
+        }
+        if data.invoice.tax_on.is_some() {
+            errors.push("tax_on".into());
+        }
+        if data.invoice.supplier.name.trim().is_empty() {
+            errors.push("supplier.name".into());
+        }
+        if faktura_domain::invoice::calculate(&data.invoice.calculation)
+            .ok()
+            .is_none_or(|t| {
+                t.payable
+                    .parse::<rust_decimal::Decimal>()
+                    .map_or(true, |v| v <= rust_decimal::Decimal::ZERO)
+            })
+        {
+            errors.push("payable".into());
+        }
+    }
     if errors.is_empty() {
         Ok(())
     } else {
@@ -164,8 +190,18 @@ pub async fn list(s: &dyn SalesStore, a: &str, c: &str, mut q: Search) -> Result
     if q.query.len() > 200
         || !(1..=10000).contains(&q.page)
         || !(1..=100).contains(&q.page_size)
-        || !["all", "created", "sent", "ordered", "invoiced", "rejected"]
-            .contains(&q.status.as_str())
+        || ![
+            "all",
+            "created",
+            "sent",
+            "ordered",
+            "invoiced",
+            "rejected",
+            "paid",
+            "outstanding",
+            "overdue",
+        ]
+        .contains(&q.status.as_str())
     {
         return Err(Error::Invalid(vec!["search".into()]));
     }

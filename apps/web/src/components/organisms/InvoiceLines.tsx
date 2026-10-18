@@ -50,7 +50,7 @@ export function InvoiceLines({
           />
         )}
       </div>
-      {!disabled && catalogPicker}
+      {!disabled && value.currency === "CZK" && catalogPicker}
       <div className="invoice-line-head" aria-hidden="true">
         <span>{t("draftDescription")}</span>
         <span>{t("draftUnitPrice")}</span>
@@ -73,6 +73,9 @@ export function InvoiceLines({
               maxLength={2000}
               onChange={(e) => patch(index, { description: e.target.value })}
             />
+            {line.catalog_id && (
+              <p className="text-sm text-muted">{t("stockInvoiceLink")}</p>
+            )}
           </div>
           {(
             [
@@ -121,7 +124,11 @@ export function InvoiceLines({
               {t("invoiceColumnAmount")}{" "}
             </span>
             {totals?.lines[index]
-              ? moneyText(totals.lines[index].amounts.gross, language)
+              ? moneyText(
+                  totals.lines[index].amounts.gross,
+                  language,
+                  value.currency,
+                )
               : "—"}
           </div>
           {!disabled && (

@@ -153,6 +153,7 @@ fn id(v: &str) -> Result<i64> {
 }
 pub(crate) fn map(r: sqlx::postgres::PgRow) -> Delivery {
     Delivery {
+        purpose: r.try_get("purpose").unwrap_or_else(|_| "document".into()),
         attachments: serde_json::from_value(r.get("attachments"))
             .expect("persisted attachment metadata"),
         id: r.get::<i64, _>("id").to_string(),
@@ -192,6 +193,7 @@ pub(crate) async fn render(v: Document) -> Result<Vec<u8>> {
         // iDoklad internal notes are private; the quotation description is public.
         data.note = v.data.name;
         crate::invoice_pdf::render_quote(&faktura_application::draft::Draft {
+            advances: None,
             id: v.id,
             company_id: v.company_id,
             revision: v.revision,
@@ -255,6 +257,12 @@ impl DeliveryStore for PgDelivery {
         })
     }
     async fn send(&self, a: &str, c: &str, d: &str, cmd: SendQuote) -> Result<Delivery> {
+        if cmd.purpose.is_some()
+            || cmd.settlement_revision.is_some()
+            || cmd.automation_revision.is_some()
+        {
+            return Err(Error::Invalid(vec!["purpose".into()]));
+        }
         cmd.recipient
             .parse::<lettre::Address>()
             .map_err(|_| Error::Invalid(vec!["recipient".into()]))?;

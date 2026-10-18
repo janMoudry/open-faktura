@@ -1,6 +1,9 @@
+import { useLocation } from "react-router";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Button, Icon, Select } from "@open-faktura/ui";
 import { useAppTranslation } from "../../locales";
+
+import { useAppearance } from "../../hooks/useAppearance";
 
 export function AccountMenu({
   email,
@@ -15,12 +18,18 @@ export function AccountMenu({
   onSmtp?: () => void;
   actions: ReactNode;
 }) {
+  const location = useLocation();
+  const appearance = useAppearance(email);
   const { t, language, setLanguage } = useAppTranslation();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const id = useId();
   const selectingLanguage = useRef(false);
+  useEffect(() => {
+    setOpen(false);
+    selectingLanguage.current = false;
+  }, [location.key, location.pathname, location.search]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
@@ -138,6 +147,30 @@ export function AccountMenu({
                 if (value === "cs" || value === "en") setLanguage(value);
               }}
             />
+          </div>
+          <div className="border-t border-border px-field py-control space-y-control">
+            <Select
+              label={t("appearanceTheme")}
+              value={appearance.theme}
+              disabled={appearance.busy}
+              onOpenChange={(open) => {
+                selectingLanguage.current = open;
+              }}
+              onChange={(v) => {
+                if (v === "light" || v === "dark" || v === "system")
+                  void appearance.change(v);
+              }}
+              options={[
+                { value: "system", label: t("appearanceSystem") },
+                { value: "light", label: t("appearanceLight") },
+                { value: "dark", label: t("appearanceDark") },
+              ]}
+            />
+            {appearance.error && (
+              <p role="alert" className="text-sm text-danger">
+                {t("appearanceFailed")}
+              </p>
+            )}
           </div>
           <div className="border-t border-border p-inline">{actions}</div>
         </div>

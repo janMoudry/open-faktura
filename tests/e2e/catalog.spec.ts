@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect } from "@playwright/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
@@ -14,6 +14,17 @@ for (const english of [false, true])
     page,
   }, info) => {
     test.setTimeout(90000);
+    page.on("response", (response) => {
+      if (
+        response.status() >= 400 &&
+        new URL(response.url()).pathname.startsWith("/api/")
+      )
+        console.log(
+          "API response",
+          response.status(),
+          new URL(response.url()).pathname,
+        );
+    });
     const database = `company_e2e_${randomBytes(8).toString("hex")}`;
     const directory = mkdtempSync(join(tmpdir(), "faktura-auth-"));
     const secret = randomBytes(32).toString("hex");
@@ -57,10 +68,12 @@ for (const english of [false, true])
         stdio: "ignore",
       });
       await expect
-        .poll(async () =>
-          fetch(`http://127.0.0.1:${port}/api/ready`)
-            .then((r) => r.status)
-            .catch(() => 0),
+        .poll(
+          async () =>
+            fetch(`http://127.0.0.1:${port}/api/ready`)
+              .then((r) => r.status)
+              .catch(() => 0),
+          { timeout: 30000 },
         )
         .toBe(200);
       await page.route("**/api/**", async (route) => {
@@ -199,6 +212,287 @@ for (const english of [false, true])
       );
       const itemUrl = page.url();
       const itemId = itemUrl.split("/").pop()!;
+      const stockLabels = JSON.parse(
+        readFileSync(
+          `apps/web/src/locales/${english ? "en" : "cs"}.json`,
+          "utf8",
+        ),
+      );
+      await page.goto(`/#/companies/${alpha.id}/stock`);
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.stockItem) })
+        .click();
+      await page
+        .getByRole("option", { name: "Synthetic consulting", exact: true })
+        .click();
+      await page
+        .getByLabel(stockLabels.stockQuantity, { exact: true })
+        .fill("10.1234");
+      await page
+        .getByLabel(stockLabels.stockManualCost, { exact: true })
+        .fill("20");
+      await page
+        .getByLabel(stockLabels.stockReason, { exact: true })
+        .fill("Synthetic opening");
+      await page
+        .getByRole("button", { name: stockLabels.stockOpen, exact: true })
+        .click();
+      await expect(
+        page.getByText(new RegExp(stockLabels.stockBalance)),
+      ).toContainText(english ? "10.1234" : "10,1234");
+      await page
+        .getByLabel(stockLabels.stockQuantity, { exact: true })
+        .fill("-0.1234");
+      await page
+        .getByLabel(stockLabels.stockReason, { exact: true })
+        .fill("Synthetic issue");
+      await page
+        .getByRole("button", { name: stockLabels.stockSave, exact: true })
+        .click();
+      await expect(
+        page.getByText(new RegExp(stockLabels.stockBalance)),
+      ).toContainText("10");
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.stockOperation) })
+        .click();
+      await page
+        .getByRole("option", { name: stockLabels.stockCount, exact: true })
+        .click();
+      await page
+        .getByLabel(stockLabels.stockQuantity, { exact: true })
+        .fill("9.5");
+      await page
+        .getByLabel(stockLabels.stockReason, { exact: true })
+        .fill("Synthetic count");
+      await page
+        .getByRole("button", { name: stockLabels.stockSave, exact: true })
+        .click();
+      await expect(
+        page.getByText(new RegExp(stockLabels.stockBalance)),
+      ).toContainText(english ? "9.5" : "9,5");
+      const overview = page.getByRole("region", {
+        name: stockLabels.stockOverviewTitle,
+        exact: true,
+      });
+      await expect(
+        overview.getByText(stockLabels.stockPartialValue, { exact: true }),
+      ).toBeVisible();
+      await overview
+        .getByRole("button", {
+          name: stockLabels.stockValuationDetail,
+          exact: true,
+        })
+        .click();
+      await overview
+        .getByLabel(stockLabels.stockUnitCost, { exact: true })
+        .fill("10.1234");
+      await overview
+        .getByLabel(stockLabels.stockCostReason, { exact: true })
+        .fill("Synthetic stock cost");
+      await overview
+        .getByRole("button", { name: stockLabels.stockSaveCost, exact: true })
+        .click();
+      await expect(
+        overview.getByText(stockLabels.stockPartialValue, { exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        overview.getByText(english ? /96.17/ : /96,17/).first(),
+      ).toBeVisible();
+      await overview
+        .getByRole("button", {
+          name: new RegExp(stockLabels.stockValuationMethod),
+        })
+        .click();
+      await page
+        .getByRole("option", {
+          name: stockLabels.stockAutomaticMethod,
+          exact: true,
+        })
+        .click();
+      await expect(
+        overview.getByText(english ? /190.00/ : /190,00/).first(),
+      ).toBeVisible();
+      await overview
+        .getByRole("button", {
+          name: new RegExp(stockLabels.stockValuationMethod),
+        })
+        .click();
+      await page
+        .getByRole("option", {
+          name: stockLabels.stockManualMethod,
+          exact: true,
+        })
+        .click();
+      const statistics = page.getByRole("region", {
+        name: stockLabels.stockStatistics,
+        exact: true,
+      });
+      await expect(statistics).toBeVisible();
+      await expect(
+        statistics.locator("div").filter({
+          has: page.getByText(stockLabels.stockStatClosing, { exact: true }),
+        }),
+      ).toContainText(english ? "9.5" : "9,5");
+      await expect(
+        statistics.locator("div").filter({
+          has: page.getByText(stockLabels.stockStatIssued, { exact: true }),
+        }),
+      ).toContainText(english ? "0.1234" : "0,1234");
+
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      expect(
+        (
+          await new AxeBuilder({ page })
+            .withTags(["wcag2a", "wcag2aa"])
+            .analyze()
+        ).violations,
+      ).toEqual([]);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({
+        path: `docs/design/stock-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+        animations: "disabled",
+      });
+      await page
+        .getByRole("button", { name: stockLabels.accountMenu, exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.appearanceTheme) })
+        .click();
+      await page
+        .getByRole("option", { name: stockLabels.appearanceDark, exact: true })
+        .click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+      await page.reload();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+      expect(
+        (
+          await new AxeBuilder({ page })
+            .withTags(["wcag2a", "wcag2aa"])
+            .analyze()
+        ).violations,
+      ).toEqual([]);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({
+        path: `docs/design/stock-dark-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+        animations: "disabled",
+      });
+      await page
+        .getByRole("button", { name: stockLabels.accountMenu, exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.appearanceTheme) })
+        .click();
+      await page
+        .getByRole("option", { name: stockLabels.appearanceLight, exact: true })
+        .click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      sql(
+        `INSERT INTO received_invoice(company_id,number,data,total,received_on,due_on) VALUES(${alpha.id},'REPORT-SYNTHETIC','{"issued_on":"${new Date().getFullYear()}-01-15","lines":[{"net":"100.00","vat":"23.45"}]}',123.45,'${new Date().getFullYear()}-01-15','${new Date().getFullYear()}-01-30')`,
+        database,
+      );
+      await page.goto(`/#/companies/${alpha.id}/reports`);
+      await expect(
+        page.getByRole("link", { name: "REPORT-SYNTHETIC" }),
+      ).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        stockLabels.navReports,
+      );
+      await expect(
+        page.getByRole("region", {
+          name: stockLabels.accountMenu,
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.reportValueMode) })
+        .click();
+      await page
+        .getByRole("option", { name: stockLabels.reportNet, exact: true })
+        .click();
+      await expect(
+        page.getByRole("row").filter({ hasText: "REPORT-SYNTHETIC" }),
+      ).toContainText(english ? "100.00 CZK" : "100,00 Kč");
+      for (const [grouping, label] of [
+        ["quarter", stockLabels.reportQuarterly],
+        ["year", stockLabels.reportYearly],
+      ] as const) {
+        await page
+          .getByRole("button", { name: new RegExp(stockLabels.reportGrouping) })
+          .click();
+        const loaded = page.waitForResponse(
+          (r) =>
+            r.url().includes("/reports/period?") &&
+            new URL(r.url()).searchParams.get("grouping") === grouping,
+        );
+        await page.getByRole("option", { name: label, exact: true }).click();
+        const result = await loaded;
+        expect(result.status()).toBe(200);
+        const body = await result.json();
+        expect(body.grouping).toBe(grouping);
+        expect(body.months[0].month).toMatch(
+          grouping === "quarter" ? /^\d{4}-Q1$/ : /^\d{4}$/,
+        );
+        await expect(
+          page.getByRole("heading", { name: label, exact: true }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("row").filter({ hasText: "REPORT-SYNTHETIC" }),
+        ).toContainText(english ? "100.00 CZK" : "100,00 Kč");
+      }
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.reportDisplay) })
+        .click();
+      await page
+        .getByRole("option", {
+          name: stockLabels.reportCumulative,
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.reportCompare) })
+        .click();
+      await page
+        .getByRole("option", {
+          name: stockLabels.reportPreviousYear,
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByRole("button", {
+          name: stockLabels.reportPreviousSources,
+          exact: true,
+        }),
+      ).toBeVisible();
+      const reportAxe = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa"])
+        .analyze();
+      expect(reportAxe.violations).toEqual([]);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `docs/design/report-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      await page
+        .getByRole("button", {
+          name: stockLabels.reportPreviousSources,
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByText(stockLabels.reportEmpty, { exact: true }),
+      ).toBeVisible();
+      await page.goto(itemUrl);
+
       const headers = {
         Origin: "http://127.0.0.1:5173",
         "X-Faktura-Request": "1",
@@ -325,6 +619,15 @@ for (const english of [false, true])
         })
         .click();
       await expect(page).toHaveURL(/invoices\/\d+$/);
+      const storedDraft = await (
+        await page.request.get(
+          `http://127.0.0.1:${port}/api/companies/${alpha.id}/invoices/${page.url().split("/").at(-1)}`,
+        )
+      ).json();
+      expect(storedDraft.data.calculation.lines.at(-1).catalog_id).toBe(itemId);
+      await expect(
+        page.getByText(stockLabels.stockInvoiceLink, { exact: true }),
+      ).toBeVisible();
       // Draft holds the copied price; changing the catalog cannot mutate it.
       const before = await (await page.request.get(endpoint)).json();
       expect(
@@ -388,6 +691,114 @@ for (const english of [false, true])
           exact: true,
         }),
       ).toBeVisible();
+      // Item sales uses issued snapshots, including catalog-linked services.
+      const salesData = JSON.parse(
+        readFileSync("tests/fixtures/invoice-draft.json", "utf8"),
+      );
+      salesData.supplier = {
+        ...storedDraft.data.supplier,
+        registration_number: "12345678",
+      };
+      salesData.payment.method = "cash";
+      salesData.issued_on = new Date().toLocaleDateString("sv-SE");
+      salesData.calculation.tax_mode = "non_payer";
+      salesData.calculation.lines = [
+        {
+          ...salesData.calculation.lines[0],
+          catalog_id: itemId,
+          unit: "ks",
+          quantity: "2",
+          unit_price: "12.5",
+          vat_percent: "0",
+        },
+      ];
+      const salesDraftResponse = await page.request.post(
+        `http://127.0.0.1:${port}/api/companies/${alpha.id}/invoices`,
+        { headers, data: { request_id: crypto.randomUUID(), data: salesData } },
+      );
+      expect(salesDraftResponse.ok()).toBe(true);
+      const salesDraft = await salesDraftResponse.json();
+      const issuedResponse = await page.request.post(
+        `http://127.0.0.1:${port}/api/companies/${alpha.id}/invoices/${salesDraft.id}/issue`,
+        {
+          headers,
+          data: {
+            request_id: crypto.randomUUID(),
+            revision: salesDraft.revision,
+          },
+        },
+      );
+      expect(issuedResponse.ok()).toBe(true);
+      const issuedSale = await issuedResponse.json();
+      await page.goto(`/#/companies/${alpha.id}/item-sales`);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        stockLabels.itemSalesTitle,
+      );
+      const itemSales = page.getByRole("region", {
+        name: stockLabels.itemSalesTitle,
+        exact: true,
+      });
+      await expect(
+        itemSales
+          .getByText(english ? "25.00 CZK" : "25,00 CZK", { exact: true })
+          .first(),
+      ).toBeVisible();
+      await itemSales
+        .getByRole("button", { name: "Synthetic consulting", exact: true })
+        .click();
+      await expect(
+        page
+          .getByRole("region", {
+            name: stockLabels.itemSalesSources,
+            exact: true,
+          })
+          .getByRole("link", { name: issuedSale.number }),
+      ).toBeVisible();
+      await page
+        .getByRole("button", {
+          name: stockLabels.itemSalesColumns,
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("checkbox", { name: stockLabels.itemSalesCode, exact: true })
+        .uncheck();
+      await expect(
+        itemSales.getByRole("columnheader", {
+          name: stockLabels.itemSalesCode,
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      const downloadEvent = page.waitForEvent("download");
+      await page.getByRole("button", { name: "CSV", exact: true }).click();
+      expect((await downloadEvent).suggestedFilename()).toBe("item-sales.csv");
+      await page.screenshot({
+        path: `docs/design/item-sales-${english ? "en" : "cs"}-${info.project.name}.png`,
+        fullPage: true,
+      });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page
+        .getByRole("button", { name: new RegExp(stockLabels.itemSalesKind) })
+        .click();
+      await page
+        .getByRole("option", { name: stockLabels.navCreditNotes, exact: true })
+        .click();
+      await expect(
+        page.getByText(stockLabels.itemSalesEmpty, { exact: true }),
+      ).toBeVisible();
+      await page
+        .getByRole("button", { name: stockLabels.itemSalesClear, exact: true })
+        .click();
+      await expect(
+        itemSales
+          .getByText(english ? "25.00 CZK" : "25,00 CZK", { exact: true })
+          .first(),
+      ).toBeVisible();
+      await page.goto(itemUrl);
       sql(
         `UPDATE membership SET role='viewer' WHERE company_id=${alpha.id}`,
         database,

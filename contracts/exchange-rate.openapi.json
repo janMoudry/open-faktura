@@ -1,0 +1,170 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura Exchange Rates",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/exchange-rates": {
+      "get": {
+        "operationId": "exchangeRateLookup",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EUR",
+                "USD",
+                "GBP",
+                "CHF",
+                "PLN",
+                "HUF",
+                "JPY",
+                "SEK",
+                "NOK",
+                "DKK",
+                "CAD",
+                "AUD"
+              ]
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Read-only CNB proposal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rate"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session"
+          },
+          "403": {
+            "description": "No profile membership"
+          },
+          "404": {
+            "description": "Rate not found"
+          },
+          "422": {
+            "description": "Invalid currency or date"
+          },
+          "503": {
+            "description": "Source unavailable"
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Rate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currency",
+          "requested_on",
+          "published_on",
+          "source",
+          "exchange_rate"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "requested_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "published_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "CNB"
+            ]
+          },
+          "exchange_rate": {
+            "type": "object",
+            "required": [
+              "rate",
+              "units"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rate": {
+                "type": "string"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "RateLookup": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "company_id",
+          "currency",
+          "date"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  }
+}

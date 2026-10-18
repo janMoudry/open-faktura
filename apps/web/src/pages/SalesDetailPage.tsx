@@ -1,3 +1,5 @@
+import { DocumentCurrencyFields } from "../components/organisms/DocumentCurrencyFields";
+import { AdvanceDetail } from "../components/organisms/AdvanceDetail";
 import { DocumentAttachments } from "../components/organisms/DocumentAttachments";
 import { QuoteDelivery } from "../components/organisms/QuoteDelivery";
 import { SalesOverview } from "../components/organisms/SalesOverview";
@@ -72,7 +74,10 @@ function Editor({
     name: "",
     maturity_days: company.settings.maturity_days,
     status: "created",
-    invoice: newDraft(company, language),
+    invoice: {
+      ...newDraft(company, language),
+      ...(kind === "advance" ? { tax_on: null } : {}),
+    },
   });
   const [data, setData] = useState(initial.current);
   const [record, setRecord] = useState<SalesDocument | null>(null);
@@ -90,7 +95,7 @@ function Editor({
   const dirty =
     JSON.stringify(data) !== JSON.stringify(record?.data ?? initial.current);
   const disabled = !editing || busy || !canWrite || !!record?.invoice_id;
-  const base = `/companies/${company.id}/${kind === "quote" ? "quotes" : "templates"}`;
+  const base = `/companies/${company.id}/${kind === "advance" ? "advances" : kind === "quote" ? "quotes" : "templates"}`;
   useEffect(() => {
     setPageDirty(dirty);
     return () => setPageDirty(false);
@@ -183,7 +188,10 @@ function Editor({
         : await createSales(apiUrl, company.id, {
             request_id: requestId.current,
             kind,
-            data,
+            data:
+              kind === "advance"
+                ? { ...data, invoice: { ...data.invoice, tax_on: null } }
+                : data,
           });
       setRecord(v);
       setData(v.data);
@@ -247,7 +255,13 @@ function Editor({
         <Heading level={1} size="page">
           {record?.number ??
             (creating
-              ? t(kind === "quote" ? "salesNewQuote" : "salesNewTemplate")
+              ? t(
+                  kind === "advance"
+                    ? "advanceNew"
+                    : kind === "quote"
+                      ? "salesNewQuote"
+                      : "salesNewTemplate",
+                )
               : data.name)}
         </Heading>
         <div className="flex flex-wrap gap-inline">
@@ -256,14 +270,18 @@ function Editor({
           )}
           {record && !editing && canWrite && (
             <>
-              {!record.invoice_id && (
-                <Button variant="secondary" onClick={() => setEditing(true)}>
-                  {t("salesEdit")}
-                </Button>
-              )}
+              {!record.invoice_id &&
+                !(kind === "advance" && Number(record.advance_paid) > 0) && (
+                  <Button variant="secondary" onClick={() => setEditing(true)}>
+                    {t("salesEdit")}
+                  </Button>
+                )}
               <Button
                 variant="ghost"
-                disabled={busy}
+                disabled={
+                  busy ||
+                  (kind === "advance" && Number(record.advance_paid) > 0)
+                }
                 onClick={() => void archive()}
               >
                 {t(record.archived ? "salesRestore" : "salesArchive")}
@@ -276,6 +294,7 @@ function Editor({
                   {t("salesLinked")}
                 </Link>
               ) : (
+                kind !== "advance" &&
                 !record.archived && (
                   <Button disabled={busy} onClick={() => void convert()}>
                     {t(kind === "quote" ? "salesConvert" : "salesUse")}
@@ -294,6 +313,7 @@ function Editor({
           )}
         </div>
       </div>
+      {kind === "advance" && <Alert>{t("advanceNotice")}</Alert>}
       {error && (
         <Alert tone="danger" role="alert">
           {t(error)}
@@ -309,12 +329,21 @@ function Editor({
           {t("salesSaved")}
         </Alert>
       )}
-      {record && !editing && !record.invoice_id && !record.archived && (
-        <p className="text-sm text-muted">{t("salesConvertHint")}</p>
-      )}
+      {kind !== "advance" &&
+        record &&
+        !editing &&
+        !record.invoice_id &&
+        !record.archived && (
+          <p className="text-sm text-muted">{t("salesConvertHint")}</p>
+        )}
       {!editing && record ? (
         <>
-          {kind === "quote" ? (
+          {kind === "advance" ? (
+            <AdvanceDetail
+              document={record}
+              onChanged={() => setAttempt((v) => v + 1)}
+            />
+          ) : kind === "quote" ? (
             <QuoteDelivery
               document={record}
               canSend={canWrite && !record.archived}
@@ -377,7 +406,13 @@ function Editor({
               )}
               <Field
                 horizontal
-                label={t(kind === "quote" ? "salesDescription" : "salesName")}
+                label={t(
+                  kind === "advance"
+                    ? "advanceDescription"
+                    : kind === "quote"
+                      ? "salesDescription"
+                      : "salesName",
+                )}
                 required
                 maxLength={200}
                 readOnly={disabled}
@@ -454,7 +489,7 @@ function Editor({
               <Heading level={2} size="card">
                 {t("salesDates")}
               </Heading>
-              {kind === "quote" && (
+              {kind !== "template" && (
                 <>
                   <DatePicker
                     label={t("draftIssued")}
@@ -463,7 +498,9 @@ function Editor({
                     onChange={(v) => invoice({ issued_on: v || null })}
                   />
                   <DatePicker
-                    label={t("salesValidUntil")}
+                    label={t(
+                      kind === "advance" ? "draftDue" : "salesValidUntil",
+                    )}
                     disabled={disabled}
                     value={data.invoice.due_on ?? ""}
                     onChange={(v) => invoice({ due_on: v || null })}
@@ -493,7 +530,9 @@ function Editor({
                 value={data.invoice.payment.method}
                 options={[
                   { value: "bank_transfer", label: t("bankTransfer") },
-                  { value: "cash", label: t("cash") },
+                  ...(data.invoice.calculation.currency === "CZK"
+                    ? [{ value: "cash", label: t("cash") }]
+                    : []),
                 ]}
                 onChange={(method) =>
                   invoice({
@@ -555,6 +594,29 @@ function Editor({
               </div>
             </details>
           </section>
+          <section className="invoice-section">
+            <DocumentCurrencyFields
+              value={data.invoice.calculation}
+              documentDate={data.invoice.issued_on}
+              disabled={disabled}
+              onChange={(value) =>
+                invoice({
+                  calculation: {
+                    ...data.invoice.calculation,
+                    ...value,
+                    rounding: "none",
+                  },
+                  payment: {
+                    ...data.invoice.payment,
+                    method:
+                      value.currency === "CZK"
+                        ? data.invoice.payment.method
+                        : "bank_transfer",
+                  },
+                })
+              }
+            />
+          </section>
           <InvoiceLines
             title={t("salesItems")}
             value={data.invoice.calculation}
@@ -613,7 +675,9 @@ function Editor({
                 </Button>
               )}
               <Button type="submit" disabled={disabled}>
-                {t("salesSave")}
+                {t(
+                  kind === "advance" && creating ? "advanceIssue" : "salesSave",
+                )}
               </Button>
             </div>
           )}

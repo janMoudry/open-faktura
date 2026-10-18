@@ -161,12 +161,26 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     InvoiceCalculation: {
       /** @enum {string} */
       calculation_version: "of-czk-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       /** @enum {string} */
       tax_mode: "non_payer" | "vat_payer";
       /** @enum {string} */
@@ -175,6 +189,10 @@ export interface components {
       /** @enum {string} */
       rounding: "none" | "whole_czk";
       lines: components["schemas"]["InvoiceLine"][];
+      exchange_rate?: {
+        rate: string;
+        units: string;
+      };
     };
     InvoiceAmounts: {
       net: string;
@@ -196,7 +214,20 @@ export interface components {
       /** @enum {string} */
       calculation_version: "of-czk-v1" | "import-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       lines: components["schemas"]["InvoiceLineResult"][];
       tax_summary: components["schemas"]["InvoiceTaxSummary"][];
       amounts: components["schemas"]["InvoiceAmounts"];
@@ -254,12 +285,26 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     DraftCalculation: {
       /** @enum {string} */
       calculation_version: "of-czk-v1" | "import-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       /** @enum {string} */
       tax_mode: "non_payer" | "vat_payer";
       /** @enum {string} */
@@ -268,6 +313,10 @@ export interface components {
       /** @enum {string} */
       rounding: "none" | "whole_czk";
       lines: components["schemas"]["DraftLine"][];
+      exchange_rate?: {
+        rate: string;
+        units: string;
+      };
     };
     Draft: {
       id: string;
@@ -278,6 +327,7 @@ export interface components {
       number: string | null;
       issued_at: string | null;
       settlement: components["schemas"]["Settlement"] | null;
+      advances: components["schemas"]["AdvanceSettlement"] | null;
     };
     DraftPage: {
       items: components["schemas"]["Draft"][];
@@ -372,13 +422,14 @@ export interface components {
       id: string;
       company_id: string;
       /** @enum {string} */
-      kind: "template" | "quote";
+      kind: "template" | "quote" | "advance";
       revision: number;
       archived: boolean;
       number: string | null;
       invoice_id: string | null;
       data: components["schemas"]["SalesData"];
       totals: components["schemas"]["InvoiceTotals"] | null;
+      advance_paid: string | null;
     };
     SalesPage: {
       items: components["schemas"]["SalesDocument"][];
@@ -390,7 +441,7 @@ export interface components {
       /** Format: uuid */
       request_id: string;
       /** @enum {string} */
-      kind: "template" | "quote";
+      kind: "template" | "quote" | "advance";
       data: components["schemas"]["SalesData"];
     };
     UpdateSales: {
@@ -435,6 +486,8 @@ export interface components {
       finished_at: string | null;
       share_id: string | null;
       attachments: components["schemas"]["Attachment"][];
+      /** @enum {string} */
+      purpose: "document" | "reminder" | "thanks";
     };
     DeliveryHistory: {
       configured: boolean;
@@ -492,6 +545,49 @@ export interface components {
       created_at: string;
       size: number;
     };
+    AdvanceTaxDeduction: {
+      id: string;
+      number: string;
+      totals: components["schemas"]["InvoiceTotals"];
+    };
+    AdvanceSource: {
+      id: string;
+      number: string;
+      paid: string;
+      payment_ids: string[];
+      tax_receipts: components["schemas"]["AdvanceTaxDeduction"][];
+    };
+    AdvanceSettlement: {
+      version: string;
+      sources: components["schemas"]["AdvanceSource"][];
+      credited: string;
+      rounding_adjustment: string;
+      customer: components["schemas"]["PartySnapshot"];
+      supplier: components["schemas"]["PartySnapshot"];
+      /** @enum {string} */
+      tax_mode: "non_payer" | "vat_payer";
+      /** Format: date */
+      minimum_date: string;
+      /** @enum {string} */
+      currency?:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
+      exchange_rate?: {
+        rate: string;
+        units: string;
+      };
+    };
   };
   responses: never;
   parameters: never;
@@ -504,10 +600,18 @@ export interface operations {
   salesList: {
     parameters: {
       query?: {
-        kind?: "template" | "quote";
+        kind?: "template" | "quote" | "advance";
         query?: string;
         status?:
-          "all" | "created" | "sent" | "ordered" | "invoiced" | "rejected";
+          | "all"
+          | "created"
+          | "sent"
+          | "ordered"
+          | "invoiced"
+          | "rejected"
+          | "paid"
+          | "outstanding"
+          | "overdue";
         archived?: boolean;
         page?: number;
         page_size?: number;

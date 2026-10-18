@@ -66,15 +66,9 @@ pub async fn list(
     store: &dyn ContactStore,
     actor: &str,
     company: &str,
-    mut search: Search,
+    search: Search,
 ) -> Result<ContactPage> {
-    search.query = search.query.trim().to_owned();
-    if search.query.chars().count() > 200
-        || !(1..=100).contains(&search.page_size)
-        || !(1..=10000).contains(&search.page)
-    {
-        return Err(Error::Invalid(vec!["search".into()]));
-    }
+    let search = validate_search(search)?;
     store.list(actor, company, search).await
 }
 pub async fn get(
@@ -115,4 +109,15 @@ pub async fn update(
         return Err(Error::Invalid(errors));
     }
     store.update(actor, company, id, command).await
+}
+
+pub fn validate_search(mut search: Search) -> Result<Search> {
+    search.query = search.query.trim().to_owned();
+    if search.query.chars().count() > 200
+        || !(1..=100).contains(&search.page_size)
+        || !(1..=10000).contains(&search.page)
+    {
+        return Err(Error::Invalid(vec!["search".into()]));
+    }
+    Ok(search)
 }

@@ -1,3 +1,5 @@
+import { InvoiceCredits } from "./InvoiceCredits";
+import { AdvanceDeductions } from "./AdvanceDeductions";
 import { DocumentAttachments } from "./DocumentAttachments";
 import { DocumentDelivery } from "./DocumentDelivery";
 import { InvoiceSummary } from "./InvoiceSummary";
@@ -224,7 +226,7 @@ export function IssuedInvoice({
                             {l.description}
                           </TableCell>
                           <TableCell className="text-right whitespace-nowrap tabular-nums">
-                            {moneyText(l.unit_price, language)}
+                            {moneyText(l.unit_price, language, totals.currency)}
                           </TableCell>
                           <TableCell className="text-right whitespace-nowrap tabular-nums">
                             {l.quantity}
@@ -245,7 +247,11 @@ export function IssuedInvoice({
                             </TableCell>
                           )}
                           <TableCell className="text-right whitespace-nowrap tabular-nums">
-                            {moneyText(totals.lines[i].amounts.gross, language)}
+                            {moneyText(
+                              totals.lines[i].amounts.gross,
+                              language,
+                              totals.currency,
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -253,6 +259,12 @@ export function IssuedInvoice({
                   </Table>
                 </div>
               </section>
+              {invoice.advances && (
+                <AdvanceDeductions
+                  value={invoice.advances}
+                  company={invoice.company_id}
+                />
+              )}
               <InvoiceSummary calculation={d.calculation} totals={totals} />
             </div>
           ),
@@ -274,6 +286,7 @@ export function IssuedInvoice({
           label: t("paymentsTitle"),
           content: (
             <InvoicePayments
+              currency={totals.currency}
               company={invoice.company_id}
               id={invoice.id}
               editable={canCopy}
@@ -331,6 +344,21 @@ export function IssuedInvoice({
         >
           {tabs}
         </DocumentDelivery>
+      )}
+      {canCopy && !historical && (
+        <Link
+          className="ui-button ui-button-secondary ui-button-md"
+          to={`/companies/${invoice.company_id}/recurring/new?invoice=${invoice.id}`}
+        >
+          {t("recFromInvoice")}
+        </Link>
+      )}
+      {!historical && (
+        <InvoiceCredits
+          company={invoice.company_id}
+          invoice={invoice.id}
+          canCreate={canCopy}
+        />
       )}
     </div>
   );

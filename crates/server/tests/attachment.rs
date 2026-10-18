@@ -68,6 +68,9 @@ use faktura_infrastructure::{
 use std::sync::Arc;
 fn command(revision: i64, key: &str) -> SendInvoice {
     SendInvoice {
+        share_id: None,
+        purpose: None,
+        settlement_revision: None,
         attachment_ids: vec![],
         request_id: key.into(),
         revision,
@@ -413,6 +416,9 @@ async fn quote_attachments_and_rest_mcp_download(pool: PgPool) {
         &c,
         &quote.id,
         delivery::SendQuote {
+            purpose: None,
+            settlement_revision: None,
+            automation_revision: None,
             attachment_ids: vec![file.id.clone()],
             request_id: KEY.into(),
             revision: quote.revision,

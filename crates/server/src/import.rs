@@ -20,6 +20,10 @@ pub fn router(pool: PgPool, origins: Vec<String>, secure: bool) -> Router {
     Router::new()
         .route("/api/companies/{company}/imports", get(list).post(prepare))
         .route(
+            "/api/companies/{company}/imports/money",
+            axum::routing::post(money),
+        )
+        .route(
             "/api/companies/{company}/imports/table",
             axum::routing::post(table),
         )
@@ -159,4 +163,17 @@ async fn table(
         .await
         .unwrap_or(Err(migration::Error::Unavailable)),
     )
+}
+
+async fn money(
+    State(s): State<ImportState>,
+    h: HeaderMap,
+    Path(c): Path<String>,
+    Json(input): Json<migration::MoneyPrepare>,
+) -> Response {
+    let a = match actor(&s, &h, true).await {
+        Ok(a) => a,
+        Err(e) => return e.into_response(),
+    };
+    response(s.store.prepare_money(&a, &c, input).await)
 }

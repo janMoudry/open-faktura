@@ -1,0 +1,2 @@
+id;name;code;barcode;unit;unit_price;currency;vat_percent
+example-001;Sample service;SERVICE-001;;h;1250.50;CZK;21

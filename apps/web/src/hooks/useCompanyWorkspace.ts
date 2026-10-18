@@ -37,6 +37,11 @@ const defaults = (): CompanySettings => ({
 });
 export function useCompanyWorkspace(userId: string, onExpired: () => void) {
   const route = useLocation().pathname;
+  const selectedId = route.match(/^\/companies\/([^/]+)(?:\/|$)/)?.[1];
+  // Page navigation shares profile data; entering settings refreshes its revision.
+  const loadKey = selectedId
+    ? `/companies/${selectedId}${route === `/companies/${selectedId}` ? "/settings" : ""}`
+    : route;
   const navigate = useNavigate();
   const bypassNavigation = useRef(false);
   const { t } = useAppTranslation();
@@ -46,7 +51,7 @@ export function useCompanyWorkspace(userId: string, onExpired: () => void) {
   const [company, setCompany] = useState<Company | null>(null);
   const [settings, setSettings] = useState<CompanySettings>(defaults);
   const [loading, setLoading] = useState(true);
-  const [loadedRoute, setLoadedRoute] = useState<string>();
+  const [loadedKey, setLoadedKey] = useState<string>();
   const [deleteTarget, setDeleteTarget] = useState<Company | null>(null);
   const [deleteName, setDeleteName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -113,13 +118,13 @@ export function useCompanyWorkspace(userId: string, onExpired: () => void) {
     let active = true;
     bypassNavigation.current = false;
     setLoading(true);
-    setCompany(null);
+    setCompany((previous) => (previous?.id === selectedId ? previous : null));
     setError("");
     setFields([]);
     setSaved(false);
     setEditing(false);
     setPanel("identity");
-    const selected = route.match(/^\/companies\/([^/]+)(?:\/|$)/)?.[1];
+    const selected = selectedId;
     Promise.all([
       listCompanies(apiUrl, controller.signal),
       selected
@@ -168,16 +173,26 @@ export function useCompanyWorkspace(userId: string, onExpired: () => void) {
       .finally(() => {
         if (active) {
           setLoading(false);
-          setLoadedRoute(route);
+          setLoadedKey(loadKey);
         }
       });
     return () => {
       active = false;
       controller.abort();
     };
-    // Identity/route changes discard previous company data before the next load.
+    // Refetch on profile/settings entry or explicit refresh, not every child route.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route, userId, attempt]);
+  }, [loadKey, userId, attempt]);
+  useEffect(() => {
+    bypassNavigation.current = false;
+    setPageDirty(false);
+    setEditing(false);
+    setSaved(false);
+    setFields([]);
+    if (company) setSettings(company.settings);
+    // Runs only after navigation was accepted (including discard confirmation).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route]);
   async function start() {
     setBusy(true);
     setError("");
@@ -304,7 +319,7 @@ export function useCompanyWorkspace(userId: string, onExpired: () => void) {
     company,
     settings,
     setSettings,
-    loading: loading || loadedRoute !== route,
+    loading: loading || loadedKey !== loadKey,
     deleteTarget,
     setDeleteTarget,
     deleteName,

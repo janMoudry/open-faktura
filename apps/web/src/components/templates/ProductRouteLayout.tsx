@@ -60,7 +60,7 @@ function AuthenticatedWorkspace({ session }: { session: SessionContext }) {
             onCreate={start}
             onSelect={(id) => {
               void navigate(
-                `/companies/${id}${pathname.includes("/quotes") ? "/quotes" : pathname.includes("/templates") ? "/templates" : pathname.includes("/catalog") ? "/catalog" : pathname.includes("/contacts") ? "/contacts" : pathname.includes("/invoices") ? "/invoices" : ""}`,
+                `/companies/${id}${pathname.includes("/bank") ? "/bank" : pathname.includes("/receipts") ? "/receipts" : pathname.includes("/expense-payments") ? "/expense-payments" : pathname.includes("/expense-overview") ? "/expense-overview" : pathname.includes("/received-invoices") ? "/received-invoices" : pathname.includes("/quotes") ? "/quotes" : pathname.includes("/templates") ? "/templates" : pathname.includes("/catalog") ? "/catalog" : pathname.includes("/contacts") ? "/contacts" : pathname.includes("/invoices") ? "/invoices" : ""}`,
               );
             }}
           />

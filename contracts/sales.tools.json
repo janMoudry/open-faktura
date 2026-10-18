@@ -11,7 +11,8 @@
           "type": "string",
           "enum": [
             "template",
-            "quote"
+            "quote",
+            "advance"
           ]
         },
         "query": {
@@ -25,7 +26,10 @@
             "sent",
             "ordered",
             "invoiced",
-            "rejected"
+            "rejected",
+            "paid",
+            "outstanding",
+            "overdue"
           ]
         },
         "archived": {
@@ -60,7 +64,8 @@
           "type": "string",
           "enum": [
             "template",
-            "quote"
+            "quote",
+            "advance"
           ]
         },
         "data": {
@@ -280,7 +285,19 @@
                     "currency": {
                       "type": "string",
                       "enum": [
-                        "CZK"
+                        "CZK",
+                        "EUR",
+                        "USD",
+                        "GBP",
+                        "CHF",
+                        "PLN",
+                        "HUF",
+                        "JPY",
+                        "SEK",
+                        "NOK",
+                        "DKK",
+                        "CAD",
+                        "AUD"
                       ]
                     },
                     "tax_mode": {
@@ -354,10 +371,38 @@
                               "12",
                               "21"
                             ]
+                          },
+                          "catalog_id": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         }
                       },
                       "maxItems": 500
+                    },
+                    "exchange_rate": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "rate",
+                        "units"
+                      ],
+                      "properties": {
+                        "rate": {
+                          "type": "string",
+                          "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+                        },
+                        "units": {
+                          "type": "string",
+                          "pattern": "^[0-9]+$"
+                        }
+                      }
                     }
                   }
                 },
@@ -680,7 +725,19 @@
                     "currency": {
                       "type": "string",
                       "enum": [
-                        "CZK"
+                        "CZK",
+                        "EUR",
+                        "USD",
+                        "GBP",
+                        "CHF",
+                        "PLN",
+                        "HUF",
+                        "JPY",
+                        "SEK",
+                        "NOK",
+                        "DKK",
+                        "CAD",
+                        "AUD"
                       ]
                     },
                     "tax_mode": {
@@ -754,10 +811,38 @@
                               "12",
                               "21"
                             ]
+                          },
+                          "catalog_id": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         }
                       },
                       "maxItems": 500
+                    },
+                    "exchange_rate": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "rate",
+                        "units"
+                      ],
+                      "properties": {
+                        "rate": {
+                          "type": "string",
+                          "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+                        },
+                        "units": {
+                          "type": "string",
+                          "pattern": "^[0-9]+$"
+                        }
+                      }
                     }
                   }
                 },

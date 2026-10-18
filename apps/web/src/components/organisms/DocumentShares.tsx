@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Badge, Button, Dialog, Field, Heading } from "@open-faktura/ui";
 import {
+  createInvoiceShare,
+  listInvoiceShares,
+  revokeInvoiceShare,
+  invoiceShareViews,
+  type InvoiceDraft,
   createQuoteShare,
   listQuoteShares,
   revokeQuoteShare,
@@ -14,15 +19,23 @@ import {
 import { useAppTranslation, type AppKey } from "../../locales";
 import { useWorkspace } from "../../hooks/useCompanyWorkspace";
 import { apiUrl } from "../../services/status";
-export function QuoteShares({
+export function DocumentShares({
   document: doc,
+  kind = "quote",
   canWrite,
   onSend,
 }: {
-  document: SalesDocument;
+  document: SalesDocument | InvoiceDraft;
+  kind?: "quote" | "invoice";
   canWrite: boolean;
   onSend?: (link: ShareLink) => void;
 }) {
+  const createShare =
+    kind === "invoice" ? createInvoiceShare : createQuoteShare;
+  const listShares = kind === "invoice" ? listInvoiceShares : listQuoteShares;
+  const revokeShare =
+    kind === "invoice" ? revokeInvoiceShare : revokeQuoteShare;
+  const shareViews = kind === "invoice" ? invoiceShareViews : quoteShareViews;
   const { t, language } = useAppTranslation(),
     { onExpired } = useWorkspace();
   const [links, setLinks] = useState<ShareLinks | null>(null),
@@ -50,19 +63,19 @@ export function QuoteShares({
   useEffect(() => {
     const abort = new AbortController();
     setError("");
-    listQuoteShares(apiUrl, doc.company_id, doc.id, page, abort.signal)
+    listShares(apiUrl, doc.company_id, doc.id, page, abort.signal)
       .then(setLinks)
       .catch((e) => {
         if (!abort.signal.aborted) fail(e);
       });
     return () => abort.abort();
-  }, [doc.company_id, doc.id, page, refresh]);
+  }, [doc.company_id, doc.id, page, refresh, kind]);
   useEffect(() => {
     if (!selected) return;
     const abort = new AbortController();
     setViews(null);
     setViewError(false);
-    quoteShareViews(
+    shareViews(
       apiUrl,
       doc.company_id,
       doc.id,
@@ -78,7 +91,7 @@ export function QuoteShares({
         }
       });
     return () => abort.abort();
-  }, [selected, viewPage, refresh, doc.company_id, doc.id]);
+  }, [selected, viewPage, refresh, doc.company_id, doc.id, kind]);
   const date = (v: string) =>
     new Intl.DateTimeFormat(language === "cs" ? "cs-CZ" : "en-GB", {
       dateStyle: "medium",
@@ -99,7 +112,7 @@ export function QuoteShares({
         expires_days,
       };
     try {
-      await createQuoteShare(apiUrl, doc.company_id, doc.id, attempt.current);
+      await createShare(apiUrl, doc.company_id, doc.id, attempt.current);
       setCreating(false);
       setPage(1);
       setRefresh((v) => v + 1);
@@ -114,7 +127,7 @@ export function QuoteShares({
     setBusy(true);
     setError("");
     try {
-      await revokeQuoteShare(apiUrl, doc.company_id, doc.id, revoking.id);
+      await revokeShare(apiUrl, doc.company_id, doc.id, revoking.id);
       setRevoking(null);
       setRefresh((v) => v + 1);
     } catch (e) {
@@ -157,7 +170,9 @@ export function QuoteShares({
         </div>
       </div>
       <div className="space-y-field p-field">
-        <p className="text-sm text-muted">{t("shareHint")}</p>
+        <p className="text-sm text-muted">
+          {t(kind === "invoice" ? "invoiceShareHint" : "shareHint")}
+        </p>
         {links && !links.configured && canWrite && (
           <Alert>{t("shareUnavailableConfig")}</Alert>
         )}
@@ -287,7 +302,7 @@ export function QuoteShares({
           if (!busy) setCreating(false);
         }}
         title={t("shareCreate")}
-        description={t("shareHint")}
+        description={t(kind === "invoice" ? "invoiceShareHint" : "shareHint")}
       >
         <form
           className="space-y-field"

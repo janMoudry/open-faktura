@@ -1,7 +1,7 @@
 import type { components } from "./attachment.generated";
 import { SalesFailure } from "./sales";
 export type DocumentAttachment = components["schemas"]["Attachment"];
-export type AttachmentKind = "invoice" | "quote";
+export type AttachmentKind = "invoice" | "quote" | "received";
 async function request(
   base: string,
   c: string,

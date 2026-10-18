@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   calculateInvoice,
+  previewSettlement,
   InvoiceCalculationFailure,
   type DraftData,
   type InvoiceTotals,
@@ -11,8 +12,10 @@ export function useInvoiceCalculation(
   input: DraftData["calculation"],
   onExpired: () => void,
   enabled = true,
+  settlementId?: string,
+  revision?: number,
 ) {
-  const key = JSON.stringify(input);
+  const key = JSON.stringify([input, settlementId, revision]);
   const [result, setResult] = useState<{
     key: string;
     totals: InvoiceTotals | null;
@@ -23,7 +26,21 @@ export function useInvoiceCalculation(
     if (!enabled) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      calculateInvoice(apiUrl, company, JSON.parse(key), controller.signal)
+      (settlementId
+        ? previewSettlement(
+            apiUrl,
+            company,
+            settlementId,
+            JSON.parse(key)[0],
+            controller.signal,
+          )
+        : calculateInvoice(
+            apiUrl,
+            company,
+            JSON.parse(key)[0],
+            controller.signal,
+          )
+      )
         .then((totals) => {
           if (!controller.signal.aborted)
             setResult({ key, totals, failed: false, fields: [] });
@@ -49,7 +66,7 @@ export function useInvoiceCalculation(
       clearTimeout(timer);
       controller.abort();
     };
-  }, [company, key, onExpired, enabled]);
+  }, [company, key, onExpired, enabled, settlementId]);
   return {
     loading: result?.key !== key,
     totals: result?.key === key ? result.totals : null,

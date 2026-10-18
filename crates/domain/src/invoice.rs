@@ -25,6 +25,8 @@ pub enum Rounding {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Line {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
     pub id: String,
     pub description: String,
     pub unit: String,
@@ -36,6 +38,8 @@ pub struct Line {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Calculation {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exchange_rate: Option<crate::exchange::ExchangeRate>,
     pub calculation_version: String,
     pub currency: String,
     pub tax_mode: TaxMode,
@@ -143,7 +147,12 @@ pub fn calculate(input: &Calculation) -> Result<Totals, Vec<String>> {
     if input.calculation_version != VERSION {
         errors.push("calculation_version".into());
     }
-    if input.currency != "CZK" {
+    if input.currency != "CZK" && input.lines.iter().any(|l| l.catalog_id.is_some()) {
+        errors.push("currency".into());
+    }
+    if !crate::exchange::validate(&input.currency, input.exchange_rate.as_ref())
+        || (input.currency != "CZK" && input.rounding == Rounding::WholeCzk)
+    {
         errors.push("currency".into());
     }
     if input.lines.len() > 500 {
@@ -227,7 +236,7 @@ pub fn calculate(input: &Calculation) -> Result<Totals, Vec<String>> {
     };
     Ok(Totals {
         calculation_version: VERSION.into(),
-        currency: "CZK".into(),
+        currency: input.currency.clone(),
         lines,
         tax_summary: buckets
             .into_iter()
@@ -312,6 +321,9 @@ pub fn validate_draft(data: &DraftData) -> Vec<String> {
 /// P07 supported domestic CZK invoices. These are Open Faktura rules, not inferred SDK behavior.
 pub fn validate_issue(data: &DraftData) -> Result<Totals, Vec<String>> {
     let mut errors = validate_draft(data);
+    if data.calculation.currency != "CZK" && data.payment.method == "cash" {
+        errors.push("currency".into());
+    }
     if data.calculation.lines.is_empty() {
         errors.push("lines".into());
     }
@@ -397,6 +409,7 @@ mod tests {
     use super::*;
     fn input(q: &str, price: &str, rate: &str) -> Calculation {
         Calculation {
+            exchange_rate: None,
             calculation_version: VERSION.into(),
             currency: "CZK".into(),
             tax_mode: TaxMode::VatPayer,
@@ -404,6 +417,7 @@ mod tests {
             discount_percent: "0".into(),
             rounding: Rounding::None,
             lines: vec![Line {
+                catalog_id: None,
                 id: "a".into(),
                 description: "".into(),
                 unit: "ks".into(),
@@ -458,6 +472,7 @@ mod tests {
         i = input("1", "0.01", "21");
         i.lines = (0..500)
             .map(|n| Line {
+                catalog_id: None,
                 id: n.to_string(),
                 ..i.lines[0].clone()
             })
@@ -469,6 +484,7 @@ mod tests {
         i.lines.reverse();
         assert_eq!(calculate(&i).unwrap().amounts, t.amounts);
         i.lines.push(Line {
+            catalog_id: None,
             id: "overflow".into(),
             ..i.lines[0].clone()
         });
@@ -480,6 +496,7 @@ mod tests {
         i.lines[0].id = "max".into();
         assert!(calculate(&i).is_ok());
         i.lines.push(Line {
+            catalog_id: None,
             id: "zero".into(),
             vat_percent: "0".into(),
             ..i.lines[0].clone()

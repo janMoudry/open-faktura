@@ -1,0 +1,1117 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Received invoices",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/received-invoices": {
+      "get": {
+        "operationId": "received_list",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "receipt"
+              ],
+              "default": "invoice"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "received_create",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceivedCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/received-invoices/{id}": {
+      "get": {
+        "operationId": "received_get",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "received_command",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceivedCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/received-invoices/preview": {
+      "post": {
+        "operationId": "received_preview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedTotals"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceivedData"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/received-invoices/expense-payments": {
+      "get": {
+        "operationId": "received_expenses",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "cash",
+                "card",
+                "bank_transfer"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "reversed",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpensePage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/received-invoices/expense-overview": {
+      "get": {
+        "operationId": "received_overview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseOverview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Revision or request conflict"
+          },
+          "422": {
+            "description": "Validation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "paid_on",
+          "method",
+          "note"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "ReceivedLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "description",
+          "rate",
+          "net",
+          "vat"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "rate": {
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "stock": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": false,
+            "required": [
+              "catalog_id",
+              "quantity",
+              "unit"
+            ],
+            "properties": {
+              "catalog_id": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "acquisition_unit_cost": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
+              }
+            }
+          }
+        }
+      },
+      "ReceivedData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "supplier_contact_id",
+          "supplier",
+          "external_number",
+          "variable_symbol",
+          "bank_account",
+          "issued_on",
+          "received_on",
+          "due_on",
+          "tax_on",
+          "currency",
+          "description",
+          "note",
+          "lines",
+          "rounding"
+        ],
+        "properties": {
+          "supplier_contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "external_number": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "bank_account": {
+            "type": "string"
+          },
+          "issued_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "received_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedLine"
+            }
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "receipt"
+            ],
+            "default": "invoice"
+          },
+          "receipt_method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "card"
+            ],
+            "nullable": true
+          },
+          "stock_incidental_cost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          }
+        }
+      },
+      "ReceivedTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "total"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        }
+      },
+      "ReceivedPayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "paid_on",
+          "method",
+          "note",
+          "id",
+          "actor_id",
+          "created_at",
+          "reversed_at",
+          "reversed_by",
+          "reason"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer",
+              "card"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "id": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "reversed_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "reversed_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReceivedDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "company_id",
+          "number",
+          "revision",
+          "cancelled",
+          "data",
+          "totals",
+          "paid",
+          "remaining",
+          "payment_status",
+          "payments"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReceivedData"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ReceivedTotals"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "remaining": {
+            "type": "string"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partial",
+              "paid"
+            ]
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedPayment"
+            }
+          }
+        }
+      },
+      "ReceivedPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedDocument"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReceivedCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "data"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReceivedData"
+          }
+        }
+      },
+      "ReceivedCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "action"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "update",
+              "pay",
+              "reverse",
+              "cancel"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReceivedData"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentInput"
+          },
+          "payment_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "pay"
+                ]
+              }
+            },
+            "required": [
+              "payment"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "reverse"
+                ]
+              }
+            },
+            "required": [
+              "payment_id",
+              "reason"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "cancel"
+                ]
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          }
+        ]
+      },
+      "ExpenseEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "document_id",
+          "number",
+          "kind",
+          "supplier",
+          "description",
+          "payment",
+          "currency"
+        ],
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "receipt"
+            ]
+          },
+          "supplier": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/ReceivedPayment"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "ExpensePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseEntry"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          }
+        }
+      },
+      "ExpenseOverview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "purchases",
+          "expenses",
+          "outstanding",
+          "overdue"
+        ],
+        "properties": {
+          "purchases": {
+            "type": "string"
+          },
+          "expenses": {
+            "type": "string"
+          },
+          "outstanding": {
+            "type": "string"
+          },
+          "overdue": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

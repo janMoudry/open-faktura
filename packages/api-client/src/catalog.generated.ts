@@ -113,6 +113,7 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
   };
   responses: never;

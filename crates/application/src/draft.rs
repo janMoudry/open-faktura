@@ -2,8 +2,10 @@ pub use crate::company::{CompanyError as Error, Result};
 use async_trait::async_trait;
 use faktura_domain::invoice::{DraftData, Totals};
 use serde::{Deserialize, Serialize};
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Draft {
+    #[serde(default)]
+    pub advances: Option<faktura_domain::advance_settlement::Settlement>,
     pub id: String,
     pub company_id: String,
     pub revision: i64,
@@ -83,8 +85,63 @@ pub async fn list(
     store: &dyn DraftStore,
     actor: &str,
     company: &str,
-    mut search: Search,
+    search: Search,
 ) -> Result<DraftPage> {
+    let search = validate_search(search)?;
+    store.list(actor, company, search).await
+}
+pub async fn get(store: &dyn DraftStore, actor: &str, company: &str, id: &str) -> Result<Draft> {
+    store.get(actor, company, id).await
+}
+pub async fn create(
+    store: &dyn DraftStore,
+    actor: &str,
+    company: &str,
+    command: Create,
+) -> Result<Draft> {
+    let mut errors = faktura_domain::invoice::validate_draft(&command.data);
+    if uuid::Uuid::parse_str(&command.request_id).is_err() {
+        errors.push("request_id".into());
+    }
+    if !errors.is_empty() {
+        return Err(Error::Invalid(errors));
+    }
+    store.create(actor, company, command).await
+}
+pub async fn update(
+    store: &dyn DraftStore,
+    actor: &str,
+    company: &str,
+    id: &str,
+    command: Update,
+) -> Result<Draft> {
+    let mut errors = faktura_domain::invoice::validate_draft(&command.data);
+    if command.revision < 1 {
+        errors.push("revision".into());
+    }
+    if !errors.is_empty() {
+        return Err(Error::Invalid(errors));
+    }
+    store.update(actor, company, id, command).await
+}
+
+pub async fn issue(
+    store: &dyn DraftStore,
+    actor: &str,
+    company: &str,
+    id: &str,
+    command: Issue,
+) -> Result<Draft> {
+    if uuid::Uuid::parse_str(&command.request_id).is_err() || command.revision < 1 {
+        return Err(Error::Invalid(vec!["issue_request".into()]));
+    }
+    store.issue(actor, company, id, command).await
+}
+pub async fn pdf(store: &dyn DraftStore, actor: &str, company: &str, id: &str) -> Result<Vec<u8>> {
+    store.pdf(actor, company, id).await
+}
+
+pub fn validate_search(mut search: Search) -> Result<Search> {
     search.query = search.query.trim().to_owned();
     let invalid_date = |v: &Option<String>| {
         v.as_ref().is_some_and(|v| {
@@ -150,55 +207,5 @@ pub async fn list(
     {
         return Err(Error::Invalid(vec!["search".into()]));
     }
-    store.list(actor, company, search).await
-}
-pub async fn get(store: &dyn DraftStore, actor: &str, company: &str, id: &str) -> Result<Draft> {
-    store.get(actor, company, id).await
-}
-pub async fn create(
-    store: &dyn DraftStore,
-    actor: &str,
-    company: &str,
-    command: Create,
-) -> Result<Draft> {
-    let mut errors = faktura_domain::invoice::validate_draft(&command.data);
-    if uuid::Uuid::parse_str(&command.request_id).is_err() {
-        errors.push("request_id".into());
-    }
-    if !errors.is_empty() {
-        return Err(Error::Invalid(errors));
-    }
-    store.create(actor, company, command).await
-}
-pub async fn update(
-    store: &dyn DraftStore,
-    actor: &str,
-    company: &str,
-    id: &str,
-    command: Update,
-) -> Result<Draft> {
-    let mut errors = faktura_domain::invoice::validate_draft(&command.data);
-    if command.revision < 1 {
-        errors.push("revision".into());
-    }
-    if !errors.is_empty() {
-        return Err(Error::Invalid(errors));
-    }
-    store.update(actor, company, id, command).await
-}
-
-pub async fn issue(
-    store: &dyn DraftStore,
-    actor: &str,
-    company: &str,
-    id: &str,
-    command: Issue,
-) -> Result<Draft> {
-    if uuid::Uuid::parse_str(&command.request_id).is_err() || command.revision < 1 {
-        return Err(Error::Invalid(vec!["issue_request".into()]));
-    }
-    store.issue(actor, company, id, command).await
-}
-pub async fn pdf(store: &dyn DraftStore, actor: &str, company: &str, id: &str) -> Result<Vec<u8>> {
-    store.pdf(actor, company, id).await
+    Ok(search)
 }

@@ -1,0 +1,2599 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura recurring invoices",
+    "version": "1.0.0"
+  },
+  "security": [
+    {
+      "session": []
+    }
+  ],
+  "paths": {
+    "/api/companies/{company}/recurring": {
+      "get": {
+        "operationId": "recurring_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "recurring_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringRule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/recurring/{id}": {
+      "get": {
+        "operationId": "recurring_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringRule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "recurring_command",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringRule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/recurring/preview": {
+      "post": {
+        "operationId": "recurring_preview",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validation, session, permission, conflict or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringPreview"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "faktura_session"
+      }
+    },
+    "schemas": {
+      "InvoiceLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,4})?$"
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "InvoiceCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLine"
+            },
+            "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          }
+        }
+      },
+      "InvoiceAmounts": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "gross"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceLineResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amounts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTaxSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tax_mode",
+          "vat_percent",
+          "amounts"
+        ],
+        "properties": {
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "lines",
+          "tax_summary",
+          "amounts",
+          "rounding",
+          "payable"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineResult"
+            }
+          },
+          "tax_summary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceTaxSummary"
+            }
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "payable": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "fields"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "PaymentSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bank_account",
+          "iban",
+          "variable_symbol",
+          "method"
+        ],
+        "properties": {
+          "bank_account": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          }
+        }
+      },
+      "DraftData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contact_id",
+          "supplier",
+          "customer",
+          "payment",
+          "calculation",
+          "issued_on",
+          "due_on",
+          "tax_on",
+          "language",
+          "order_number",
+          "note"
+        ],
+        "properties": {
+          "contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartySnapshot"
+              }
+            ],
+            "nullable": true
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSnapshot"
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/DraftCalculation"
+          },
+          "issued_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DraftCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DraftLine"
+            },
+            "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          }
+        }
+      },
+      "Draft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "company_id",
+          "revision",
+          "data",
+          "totals",
+          "number",
+          "issued_at",
+          "settlement",
+          "advances"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          },
+          "totals": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              }
+            ],
+            "nullable": true
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "issued_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "settlement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Settlement"
+              }
+            ],
+            "nullable": true
+          },
+          "advances": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdvanceSettlement"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "DraftPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Draft"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          }
+        }
+      },
+      "CreateDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "data"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        }
+      },
+      "UpdateDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "data"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        }
+      },
+      "IssueInvoice": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "Settlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paid",
+          "outstanding",
+          "overpayment",
+          "status",
+          "overdue",
+          "revision",
+          "today"
+        ],
+        "properties": {
+          "paid": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unpaid",
+              "partial",
+              "paid",
+              "overpaid"
+            ]
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "PaymentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "paid_on",
+          "method",
+          "note"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amount",
+          "paid_on",
+          "method",
+          "note",
+          "actor_id",
+          "created_at",
+          "reversed_at",
+          "reason",
+          "reversed_by",
+          "replacement_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "paid_on": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "reversed_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "reversed_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "replacement_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Payments": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "summary",
+          "items"
+        ],
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/Settlement"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            }
+          }
+        }
+      },
+      "RegisterPayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "payment"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentInput"
+          }
+        }
+      },
+      "ReversePayment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id",
+          "revision",
+          "reason",
+          "replacement"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "replacement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentInput"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "Overview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issued_count",
+          "draft_count",
+          "outstanding_count",
+          "overdue_count",
+          "outstanding",
+          "overdue",
+          "received",
+          "overpayment",
+          "currency",
+          "today"
+        ],
+        "properties": {
+          "issued_count": {
+            "type": "integer"
+          },
+          "draft_count": {
+            "type": "integer"
+          },
+          "outstanding_count": {
+            "type": "integer"
+          },
+          "overdue_count": {
+            "type": "integer"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overdue": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "received": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "today": {
+            "type": "string"
+          }
+        }
+      },
+      "AdvanceTaxDeduction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InvoiceTotals"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "totals"
+        ]
+      },
+      "AdvanceSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "payment_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tax_receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdvanceTaxDeduction"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "paid",
+          "payment_ids",
+          "tax_receipts"
+        ]
+      },
+      "AdvanceSettlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdvanceSource"
+            }
+          },
+          "credited": {
+            "type": "string"
+          },
+          "rounding_adjustment": {
+            "type": "string"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "minimum_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "version",
+          "sources",
+          "credited",
+          "rounding_adjustment",
+          "customer",
+          "supplier",
+          "tax_mode",
+          "minimum_date"
+        ]
+      },
+      "RecurringSchedule": {
+        "type": "object",
+        "properties": {
+          "first_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week",
+              "month",
+              "year"
+            ]
+          },
+          "interval": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120
+          },
+          "month_end": {
+            "type": "boolean"
+          },
+          "end_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000,
+            "nullable": true
+          },
+          "timezone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "first_on",
+          "frequency",
+          "interval",
+          "month_end",
+          "end_on",
+          "count",
+          "timezone"
+        ],
+        "additionalProperties": false
+      },
+      "RecurringMail": {
+        "type": "object",
+        "properties": {
+          "recipient": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "recipient",
+          "subject",
+          "body"
+        ],
+        "additionalProperties": false
+      },
+      "RecurringData": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/RecurringSchedule"
+          },
+          "maturity_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "auto_issue": {
+            "type": "boolean"
+          },
+          "mail": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecurringMail"
+              }
+            ],
+            "nullable": true
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/DraftData"
+          }
+        },
+        "required": [
+          "name",
+          "schedule",
+          "maturity_days",
+          "auto_issue",
+          "mail",
+          "invoice"
+        ],
+        "additionalProperties": false
+      },
+      "RecurringOccurrence": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer"
+          },
+          "scheduled_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "invoice_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "delivery_status": {
+            "type": "string",
+            "nullable": true
+          },
+          "error_code": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "index",
+          "scheduled_on",
+          "invoice_id",
+          "number",
+          "delivery_status",
+          "error_code"
+        ],
+        "additionalProperties": false
+      },
+      "RecurringRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paused",
+              "active",
+              "completed",
+              "error"
+            ]
+          },
+          "generated": {
+            "type": "integer"
+          },
+          "error_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/RecurringData"
+          },
+          "next_dates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "occurrences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurringOccurrence"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "company_id",
+          "revision",
+          "status",
+          "generated",
+          "error_code",
+          "data",
+          "next_dates",
+          "occurrences"
+        ],
+        "additionalProperties": false
+      },
+      "RecurringPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurringRule"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page"
+        ],
+        "additionalProperties": false
+      },
+      "RecurringCreate": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RecurringData"
+          }
+        },
+        "required": [
+          "request_id",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "RecurringCommand": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "save",
+              "activate",
+              "pause",
+              "run"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/RecurringData"
+          }
+        },
+        "required": [
+          "request_id",
+          "revision",
+          "action"
+        ],
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "save"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "activate"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "pause"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "enum": [
+                  "run"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        ]
+      },
+      "RecurringPreview": {
+        "type": "object",
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/RecurringSchedule"
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          }
+        },
+        "required": [
+          "schedule",
+          "index"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

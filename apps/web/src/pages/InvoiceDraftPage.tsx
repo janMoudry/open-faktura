@@ -1,3 +1,6 @@
+import { DocumentCurrencyFields } from "../components/organisms/DocumentCurrencyFields";
+import { AdvanceDeductions } from "../components/organisms/AdvanceDeductions";
+import { AdvanceSettlementPicker } from "../components/organisms/AdvanceSettlementPicker";
 import { DocumentAttachments } from "../components/organisms/DocumentAttachments";
 import { SalesTemplatePicker } from "../components/organisms/SalesTemplatePicker";
 import { CatalogLinePicker } from "../components/organisms/CatalogLinePicker";
@@ -89,6 +92,7 @@ function Editor({
   const [data, setData] = useState<DraftData>(initial.current);
   const [draft, setDraft] = useState<InvoiceDraft | null>(null);
   const editable = canEdit && !draft?.number;
+  const [settling, setSettling] = useState(false);
   const [issuing, setIssuing] = useState(false);
   const issueKey = useRef(crypto.randomUUID());
   const [loading, setLoading] = useState(!creating || !!copy);
@@ -153,6 +157,8 @@ function Editor({
     data.calculation,
     onExpired,
     !draft?.number,
+    draft?.advances ? draft.id : undefined,
+    draft?.revision,
   );
   const customer = data.customer ?? emptyParty();
   const showCustomerFields =
@@ -548,7 +554,9 @@ function Editor({
                         disabled={disabled}
                         options={[
                           { value: "bank_transfer", label: t("bankTransfer") },
-                          { value: "cash", label: t("cash") },
+                          ...(data.calculation.currency === "CZK"
+                            ? [{ value: "cash", label: t("cash") }]
+                            : []),
                         ]}
                         onChange={(method) =>
                           change({
@@ -661,6 +669,25 @@ function Editor({
                     />
                   </div>
                 </details>
+                <DocumentCurrencyFields
+                  value={data.calculation}
+                  documentDate={data.issued_on}
+                  disabled={disabled || !!draft?.advances}
+                  onChange={(v) =>
+                    change({
+                      ...data,
+                      payment:
+                        v.currency !== "CZK"
+                          ? { ...data.payment, method: "bank_transfer" }
+                          : data.payment,
+                      calculation: {
+                        ...data.calculation,
+                        ...v,
+                        rounding: "none",
+                      },
+                    })
+                  }
+                />
                 <InvoiceLines
                   catalogPicker={
                     <CatalogLinePicker
@@ -696,6 +723,32 @@ function Editor({
                   errors={[...fields, ...calc.fields]}
                   onChange={(calculation) => change({ ...data, calculation })}
                 />
+                {draft?.advances && (
+                  <AdvanceDeductions
+                    value={draft.advances}
+                    company={company.id}
+                  />
+                )}
+                {editable && draft && (
+                  <div className="invoice-section">
+                    <Button
+                      variant="secondary"
+                      disabled={busy || dirty}
+                      title={dirty ? t("issueSaveFirst") : undefined}
+                      onClick={() => setSettling(true)}
+                    >
+                      {t(draft.advances ? "settlementManage" : "settlementAdd")}
+                    </Button>
+                  </div>
+                )}
+                {settling && draft && (
+                  <AdvanceSettlementPicker
+                    company={company.id}
+                    invoice={draft}
+                    onClose={() => setSettling(false)}
+                    onSaved={() => setAttempt((v) => v + 1)}
+                  />
+                )}
                 <InvoiceSummary
                   calculation={data.calculation}
                   totals={calc.totals}

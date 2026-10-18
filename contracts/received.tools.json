@@ -1,0 +1,1040 @@
+[
+  {
+    "name": "received_list",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "receipt"
+          ],
+          "default": "invoice"
+        }
+      },
+      "required": [
+        "company_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "received_create",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "supplier_contact_id",
+            "supplier",
+            "external_number",
+            "variable_symbol",
+            "bank_account",
+            "issued_on",
+            "received_on",
+            "due_on",
+            "tax_on",
+            "currency",
+            "description",
+            "note",
+            "lines",
+            "rounding"
+          ],
+          "properties": {
+            "supplier_contact_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "supplier": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "registration_number",
+                "vat_number",
+                "email",
+                "phone",
+                "address"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "registration_number": {
+                  "type": "string"
+                },
+                "vat_number": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "phone": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "street",
+                    "city",
+                    "postal_code",
+                    "country"
+                  ],
+                  "properties": {
+                    "street": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "postal_code": {
+                      "type": "string"
+                    },
+                    "country": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "external_number": {
+              "type": "string"
+            },
+            "variable_symbol": {
+              "type": "string"
+            },
+            "bank_account": {
+              "type": "string"
+            },
+            "issued_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "received_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "due_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "tax_on": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "currency": {
+              "type": "string",
+              "enum": [
+                "CZK",
+                "EUR",
+                "USD",
+                "GBP",
+                "CHF",
+                "PLN",
+                "HUF",
+                "JPY",
+                "SEK",
+                "NOK",
+                "DKK",
+                "CAD",
+                "AUD"
+              ]
+            },
+            "description": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "description",
+                  "rate",
+                  "net",
+                  "vat"
+                ],
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "rate": {
+                    "type": "string"
+                  },
+                  "net": {
+                    "type": "string"
+                  },
+                  "vat": {
+                    "type": "string"
+                  },
+                  "stock": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "catalog_id",
+                          "quantity",
+                          "unit"
+                        ],
+                        "properties": {
+                          "catalog_id": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "acquisition_unit_cost": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "rounding": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "receipt"
+              ],
+              "default": "invoice"
+            },
+            "receipt_method": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "cash",
+                    "card"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "stock_incidental_cost": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
+            },
+            "exchange_rate": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "rate",
+                "units"
+              ],
+              "properties": {
+                "rate": {
+                  "type": "string",
+                  "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+                },
+                "units": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "request_id",
+        "data"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "received_get",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "received_command",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "update",
+            "pay",
+            "reverse",
+            "cancel"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "supplier_contact_id",
+            "supplier",
+            "external_number",
+            "variable_symbol",
+            "bank_account",
+            "issued_on",
+            "received_on",
+            "due_on",
+            "tax_on",
+            "currency",
+            "description",
+            "note",
+            "lines",
+            "rounding"
+          ],
+          "properties": {
+            "supplier_contact_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "supplier": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "registration_number",
+                "vat_number",
+                "email",
+                "phone",
+                "address"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "registration_number": {
+                  "type": "string"
+                },
+                "vat_number": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "phone": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "street",
+                    "city",
+                    "postal_code",
+                    "country"
+                  ],
+                  "properties": {
+                    "street": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "postal_code": {
+                      "type": "string"
+                    },
+                    "country": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "external_number": {
+              "type": "string"
+            },
+            "variable_symbol": {
+              "type": "string"
+            },
+            "bank_account": {
+              "type": "string"
+            },
+            "issued_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "received_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "due_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "tax_on": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "currency": {
+              "type": "string",
+              "enum": [
+                "CZK",
+                "EUR",
+                "USD",
+                "GBP",
+                "CHF",
+                "PLN",
+                "HUF",
+                "JPY",
+                "SEK",
+                "NOK",
+                "DKK",
+                "CAD",
+                "AUD"
+              ]
+            },
+            "description": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "description",
+                  "rate",
+                  "net",
+                  "vat"
+                ],
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "rate": {
+                    "type": "string"
+                  },
+                  "net": {
+                    "type": "string"
+                  },
+                  "vat": {
+                    "type": "string"
+                  },
+                  "stock": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "catalog_id",
+                          "quantity",
+                          "unit"
+                        ],
+                        "properties": {
+                          "catalog_id": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "acquisition_unit_cost": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "rounding": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "receipt"
+              ],
+              "default": "invoice"
+            },
+            "receipt_method": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "cash",
+                    "card"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "stock_incidental_cost": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
+            },
+            "exchange_rate": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "rate",
+                "units"
+              ],
+              "properties": {
+                "rate": {
+                  "type": "string",
+                  "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+                },
+                "units": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            }
+          }
+        },
+        "payment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "paid_on",
+            "method",
+            "note"
+          ],
+          "properties": {
+            "amount": {
+              "type": "string",
+              "pattern": "^\\d+(\\.\\d{1,2})?$"
+            },
+            "paid_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "cash",
+                "bank_transfer"
+              ]
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 500
+            }
+          }
+        },
+        "payment_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "request_id",
+        "revision",
+        "action"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "update"
+              ]
+            }
+          },
+          "required": [
+            "data"
+          ]
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "pay"
+              ]
+            }
+          },
+          "required": [
+            "payment"
+          ]
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "reverse"
+              ]
+            }
+          },
+          "required": [
+            "payment_id",
+            "reason"
+          ]
+        },
+        {
+          "properties": {
+            "action": {
+              "enum": [
+                "cancel"
+              ]
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "received_preview",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "supplier_contact_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "supplier": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "registration_number",
+            "vat_number",
+            "email",
+            "phone",
+            "address"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "registration_number": {
+              "type": "string"
+            },
+            "vat_number": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "phone": {
+              "type": "string"
+            },
+            "address": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "street",
+                "city",
+                "postal_code",
+                "country"
+              ],
+              "properties": {
+                "street": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "postal_code": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "external_number": {
+          "type": "string"
+        },
+        "variable_symbol": {
+          "type": "string"
+        },
+        "bank_account": {
+          "type": "string"
+        },
+        "issued_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "received_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "due_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "tax_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "CZK",
+            "EUR",
+            "USD",
+            "GBP",
+            "CHF",
+            "PLN",
+            "HUF",
+            "JPY",
+            "SEK",
+            "NOK",
+            "DKK",
+            "CAD",
+            "AUD"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "description",
+              "rate",
+              "net",
+              "vat"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "rate": {
+                "type": "string"
+              },
+              "net": {
+                "type": "string"
+              },
+              "vat": {
+                "type": "string"
+              },
+              "stock": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "catalog_id",
+                      "quantity",
+                      "unit"
+                    ],
+                    "properties": {
+                      "catalog_id": {
+                        "type": "string"
+                      },
+                      "quantity": {
+                        "type": "string"
+                      },
+                      "unit": {
+                        "type": "string"
+                      },
+                      "acquisition_unit_cost": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "Explicit acquisition cost per unit in CZK including non-deductible VAT; do not also include costs supplied in stock_incidental_cost. Absent means unknown. Up to 4 decimals, 0..1000000000."
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "rounding": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "receipt"
+          ],
+          "default": "invoice"
+        },
+        "receipt_method": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "cash",
+                "card"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stock_incidental_cost": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Total CZK incidental stock costs allocated by acquisition value across stock receipt lines; up to 2 decimals, 0..1000000000. Does not increase supplier payable."
+        },
+        "exchange_rate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rate",
+            "units"
+          ],
+          "properties": {
+            "rate": {
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+            },
+            "units": {
+              "type": "string",
+              "pattern": "^[0-9]+$"
+            }
+          }
+        }
+      },
+      "required": [
+        "company_id",
+        "supplier_contact_id",
+        "supplier",
+        "external_number",
+        "variable_symbol",
+        "bank_account",
+        "issued_on",
+        "received_on",
+        "due_on",
+        "tax_on",
+        "currency",
+        "description",
+        "note",
+        "lines",
+        "rounding"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "received_expenses",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string",
+          "format": "date"
+        },
+        "to": {
+          "type": "string",
+          "format": "date"
+        },
+        "query": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "all",
+            "cash",
+            "card",
+            "bank_transfer"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "reversed",
+            "all"
+          ]
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "company_id",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "received_overview",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string",
+          "format": "date"
+        },
+        "to": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "company_id",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

@@ -177,7 +177,13 @@ export function DocumentAttachments({
         )}
       </div>
       <p className="text-sm text-muted">
-        {t(onSelect ? "attachmentsEmailHint" : "attachmentsHint")}
+        {t(
+          onSelect
+            ? kind === "invoice"
+              ? "attachmentsInvoiceEmailHint"
+              : "attachmentsEmailHint"
+            : "attachmentsHint",
+        )}
       </p>
       {error && (
         <Alert role="alert" tone="danger">

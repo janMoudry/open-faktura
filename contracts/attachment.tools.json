@@ -12,7 +12,8 @@
           "type": "string",
           "enum": [
             "invoice",
-            "quote"
+            "quote",
+            "received"
           ]
         },
         "document_id": {
@@ -39,7 +40,8 @@
           "type": "string",
           "enum": [
             "invoice",
-            "quote"
+            "quote",
+            "received"
           ]
         },
         "document_id": {
@@ -81,7 +83,8 @@
           "type": "string",
           "enum": [
             "invoice",
-            "quote"
+            "quote",
+            "received"
           ]
         },
         "document_id": {
@@ -112,7 +115,8 @@
           "type": "string",
           "enum": [
             "invoice",
-            "quote"
+            "quote",
+            "received"
           ]
         },
         "document_id": {

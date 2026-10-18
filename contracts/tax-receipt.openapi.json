@@ -1,0 +1,843 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Open Faktura tax receipts",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/tax-receipts": {
+      "get": {
+        "operationId": "taxList",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                10,
+                25,
+                50,
+                100
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped tax receipt; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate payment, stale revision, or replay conflict"
+          },
+          "422": {
+            "description": "Invalid dates, tax mode or allocation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "taxIssue",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped tax receipt; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate payment, stale revision, or replay conflict"
+          },
+          "422": {
+            "description": "Invalid dates, tax mode or allocation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxIssue"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/tax-receipts/{id}": {
+      "get": {
+        "operationId": "taxGet",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped tax receipt; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate payment, stale revision, or replay conflict"
+          },
+          "422": {
+            "description": "Invalid dates, tax mode or allocation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/tax-receipts/{id}/pdf": {
+      "get": {
+        "operationId": "taxPdf",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped tax receipt; no-store",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate payment, stale revision, or replay conflict"
+          },
+          "422": {
+            "description": "Invalid dates, tax mode or allocation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/advances/{advance_id}/payments/{payment_id}/tax-preview": {
+      "get": {
+        "operationId": "taxPreview",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "advance_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "payment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile-scoped tax receipt; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate payment, stale revision, or replay conflict"
+          },
+          "422": {
+            "description": "Invalid dates, tax mode or allocation"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InvoiceAmounts": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "net",
+          "vat",
+          "gross"
+        ],
+        "properties": {
+          "net": {
+            "type": "string"
+          },
+          "vat": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceLineResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amounts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTaxSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tax_mode",
+          "vat_percent",
+          "amounts"
+        ],
+        "properties": {
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          }
+        }
+      },
+      "InvoiceTotals": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "lines",
+          "tax_summary",
+          "amounts",
+          "rounding",
+          "payable"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineResult"
+            }
+          },
+          "tax_summary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceTaxSummary"
+            }
+          },
+          "amounts": {
+            "$ref": "#/components/schemas/InvoiceAmounts"
+          },
+          "rounding": {
+            "type": "string"
+          },
+          "payable": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "postal_code",
+          "country"
+        ],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "PartySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "registration_number",
+          "vat_number",
+          "email",
+          "phone",
+          "address"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "registration_number": {
+            "type": "string"
+          },
+          "vat_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/DraftAddress"
+          }
+        }
+      },
+      "PaymentSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bank_account",
+          "iban",
+          "variable_symbol",
+          "method"
+        ],
+        "properties": {
+          "bank_account": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "variable_symbol": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          }
+        }
+      },
+      "DraftData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contact_id",
+          "supplier",
+          "customer",
+          "payment",
+          "calculation",
+          "issued_on",
+          "due_on",
+          "tax_on",
+          "language",
+          "order_number",
+          "note"
+        ],
+        "properties": {
+          "contact_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartySnapshot"
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartySnapshot"
+              }
+            ],
+            "nullable": true
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSnapshot"
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/DraftCalculation"
+          },
+          "issued_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "due_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "tax_on": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          },
+          "order_number": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "DraftLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "discount_percent",
+          "vat_percent"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "discount_percent": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          },
+          "catalog_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DraftCalculation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "currency",
+          "tax_mode",
+          "price_mode",
+          "discount_percent",
+          "rounding",
+          "lines"
+        ],
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "enum": [
+              "of-czk-v1",
+              "import-v1"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK",
+              "EUR",
+              "USD",
+              "GBP",
+              "CHF",
+              "PLN",
+              "HUF",
+              "JPY",
+              "SEK",
+              "NOK",
+              "DKK",
+              "CAD",
+              "AUD"
+            ]
+          },
+          "tax_mode": {
+            "type": "string",
+            "enum": [
+              "non_payer",
+              "vat_payer"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "discount_percent": {
+            "type": "string"
+          },
+          "rounding": {
+            "type": "string",
+            "enum": [
+              "none",
+              "whole_czk"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DraftLine"
+            },
+            "maxItems": 500
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rate",
+              "units"
+            ],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          }
+        }
+      },
+      "TaxIssue": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "advance_id": {
+            "type": "string"
+          },
+          "payment_id": {
+            "type": "string"
+          },
+          "issued_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "revision",
+          "advance_id",
+          "payment_id",
+          "issued_on",
+          "description",
+          "language"
+        ]
+      },
+      "TaxDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          },
+          "advance_id": {
+            "type": "string"
+          },
+          "advance_number": {
+            "type": "string"
+          },
+          "payment_id": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DraftData"
+          },
+          "totals": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceTotals"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "company_id",
+          "advance_id",
+          "advance_number",
+          "payment_id",
+          "data",
+          "totals"
+        ]
+      },
+      "TaxPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxDocument"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ]
+      }
+    }
+  }
+}

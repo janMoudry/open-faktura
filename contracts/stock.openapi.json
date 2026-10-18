@@ -1,0 +1,1186 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Stock",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/stock/cards": {
+      "get": {
+        "operationId": "stock_cards",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockCard"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/stock/movements": {
+      "get": {
+        "operationId": "stock_movements",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/stock/commands": {
+      "post": {
+        "operationId": "stock_execute",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockMovement"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/stock/report": {
+      "get": {
+        "operationId": "stock_report",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "valuation",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "manual",
+                "automatic"
+              ],
+              "default": "manual"
+            },
+            "description": "Manual dated price or conservative moving acquisition average. Corrections/unknown receipts yield unknown value."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/stock/costs": {
+      "post": {
+        "operationId": "stock_set_cost",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockCost"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockCostCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/stock/costs/{catalog_id}": {
+      "get": {
+        "operationId": "stock_costs",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockCost"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/stock/sales-report": {
+      "get": {
+        "operationId": "item_sales_report",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "invoice",
+                "retail",
+                "credit_note"
+              ]
+            }
+          },
+          {
+            "name": "catalog_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "source_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sales of catalog items grouped by item, unit and currency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemSalesReport"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Invalid filters or over 10000 groups"
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/stock/sales-export": {
+      "post": {
+        "operationId": "item_sales_export",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemSalesExport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Filtered CSV or XLSX file",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CatalogData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "code",
+          "barcode",
+          "unit",
+          "quantity",
+          "unit_price",
+          "currency",
+          "price_mode",
+          "vat_percent"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "barcode": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,4})?$",
+            "maxLength": 24
+          },
+          "unit_price": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d{1,4})?$",
+            "maxLength": 24
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CZK"
+            ]
+          },
+          "price_mode": {
+            "type": "string",
+            "enum": [
+              "net",
+              "gross"
+            ]
+          },
+          "vat_percent": {
+            "type": "string",
+            "enum": [
+              "0",
+              "12",
+              "21"
+            ]
+          }
+        }
+      },
+      "StockCard": {
+        "type": "object",
+        "required": [
+          "catalog_id",
+          "revision",
+          "opened_on",
+          "quantity",
+          "item"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "catalog_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "opened_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "item": {
+            "$ref": "#/components/schemas/CatalogData"
+          }
+        }
+      },
+      "StockMovement": {
+        "type": "object",
+        "required": [
+          "id",
+          "catalog_id",
+          "quantity",
+          "booked_on",
+          "kind",
+          "reason",
+          "item",
+          "reverses_id",
+          "source_kind",
+          "source_id",
+          "source_line",
+          "acquisition_unit_cost",
+          "acquisition_correction",
+          "acquisition_extra_cost"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "catalog_id": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "booked_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "item": {
+            "$ref": "#/components/schemas/CatalogData"
+          },
+          "reverses_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "source_kind": {
+            "type": "string",
+            "nullable": true
+          },
+          "source_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "source_line": {
+            "type": "string",
+            "nullable": true
+          },
+          "acquisition_unit_cost": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "acquisition_correction": {
+            "type": "boolean"
+          },
+          "acquisition_extra_cost": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "StockPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "summary"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockMovement"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "summary": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StockSummary"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "StockCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "request_id",
+              "catalog_id",
+              "action",
+              "quantity",
+              "booked_on",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "catalog_id": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "open"
+                ]
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "booked_on": {
+                "type": "string",
+                "format": "date"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "acquisition_unit_cost": {
+                "type": "string",
+                "description": "Optional acquisition unit cost for a positive stock increase only; maximum 4 decimal places."
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "request_id",
+              "catalog_id",
+              "action",
+              "quantity",
+              "booked_on",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "catalog_id": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "move"
+                ]
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "booked_on": {
+                "type": "string",
+                "format": "date"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "acquisition_unit_cost": {
+                "type": "string",
+                "description": "Optional acquisition unit cost for a positive stock increase only; maximum 4 decimal places."
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "request_id",
+              "catalog_id",
+              "action",
+              "quantity",
+              "revision",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "catalog_id": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "count"
+                ]
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "acquisition_unit_cost": {
+                "type": "string",
+                "description": "Optional acquisition unit cost for a positive stock increase only; maximum 4 decimal places."
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "request_id",
+              "catalog_id",
+              "action",
+              "movement_id",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string"
+              },
+              "catalog_id": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "reverse"
+                ]
+              },
+              "movement_id": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "StockSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "opening",
+          "received",
+          "issued",
+          "adjustments",
+          "closing"
+        ],
+        "properties": {
+          "opening": {
+            "type": "string"
+          },
+          "received": {
+            "type": "string"
+          },
+          "issued": {
+            "type": "string"
+          },
+          "adjustments": {
+            "type": "string"
+          },
+          "closing": {
+            "type": "string"
+          }
+        }
+      },
+      "StockCost": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "catalog_id",
+          "revision",
+          "effective_on",
+          "unit_cost",
+          "reason"
+        ],
+        "properties": {
+          "catalog_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "unit_cost": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "StockCostCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "catalog_id",
+          "revision",
+          "effective_on",
+          "unit_cost",
+          "reason",
+          "request_id"
+        ],
+        "properties": {
+          "catalog_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "unit_cost": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      },
+      "StockReportItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "catalog_id",
+          "name",
+          "code",
+          "unit",
+          "archived",
+          "quantity",
+          "unit_cost",
+          "value",
+          "cost_revision",
+          "issued_value",
+          "correction_stock_value",
+          "correction_issued_value"
+        ],
+        "properties": {
+          "catalog_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unit_cost": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "type": "string",
+            "nullable": true
+          },
+          "cost_revision": {
+            "type": "integer"
+          },
+          "issued_value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "correction_stock_value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "correction_issued_value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "StockReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "as_of",
+          "items",
+          "total",
+          "page",
+          "known_value",
+          "unvalued_count",
+          "negative_count"
+        ],
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockReportItem"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "known_value": {
+            "type": "string"
+          },
+          "unvalued_count": {
+            "type": "integer"
+          },
+          "negative_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "ItemSalesSearch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "invoice",
+              "retail",
+              "credit_note"
+            ]
+          },
+          "catalog_id": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "source_page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          }
+        }
+      },
+      "ItemSalesItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "catalog_id",
+          "name",
+          "code",
+          "unit",
+          "currency",
+          "quantity",
+          "net",
+          "gross"
+        ],
+        "properties": {
+          "catalog_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "ItemSalesSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "document_id",
+          "number",
+          "kind",
+          "description",
+          "unit",
+          "currency",
+          "quantity",
+          "net",
+          "gross",
+          "issued_on"
+        ],
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          },
+          "issued_on": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ItemSalesTotal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currency",
+          "net",
+          "gross"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          }
+        }
+      },
+      "ItemSalesReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "totals",
+          "total",
+          "page",
+          "sources",
+          "source_total",
+          "source_page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSalesItem"
+            }
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSalesTotal"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSalesSource"
+            }
+          },
+          "source_total": {
+            "type": "integer"
+          },
+          "source_page": {
+            "type": "integer"
+          }
+        }
+      },
+      "ItemSalesExport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "search",
+          "format",
+          "language"
+        ],
+        "properties": {
+          "search": {
+            "$ref": "#/components/schemas/ItemSalesSearch"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "xlsx"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "cs",
+              "en"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

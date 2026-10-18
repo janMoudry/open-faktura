@@ -37,7 +37,8 @@ export function ImportPreview({
           {t("importPreview")}
         </Heading>
         <p className="text-sm text-muted">
-          {batch.source} · {batch.agenda} · {batch.rows.length}
+          {batch.source === "money_s3" ? "Money S3" : batch.source} ·{" "}
+          {batch.agenda} · {batch.rows.length}
         </p>
       </div>
       <div
@@ -67,7 +68,7 @@ export function ImportPreview({
                     {r.target_id ? (
                       <Link
                         className="hover:underline underline-offset-4"
-                        to={`/companies/${company}/${r.kind === "contact" ? "contacts" : "invoices"}/${r.target_id}`}
+                        to={`/companies/${company}/${r.kind === "catalog" ? "catalog" : r.kind === "contact" ? "contacts" : "invoices"}/${r.target_id}`}
                       >
                         {r.label}
                       </Link>
@@ -76,6 +77,22 @@ export function ImportPreview({
                     )}
                   </span>
                   <div className="mt-1 text-xs text-muted">{r.key}</div>
+                  {r.catalog && (
+                    <p className="text-sm text-muted">
+                      {r.catalog.code} ·{" "}
+                      {r.catalog.unit_price.replace(
+                        ".",
+                        language === "cs" ? "," : ".",
+                      )}{" "}
+                      {r.catalog.currency} / {r.catalog.unit} ·{" "}
+                      {t(
+                        r.catalog.price_mode === "gross"
+                          ? "itemSalesGross"
+                          : "itemSalesNet",
+                      )}{" "}
+                      · {r.catalog.vat_percent}%
+                    </p>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Badge

@@ -52,6 +52,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/companies/{company}/imports/money": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["import_money"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -139,12 +155,26 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     InvoiceCalculation: {
       /** @enum {string} */
       calculation_version: "of-czk-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       /** @enum {string} */
       tax_mode: "non_payer" | "vat_payer";
       /** @enum {string} */
@@ -153,6 +183,10 @@ export interface components {
       /** @enum {string} */
       rounding: "none" | "whole_czk";
       lines: components["schemas"]["InvoiceLine"][];
+      exchange_rate?: {
+        rate: string;
+        units: string;
+      };
     };
     InvoiceAmounts: {
       net: string;
@@ -174,7 +208,20 @@ export interface components {
       /** @enum {string} */
       calculation_version: "of-czk-v1" | "import-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       lines: components["schemas"]["InvoiceLineResult"][];
       tax_summary: components["schemas"]["InvoiceTaxSummary"][];
       amounts: components["schemas"]["InvoiceAmounts"];
@@ -232,12 +279,26 @@ export interface components {
       discount_percent: string;
       /** @enum {string} */
       vat_percent: "0" | "12" | "21";
+      catalog_id?: string | null;
     };
     DraftCalculation: {
       /** @enum {string} */
       calculation_version: "of-czk-v1" | "import-v1";
       /** @enum {string} */
-      currency: "CZK";
+      currency:
+        | "CZK"
+        | "EUR"
+        | "USD"
+        | "GBP"
+        | "CHF"
+        | "PLN"
+        | "HUF"
+        | "JPY"
+        | "SEK"
+        | "NOK"
+        | "DKK"
+        | "CAD"
+        | "AUD";
       /** @enum {string} */
       tax_mode: "non_payer" | "vat_payer";
       /** @enum {string} */
@@ -246,6 +307,10 @@ export interface components {
       /** @enum {string} */
       rounding: "none" | "whole_czk";
       lines: components["schemas"]["DraftLine"][];
+      exchange_rate?: {
+        rate: string;
+        units: string;
+      };
     };
     Draft: {
       id: string;
@@ -355,12 +420,18 @@ export interface components {
           data: components["schemas"]["DraftData"];
           totals: components["schemas"]["InvoiceTotals"];
           payments: components["schemas"]["PaymentInput"][];
+        }
+      | {
+          /** @enum {string} */
+          kind: "catalog";
+          key: string;
+          data: components["schemas"]["CatalogData"];
         };
     PrepareImport: {
       /** Format: uuid */
       request_id: string;
       /** @enum {string} */
-      source: "idoklad" | "fakturaonline" | "generic";
+      source: "idoklad" | "fakturaonline" | "generic" | "money_s3";
       agenda: string;
       records: components["schemas"]["ImportRecord"][];
     };
@@ -377,6 +448,7 @@ export interface components {
         "ready" | "invalid" | "conflict" | "duplicate" | "imported" | "skipped";
       fields: string[];
       target_id: string | null;
+      catalog?: components["schemas"]["CatalogData"] | null;
     };
     ImportTotals: {
       currency: string;
@@ -405,6 +477,28 @@ export interface components {
     ImportTable: {
       headers: string[];
       rows: string[][];
+    };
+    CatalogData: {
+      name: string;
+      code: string;
+      barcode: string;
+      unit: string;
+      quantity: string;
+      unit_price: string;
+      /** @description Raw source value; supported values are checked per row during import preview. */
+      currency: string;
+      /** @enum {string} */
+      price_mode: "net" | "gross";
+      /** @description Raw source value; supported values are checked per row during import preview. */
+      vat_percent: string;
+    };
+    MoneyPrepare: {
+      /** Format: uuid */
+      request_id: string;
+      agenda: string;
+      xml: string;
+      /** @enum {string} */
+      domestic_currency: "CZK";
     };
   };
   responses: never;
@@ -805,6 +899,32 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  import_money: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        company: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MoneyPrepare"];
+      };
+    };
+    responses: {
+      /** @description Money S3 native XML preview; no catalog writes until apply */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ImportBatch"];
         };
       };
     };

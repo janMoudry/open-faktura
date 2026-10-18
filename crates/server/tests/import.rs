@@ -387,6 +387,25 @@ async fn rest_mcp_parity_and_csrf(pool: PgPool) {
     let bad: serde_json::Value =
         serde_json::from_slice(&to_bytes(bad.into_body(), 10000).await.unwrap()).unwrap();
     assert_eq!(bad["code"], "invalid_input");
+    let money = serde_json::json!({"request_id":key(410),"agenda":"money-transport","domestic_currency":"CZK","xml":include_str!("../../../tests/fixtures/import/money-s3-synthetic.xml")});
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/api/companies/{company}/imports/money"))
+                .header("cookie", format!("faktura_session={token}"))
+                .header("origin", "https://app.test")
+                .header("x-faktura-request", "1")
+                .header("content-type", "application/json")
+                .body(Body::from(serde_json::to_vec(&money).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    let money_http: serde_json::Value =
+        serde_json::from_slice(&to_bytes(response.into_body(), 1000000).await.unwrap()).unwrap();
     let (client_io, server_io) = tokio::io::duplex(65536);
     let server = faktura_server::mcp::CompanyMcp::new(pool.clone(), token);
     let task = tokio::spawn(async move {
@@ -423,6 +442,17 @@ async fn rest_mcp_parity_and_csrf(pool: PgPool) {
     let value: serde_json::Value =
         serde_json::from_str(encoded["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(value["status"], "done");
+    let mut money_args = money.as_object().unwrap().clone();
+    money_args.insert("company_id".into(), company.clone().into());
+    let result = client
+        .call_tool(CallToolRequestParams::new("import_money").with_arguments(money_args))
+        .await
+        .unwrap();
+    assert_eq!(result.is_error, Some(false));
+    let result = serde_json::to_value(result).unwrap();
+    let money_mcp: serde_json::Value =
+        serde_json::from_str(result["content"][0]["text"].as_str().unwrap()).unwrap();
+    assert_eq!(money_http, money_mcp);
     client.cancel().await.unwrap();
     task.await.unwrap();
 }
@@ -478,4 +508,216 @@ async fn upgrade_preserves_p08_data(pool: PgPool) {
         .await
         .unwrap();
     assert!(b.rows.iter().all(|r| r.status == "ready"));
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "requires isolated PostgreSQL"]
+async fn money_catalog_preview_apply_replay_conflicts_and_scope(pool: PgPool) {
+    use faktura_application::import::MoneyPrepare;
+    const XML: &str = include_str!("../../../tests/fixtures/import/money-s3-synthetic.xml");
+    let (a, _, c, other) = setup(&pool).await;
+    let store = PgImport(pool.clone());
+    let command = |n, xml: &str| MoneyPrepare {
+        request_id: key(n),
+        agenda: "synthetic-money".into(),
+        domestic_currency: "CZK".into(),
+        xml: xml.into(),
+    };
+    let preview = store
+        .prepare_money(&a, &c, command(700, XML))
+        .await
+        .unwrap();
+    assert_eq!(preview.rows[0].status, "ready");
+    assert_eq!(preview.rows[0].catalog.as_ref().unwrap().unit_price, "750");
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>("SELECT count(*) FROM catalog")
+            .fetch_one(&pool)
+            .await
+            .unwrap(),
+        0
+    );
+    assert!(store.get(&a, &other, &preview.id).await.is_err());
+    let second = store
+        .prepare_money(&a, &c, command(701, XML))
+        .await
+        .unwrap();
+    let (left, right) = tokio::join!(
+        store.apply(&a, &c, &preview.id, Apply { skip: vec![] }),
+        store.apply(&a, &c, &second.id, Apply { skip: vec![] })
+    );
+    let statuses = [
+        left.unwrap().rows[0].status.clone(),
+        right.unwrap().rows[0].status.clone(),
+    ];
+    assert!(statuses.contains(&"imported".to_string()));
+    assert!(statuses.contains(&"duplicate".to_string()));
+    store
+        .apply(&a, &c, &preview.id, Apply { skip: vec![] })
+        .await
+        .unwrap();
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>("SELECT count(*) FROM catalog")
+            .fetch_one(&pool)
+            .await
+            .unwrap(),
+        1
+    );
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>("SELECT count(*) FROM catalog_audit")
+            .fetch_one(&pool)
+            .await
+            .unwrap(),
+        1
+    );
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>("SELECT count(*) FROM stock_card")
+            .fetch_one(&pool)
+            .await
+            .unwrap(),
+        0
+    );
+    let changed = store
+        .prepare_money(&a, &c, command(702, &XML.replace("750", "751")))
+        .await
+        .unwrap();
+    assert_eq!(changed.rows[0].status, "conflict");
+    let duplicate = store
+        .prepare_money(&a, &c, command(703, XML))
+        .await
+        .unwrap();
+    assert_eq!(duplicate.rows[0].status, "duplicate");
+    let different_key = XML.replace("8000-000000000001", "8000-000000000003");
+    let collision = store
+        .prepare_money(&a, &c, command(704, &different_key))
+        .await
+        .unwrap();
+    assert_eq!(collision.rows[0].status, "conflict");
+    let invalid = store
+        .prepare_money(
+            &a,
+            &c,
+            command(705, &different_key.replace("<SDPH_Prod>21", "<SDPH_Prod>5")),
+        )
+        .await
+        .unwrap();
+    assert_eq!(invalid.rows[0].status, "invalid");
+    assert_eq!(
+        store
+            .apply(&a, &c, &invalid.id, Apply { skip: vec![0] })
+            .await
+            .unwrap()
+            .status,
+        "done"
+    );
+    assert_eq!(
+        store
+            .prepare_money(&a, &other, command(706, XML))
+            .await
+            .unwrap()
+            .rows[0]
+            .status,
+        "ready"
+    );
+    sqlx::query("UPDATE membership SET role='viewer' WHERE company_id=$1 AND user_id=$2")
+        .bind(c.parse::<i64>().unwrap())
+        .bind(a.parse::<i64>().unwrap())
+        .execute(&pool)
+        .await
+        .unwrap();
+    assert!(matches!(
+        store.prepare_money(&a, &c, command(707, XML)).await,
+        Err(Error::Forbidden)
+    ));
+    assert!(store.get(&a, &c, &preview.id).await.is_ok());
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "requires isolated PostgreSQL"]
+async fn generic_catalog_invalid_rows_and_exact_values(pool: PgPool) {
+    use faktura_domain::{catalog::CatalogData, invoice::PriceMode};
+    let (actor, _, company, other) = setup(&pool).await;
+    let store = PgImport(pool.clone());
+    let valid = CatalogData {
+        name: "Mapped synthetic service".into(),
+        code: "0002".into(),
+        barcode: "0003".into(),
+        unit: "h".into(),
+        quantity: "1".into(),
+        unit_price: "1250.5000".into(),
+        currency: "CZK".into(),
+        price_mode: PriceMode::Net,
+        vat_percent: "21".into(),
+    };
+    let mut invalid = valid.clone();
+    invalid.unit_price = "invalid".into();
+    invalid.currency = "EUR".into();
+    invalid.vat_percent = "5".into();
+    let command = |n, records| Prepare {
+        request_id: key(n),
+        source: "generic".into(),
+        agenda: "mapped-test".into(),
+        records,
+    };
+    let record = Record::Catalog {
+        key: "0001".into(),
+        data: Box::new(valid),
+    };
+    let preview = migration::prepare(
+        &store,
+        &actor,
+        &company,
+        command(
+            800,
+            vec![
+                record.clone(),
+                Record::Catalog {
+                    key: "invalid".into(),
+                    data: Box::new(invalid),
+                },
+            ],
+        ),
+    )
+    .await
+    .unwrap();
+    assert_eq!(preview.rows[0].status, "ready");
+    assert_eq!(preview.rows[1].status, "invalid");
+    for field in ["unit_price", "currency", "vat_percent"] {
+        assert!(preview.rows[1].fields.iter().any(|f| f == field));
+    }
+    let blocked = store
+        .apply(&actor, &company, &preview.id, Apply { skip: vec![] })
+        .await
+        .unwrap();
+    assert_eq!(blocked.rows[0].status, "ready");
+    assert_eq!(blocked.rows[1].status, "invalid");
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>("SELECT count(*) FROM catalog")
+            .fetch_one(&pool)
+            .await
+            .unwrap(),
+        0
+    );
+    assert!(store
+        .apply(&actor, &other, &preview.id, Apply { skip: vec![1] })
+        .await
+        .is_err());
+    let done = store
+        .apply(&actor, &company, &preview.id, Apply { skip: vec![1] })
+        .await
+        .unwrap();
+    assert_eq!(done.rows[0].status, "imported");
+    let data: serde_json::Value =
+        sqlx::query_scalar("SELECT data FROM catalog WHERE company_id=$1::text::bigint")
+            .bind(&company)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(data["unit_price"], "1250.5");
+    assert_eq!(data["barcode"], "0003");
+    assert_eq!(data["quantity"], "1");
+    assert_eq!(data["price_mode"], "net");
+    let replay = migration::prepare(&store, &actor, &company, command(801, vec![record]))
+        .await
+        .unwrap();
+    assert_eq!(replay.rows[0].status, "duplicate");
 }

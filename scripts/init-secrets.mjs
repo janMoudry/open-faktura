@@ -6,6 +6,7 @@ const password = randomBytes(32).toString("hex");
 for (const [name, value] of [
   ["bootstrap", randomBytes(32).toString("hex")],
   ["smtp-key", randomBytes(32).toString("hex")],
+  ["bank-key", randomBytes(32).toString("hex")],
   ["db_password", password],
 ]) {
   await writeFile(`.secrets/${name}`, value + "\n", {

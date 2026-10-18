@@ -24,10 +24,12 @@ services:
     environment:
       DATABASE_URL_FILE: /run/secrets/database_url
       SMTP_ENCRYPTION_KEY_FILE: /run/secrets/smtp_key
+      BANK_ENCRYPTION_KEY_FILE: /run/secrets/bank_key
+      BANK_GATEWAYS_JSON: ${BANK_GATEWAYS_JSON:-[]}
       BOOTSTRAP_SECRET_FILE: /run/secrets/bootstrap
       CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN in infra/production.env}
       PUBLIC_WEB_URL: https://${APP_DOMAIN:?Set APP_DOMAIN in infra/production.env}
-    secrets: [database_url, bootstrap, smtp_key]
+    secrets: [database_url, bootstrap, smtp_key, bank_key]
     volumes:
       - files:/data/files
     depends_on:
@@ -52,6 +54,8 @@ services:
       app:
         condition: service_healthy
 secrets:
+  bank_key:
+    file: ../.secrets/bank-key
   smtp_key:
     file: ../.secrets/smtp-key
   db_password:

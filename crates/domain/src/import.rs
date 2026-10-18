@@ -10,6 +10,10 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Record {
+    Catalog {
+        key: String,
+        data: Box<crate::catalog::CatalogData>,
+    },
     Contact {
         key: String,
         data: Box<ContactData>,
@@ -26,17 +30,21 @@ pub enum Record {
 impl Record {
     pub fn key(&self) -> &str {
         match self {
-            Self::Contact { key, .. } | Self::Invoice { key, .. } => key,
+            Self::Contact { key, .. } | Self::Invoice { key, .. } | Self::Catalog { key, .. } => {
+                key
+            }
         }
     }
     pub fn kind(&self) -> &str {
         match self {
+            Self::Catalog { .. } => "catalog",
             Self::Contact { .. } => "contact",
             Self::Invoice { .. } => "invoice",
         }
     }
     pub fn label(&self) -> &str {
         match self {
+            Self::Catalog { data, .. } => &data.name,
             Self::Contact { data, .. } => &data.name,
             Self::Invoice { number, .. } => number,
         }
@@ -50,6 +58,7 @@ impl Record {
             errors.push("source_key".into());
         }
         match self {
+            Self::Catalog { data, .. } => errors.extend(data.normalize_validate()),
             Self::Contact { data, .. } => errors.extend(data.normalize_validate()),
             Self::Invoice {
                 number,
@@ -163,6 +172,9 @@ impl Record {
                     errors.push("payments".into());
                 }
                 for payment in payments.iter() {
+                    if data.calculation.currency != "CZK" && payment.method == "cash" {
+                        errors.push("currency".into());
+                    }
                     errors.extend(payment.validate());
                     if Some(payment.paid_on) < data.issued_on || payable == Some(Decimal::ZERO) {
                         errors.push("payments".into());

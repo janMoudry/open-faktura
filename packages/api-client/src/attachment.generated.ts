@@ -85,7 +85,7 @@ export interface operations {
       header?: never;
       path: {
         company_id: string;
-        kind: "invoice" | "quote";
+        kind: "invoice" | "quote" | "received";
         document_id: string;
       };
       cookie?: never;
@@ -158,7 +158,7 @@ export interface operations {
       header?: never;
       path: {
         company_id: string;
-        kind: "invoice" | "quote";
+        kind: "invoice" | "quote" | "received";
         document_id: string;
       };
       cookie?: never;
@@ -235,7 +235,7 @@ export interface operations {
       header?: never;
       path: {
         company_id: string;
-        kind: "invoice" | "quote";
+        kind: "invoice" | "quote" | "received";
         document_id: string;
         id: string;
       };
@@ -309,7 +309,7 @@ export interface operations {
       header?: never;
       path: {
         company_id: string;
-        kind: "invoice" | "quote";
+        kind: "invoice" | "quote" | "received";
         document_id: string;
         id: string;
       };

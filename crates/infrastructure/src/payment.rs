@@ -17,6 +17,13 @@ async fn lock(
     write: bool,
 ) -> Result<(i64, i64, i64)> {
     let (actor, company) = crate::draft::authorize(tx, actor, company, write).await?;
+    if write {
+        sqlx::query("SELECT pg_advisory_xact_lock($1)")
+            .bind(company)
+            .execute(&mut **tx)
+            .await
+            .map_err(unavailable)?;
+    }
     let invoice = id(invoice)?;
     let sql = if write {
         "SELECT number FROM invoice_draft WHERE company_id=$1 AND id=$2 FOR UPDATE"
@@ -35,7 +42,11 @@ async fn lock(
     }
     Ok((actor, company, invoice))
 }
-async fn load(tx: &mut Transaction<'_, Postgres>, company: i64, invoice: i64) -> Result<Payments> {
+pub(crate) async fn load(
+    tx: &mut Transaction<'_, Postgres>,
+    company: i64,
+    invoice: i64,
+) -> Result<Payments> {
     let summary: serde_json::Value = sqlx::query_scalar(
         "SELECT settlement FROM invoice_with_settlement WHERE company_id=$1 AND id=$2",
     )
@@ -95,6 +106,19 @@ async fn insert(
     i: i64,
     p: &PaymentInput,
 ) -> Result<i64> {
+    if p.method == "cash" {
+        let currency: String = sqlx::query_scalar(
+            "SELECT totals->>'currency' FROM invoice_draft WHERE company_id=$1 AND id=$2",
+        )
+        .bind(c)
+        .bind(i)
+        .fetch_one(&mut **tx)
+        .await
+        .map_err(unavailable)?;
+        if currency != "CZK" {
+            return Err(Error::Invalid(vec!["currency".into()]));
+        }
+    }
     let valid:bool=sqlx::query_scalar("SELECT $3::text::date BETWEEN (d.data->>'issued_on')::date AND s.today AND s.payable>0 FROM invoice_draft d JOIN invoice_settlement s ON s.company_id=d.company_id AND s.invoice_id=d.id WHERE d.company_id=$1 AND d.id=$2")
  .bind(c).bind(i).bind(p.paid_on.to_string()).fetch_one(&mut **tx).await.map_err(unavailable)?;
     if !valid {
@@ -127,54 +151,20 @@ impl PaymentStore for PgPayment {
     }
     async fn register(&self, a: &str, c: &str, i: &str, cmd: Register) -> Result<Payments> {
         let mut tx = self.0.begin().await.map_err(unavailable)?;
-        let (a, c, i) = lock(&mut tx, a, c, i, true).await?;
-        let input = serde_json::json!({"operation":"register","command":cmd});
-        if let Some(v) = replay(&mut tx, c, a, i, &cmd.request_id, &input).await? {
-            return Ok(v);
-        }
-        if load(&mut tx, c, i).await?.summary.revision != cmd.revision {
-            return Err(Error::Conflict);
-        }
-        insert(&mut tx, c, a, i, &cmd.payment).await?;
-        let v = load(&mut tx, c, i).await?;
-        record(&mut tx, c, a, i, &cmd.request_id, input, &v).await?;
+        let value = register_in_tx(&mut tx, a, c, i, cmd).await?;
         tx.commit().await.map_err(unavailable)?;
-        Ok(v)
+        Ok(value)
     }
     async fn reverse(&self, a: &str, c: &str, i: &str, p: &str, cmd: Reverse) -> Result<Payments> {
         let mut tx = self.0.begin().await.map_err(unavailable)?;
-        let (a, c, i) = lock(&mut tx, a, c, i, true).await?;
-        let p = id(p)?;
-        let input =
-            serde_json::json!({"operation":"reverse","payment_id":p.to_string(),"command":cmd});
-        if let Some(v) = replay(&mut tx, c, a, i, &cmd.request_id, &input).await? {
-            return Ok(v);
-        }
-        let current = load(&mut tx, c, i).await?;
-        let original = current
-            .items
-            .iter()
-            .find(|v| v.id == p.to_string())
-            .ok_or(Error::NotFound)?;
-        if current.summary.revision != cmd.revision || original.reversed_at.is_some() {
-            return Err(Error::Conflict);
-        }
-        let replacement = if let Some(p) = &cmd.replacement {
-            Some(insert(&mut tx, c, a, i, p).await?)
-        } else {
-            None
-        };
-        sqlx::query("INSERT INTO invoice_payment_reversal(company_id,invoice_id,payment_id,reason,actor_id,replacement_id) VALUES($1,$2,$3,$4,$5,$6)")
-  .bind(c).bind(i).bind(p).bind(cmd.reason.trim()).bind(a).bind(replacement).execute(&mut *tx).await.map_err(unavailable)?;
-        let v = load(&mut tx, c, i).await?;
-        record(&mut tx, c, a, i, &cmd.request_id, input, &v).await?;
+        let value = reverse_in_tx(&mut tx, a, c, i, p, cmd).await?;
         tx.commit().await.map_err(unavailable)?;
-        Ok(v)
+        Ok(value)
     }
     async fn overview(&self, a: &str, c: &str) -> Result<Overview> {
         let mut tx = self.0.begin().await.map_err(unavailable)?;
         let (_, c) = crate::draft::authorize(&mut tx, a, c, false).await?;
-        let r=sqlx::query("SELECT count(*) AS issued_count,count(*) FILTER(WHERE outstanding>0) AS outstanding_count,count(*) FILTER(WHERE overdue) AS overdue_count,COALESCE(sum(outstanding),0)::numeric(30,2)::text AS outstanding,COALESCE(sum(outstanding) FILTER(WHERE overdue),0)::numeric(30,2)::text AS overdue,COALESCE(sum(paid),0)::numeric(30,2)::text AS received,COALESCE(sum(overpayment),0)::numeric(30,2)::text AS overpayment,(SELECT count(*) FROM invoice_draft WHERE company_id=$1 AND number IS NULL) AS draft_count,(SELECT (now() AT TIME ZONE (settings->>'timezone'))::date::text FROM company WHERE id=$1) AS today FROM invoice_settlement WHERE company_id=$1")
+        let r=sqlx::query("SELECT count(*) AS issued_count,count(*) FILTER(WHERE outstanding>0) AS outstanding_count,count(*) FILTER(WHERE overdue) AS overdue_count,COALESCE(sum(report_czk(outstanding,d.totals->>'currency',d.data#>'{calculation,exchange_rate}')),0)::numeric(30,2)::text AS outstanding,COALESCE(sum(report_czk(outstanding,d.totals->>'currency',d.data#>'{calculation,exchange_rate}')) FILTER(WHERE overdue),0)::numeric(30,2)::text AS overdue,COALESCE(sum(report_czk(cash_paid,d.totals->>'currency',d.data#>'{calculation,exchange_rate}')),0)::numeric(30,2)::text AS received,COALESCE(sum(report_czk(overpayment,d.totals->>'currency',d.data#>'{calculation,exchange_rate}')),0)::numeric(30,2)::text AS overpayment,(SELECT count(*) FROM invoice_draft WHERE company_id=$1 AND number IS NULL) AS draft_count,(SELECT (now() AT TIME ZONE (settings->>'timezone'))::date::text FROM company WHERE id=$1) AS today FROM invoice_settlement s JOIN invoice_draft d ON d.company_id=s.company_id AND d.id=s.invoice_id WHERE s.company_id=$1")
   .bind(c).fetch_one(&mut *tx).await.map_err(unavailable)?;
         let v = Overview {
             issued_count: r.get("issued_count"),
@@ -191,4 +181,116 @@ impl PaymentStore for PgPayment {
         tx.commit().await.map_err(unavailable)?;
         Ok(v)
     }
+}
+
+pub(crate) async fn register_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    a: &str,
+    c: &str,
+    i: &str,
+    cmd: Register,
+) -> Result<Payments> {
+    register_inner(tx, a, c, i, cmd, true).await
+}
+pub(crate) async fn register_without_cash_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    a: &str,
+    c: &str,
+    i: &str,
+    cmd: Register,
+) -> Result<Payments> {
+    register_inner(tx, a, c, i, cmd, false).await
+}
+async fn register_inner(
+    tx: &mut Transaction<'_, Postgres>,
+    a: &str,
+    c: &str,
+    i: &str,
+    cmd: Register,
+    automatic: bool,
+) -> Result<Payments> {
+    let (a, c, i) = lock(tx, a, c, i, true).await?;
+    let input = serde_json::json!({"operation":"register","command":cmd});
+    if let Some(v) = replay(tx, c, a, i, &cmd.request_id, &input).await? {
+        return Ok(v);
+    }
+    if load(tx, c, i).await?.summary.revision != cmd.revision {
+        return Err(Error::Conflict);
+    }
+    let payment_id = insert(tx, c, a, i, &cmd.payment).await?;
+    if automatic {
+        crate::cash_automation::record(
+            tx,
+            a,
+            c,
+            crate::cash_automation::Source {
+                kind: "invoice",
+                document: i,
+                payment_id: &payment_id.to_string(),
+                payment: &cmd.payment,
+            },
+        )
+        .await?;
+    }
+    let v = load(tx, c, i).await?;
+    record(tx, c, a, i, &cmd.request_id, input, &v).await?;
+    Ok(v)
+}
+
+pub(crate) async fn reverse_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    a: &str,
+    c: &str,
+    i: &str,
+    p: &str,
+    cmd: Reverse,
+) -> Result<Payments> {
+    let (a, c, i) = lock(tx, a, c, i, true).await?;
+    let p = id(p)?;
+    let input = serde_json::json!({"operation":"reverse","payment_id":p.to_string(),"command":cmd});
+    if let Some(v) = replay(tx, c, a, i, &cmd.request_id, &input).await? {
+        return Ok(v);
+    }
+    let current = load(tx, c, i).await?;
+    let original = current
+        .items
+        .iter()
+        .find(|v| v.id == p.to_string())
+        .ok_or(Error::NotFound)?;
+    if current.summary.revision != cmd.revision || original.reversed_at.is_some() {
+        return Err(Error::Conflict);
+    }
+    if sqlx::query_scalar::<_,bool>("SELECT EXISTS(SELECT 1 FROM bank_match WHERE company_id=$1 AND invoice_id=$2 AND payment_id=$3 AND detached_at IS NULL)")
+            .bind(c).bind(i).bind(p.to_string()).fetch_one(&mut **tx).await.map_err(unavailable)? {
+            return Err(Error::Invalid(vec!["bank_link".into()]));
+        }
+    crate::cash_automation::reverse(tx, a, c, "invoice", i, Some(&p.to_string()), &cmd.reason)
+        .await?;
+    if sqlx::query_scalar::<_,bool>("SELECT EXISTS(SELECT 1 FROM cash_match WHERE company_id=$1 AND invoice_id=$2 AND payment_id=$3 AND detached_at IS NULL)")
+            .bind(c).bind(i).bind(p.to_string()).fetch_one(&mut **tx).await.map_err(unavailable)? {
+            return Err(Error::Invalid(vec!["cash_link".into()]));
+        }
+    let replacement = if let Some(p) = &cmd.replacement {
+        let new_id = insert(tx, c, a, i, p).await?;
+        crate::cash_automation::record(
+            tx,
+            a,
+            c,
+            crate::cash_automation::Source {
+                kind: "invoice",
+                document: i,
+                payment_id: &new_id.to_string(),
+                payment: p,
+            },
+        )
+        .await?;
+        Some(new_id)
+    } else {
+        None
+    };
+    sqlx::query("INSERT INTO invoice_payment_reversal(company_id,invoice_id,payment_id,reason,actor_id,replacement_id) VALUES($1,$2,$3,$4,$5,$6)")
+  .bind(c).bind(i).bind(p).bind(cmd.reason.trim()).bind(a).bind(replacement).execute(&mut **tx).await.map_err(unavailable)?;
+    let v = load(tx, c, i).await?;
+    record(tx, c, a, i, &cmd.request_id, input, &v).await?;
+    Ok(v)
 }
