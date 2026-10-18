@@ -4,6 +4,7 @@ import { useAppTranslation, type AppKey } from "../locales";
 import { useWorkspace } from "../hooks/useCompanyWorkspace";
 
 import { useStatus } from "../hooks/useStatus";
+import { DesktopUpdates } from "../components/organisms/DesktopUpdates";
 import { ConnectionStatus } from "../components/molecules/ConnectionStatus";
 
 const guides: { title: AppKey; text: AppKey; path: string }[] = [
@@ -62,6 +63,15 @@ export function HelpPage() {
           </section>
         ))}
       </div>
+      <section className="rounded-panel border border-border bg-surface p-field space-y-control">
+        <Heading level={2} size="section">
+          {t("pwaHelpTitle")}
+        </Heading>
+        <p className="text-sm text-muted">{t("pwaHelpDesktop")}</p>
+        <p className="text-sm text-muted">{t("pwaHelpMobile")}</p>
+        <p className="text-sm text-muted">{t("pwaHelpOnline")}</p>
+      </section>
+      <DesktopUpdates />
       <section className="rounded-panel border border-border bg-surface p-field">
         <Heading level={2} size="section">
           {t("helpConnection")}

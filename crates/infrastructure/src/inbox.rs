@@ -171,9 +171,28 @@ impl InboxStore for PgInbox {
     async fn mail(&self, actor: &str, company: &str, input: MailIntake) -> Result<MailResult> {
         let mut tx = self.0.begin().await.map_err(err)?;
         let (a, c) = lock(&mut tx, actor, company).await?;
-        let result = mail_in_tx(&mut tx, a, c, input, false).await?;
-        tx.commit().await.map_err(err)?;
-        Ok(result)
+        let request_id = input.request_id.clone();
+        match mail_in_tx(&mut tx, a, c, input, false).await {
+            Ok(result) => {
+                tx.commit().await.map_err(err)?;
+                Ok(result)
+            }
+            Err(error) => {
+                tx.rollback().await.map_err(err)?;
+                if matches!(error, Error::Invalid(_) | Error::Unavailable) {
+                    // Best-effort safe diagnostic in a fresh authorized transaction;
+                    // never replace the original failure or retain submitted data.
+                    let _ = crate::inbox_notification::gateway_failure(
+                        &self.0,
+                        actor,
+                        company,
+                        &request_id,
+                    )
+                    .await;
+                }
+                Err(error)
+            }
+        }
     }
     async fn extract_provider(
         &self,
@@ -332,6 +351,15 @@ impl InboxStore for PgInbox {
                 sqlx::query("UPDATE inbox_document SET archived=$3,revision=revision+1 WHERE company_id=$1 AND id=$2").bind(c).bind(id(&cmd.id)?).bind(archived).execute(&mut *tx).await.map_err(err)?;
                 "archive"
             }
+            Action::Detach => {
+                if old.received_id.is_none() {
+                    return Err(Error::Conflict);
+                }
+                // Disconnect only the inbox workflow link. Accounting documents,
+                // their immutable original copies and archive state stay intact.
+                sqlx::query("UPDATE inbox_document SET received_id=NULL,revision=revision+1 WHERE company_id=$1 AND id=$2").bind(c).bind(id(&cmd.id)?).execute(&mut *tx).await.map_err(err)?;
+                "detach"
+            }
             action => {
                 if old.archived || old.received_id.is_some() {
                     return Err(Error::Conflict);
@@ -361,15 +389,18 @@ impl InboxStore for PgInbox {
                     }
                     _ => unreachable!(),
                 };
-                let count:i64=sqlx::query_scalar("SELECT count(*) FROM document_attachment WHERE company_id=$1 AND received_id=$2 AND deleted_at IS NULL").bind(c).bind(target).fetch_one(&mut *tx).await.map_err(err)?;
-                if count >= 5 {
-                    return Err(invalid());
+                let existing:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM document_attachment WHERE company_id=$1 AND received_id=$2 AND sha256=$3 AND deleted_at IS NULL)").bind(c).bind(target).bind(&old.sha256).fetch_one(&mut *tx).await.map_err(err)?;
+                if !existing {
+                    let count:i64=sqlx::query_scalar("SELECT count(*) FROM document_attachment WHERE company_id=$1 AND received_id=$2 AND deleted_at IS NULL").bind(c).bind(target).fetch_one(&mut *tx).await.map_err(err)?;
+                    if count >= 5 {
+                        return Err(invalid());
+                    }
+                    let used:i64=sqlx::query_scalar("SELECT coalesce(sum(octet_length(content)),0)::bigint FROM document_attachment WHERE company_id=$1").bind(c).fetch_one(&mut *tx).await.map_err(err)?;
+                    if used + old.size > 268435456 {
+                        return Err(invalid());
+                    }
+                    sqlx::query("INSERT INTO document_attachment(company_id,received_id,request_id,actor_id,filename,media_type,size,sha256,content) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)").bind(c).bind(target).bind(uuid::Uuid::new_v4()).bind(a).bind(&old.filename).bind(&old.media_type).bind(old.size).bind(&old.sha256).bind(row.get::<Vec<u8>,_>("content")).execute(&mut *tx).await.map_err(err)?;
                 }
-                let used:i64=sqlx::query_scalar("SELECT coalesce(sum(octet_length(content)),0)::bigint FROM document_attachment WHERE company_id=$1").bind(c).fetch_one(&mut *tx).await.map_err(err)?;
-                if used + old.size > 268435456 {
-                    return Err(invalid());
-                }
-                sqlx::query("INSERT INTO document_attachment(company_id,received_id,request_id,actor_id,filename,media_type,size,sha256,content) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)").bind(c).bind(target).bind(uuid::Uuid::new_v4()).bind(a).bind(&old.filename).bind(&old.media_type).bind(old.size).bind(&old.sha256).bind(row.get::<Vec<u8>,_>("content")).execute(&mut *tx).await.map_err(err)?;
                 sqlx::query("UPDATE inbox_document SET received_id=$3,revision=revision+1 WHERE company_id=$1 AND id=$2").bind(c).bind(id(&cmd.id)?).bind(target).execute(&mut *tx).await.map_err(err)?;
                 "process"
             }

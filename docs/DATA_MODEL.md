@@ -588,3 +588,17 @@ nikoli obnovitelná PostgreSQL záloha. Před upgradem zastavit staré API a zá
 `tax_evidence_classification` uchovává explicitní rozhodnutí účetního a fingerprint zdrojového plnění; audit a command tabulka zachovávají historii a idempotenci. Změněný zdroj klasifikaci zneplatní, provozní revize bez změny obsahu ji nemění.
 
 `taxpayer_filing_profile` ukládá firemní identifikaci pro budoucí EPO výstupy, revizi a aktéra; audit je neměnný. Kódy finančních úřadů a jejich pracovišť ověřuje verzovaný oficiální číselník. Profil není změnou plátcovství na dokladech ani hotovým daňovým podáním.
+
+### Oznámení a anonymizace (090, 100)
+
+`inbox_notification_event` obsahuje pouze bezpečné metadata příjmu. Vlastní `inbox_notification_settings` drží opt-in a oddělené monotónní kurzory podle kategorie; čtení respektuje aktuální členství. GET bez uloženého nastavení vrací virtuální výchozí stav.
+
+`contact.anonymized_at` označuje nevratný stav samostatného kontaktu. Příkaz a audit jsou atomické, čistí i adresářovou historii; původní finanční snapshoty a PDF nejsou měněny. DB trigger blokuje navrácení osobních údajů do anonymizovaného záznamu.
+
+### Inbox předání a koš prodejních podkladů (101/103)
+
+`inbox_delivery` uchovává samostatný snapshot původního souboru, potvrzené zprávy,
+aktéra a stavů SMTP; žádná operace jej nezaměňuje za vytvoření účetního dokladu.
+`sales_trash` a `sales_trash_command` ukládají vratné odstranění nepoužitých nabídek
+nebo šablon. Zdrojová data a číslo se nemění, následné operace respektují stav koše;
+navázané, sdílené, odeslané a exportem uzamčené zdroje jsou chráněné.

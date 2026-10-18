@@ -60,6 +60,9 @@ async fn document(
         .await
         .map_err(err)?
         .ok_or(Error::NotFound)?;
+    if k == "quote" {
+        crate::sales::ensure_not_trashed(tx, c, d).await?;
+    }
     Ok(())
 }
 fn media(name: &str, bytes: &[u8]) -> Result<&'static str> {

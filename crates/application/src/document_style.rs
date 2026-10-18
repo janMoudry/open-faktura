@@ -4,10 +4,19 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Style {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub before_items_cs: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub before_items_en: String,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub delivery_note_prices: bool,
     pub logo_base64: Option<String>,
     pub signature_base64: Option<String>,
     pub footer_cs: String,
     pub footer_en: String,
+}
+fn is_false(value: &bool) -> bool {
+    !value
 }
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

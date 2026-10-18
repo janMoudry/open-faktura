@@ -43,6 +43,7 @@ pub enum Action {
     Archive { archived: bool },
     Convert { data: Box<crate::received::Data> },
     Attach { received_id: String },
+    Detach,
 }
 #[derive(Serialize)]
 pub struct Audit {

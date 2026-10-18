@@ -26,7 +26,7 @@ Pořadí samostatně ověřitelných dodávek:
 4. P10 soubory/SMTP/outbox → P14 opakování, upomínky, sdílení a historie odeslání.
 5. P15 přijaté faktury a účtenky → závazky/úhrady; dodavatelská role adresáře.
 6. P16 bankovní/pokladní evidence → import a párování → prodejky.
-7. P18 ruční sklad → návaznost prodeje/nákupu → opravy a statistiky. P18-03e doplnilo pořizovací ceny počátečních stavů, ručních příjmů a inventurních přebytků; P18-04 doplnilo přehled prodeje položek. P18-05a doplňuje import Money S3 XML; P18-05c doplňuje obecný CSV/XLSX import ceníku. P18-05b Money S4/S5 čeká na konkrétní export a konfiguraci (E-059) (viz P16_P20_COMPLETION.md).
+7. P18 ruční sklad → návaznost prodeje/nákupu → opravy a statistiky. P18-03e doplnilo pořizovací ceny počátečních stavů, ručních příjmů a inventurních přebytků; P18-04 doplnilo přehled prodeje položek. P18-05a doplňuje import Money S3 XML; P18-05c doplňuje obecný CSV/XLSX import ceníku. P18-05b Money S4/S5 podle rozhodnutí uživatele z 18. 10. 2026 pokrývá obecné mapování a vlastní adaptéry; nativní kompatibilita bez konkrétního kontraktu se netvrdí (E-059, viz P16_P20_COMPLETION.md).
 8. P17 inbox, ISDOC/QR a e-mailový příjem; AI jako oddělená volitelná schopnost.
 9. P19 přehledy, registry, účetní exporty a daňové podklady; P20 zbývající
    funkce z matice FEATURES (štítky, koš, uzávěrky, hromadné akce, tisk/brand…).
@@ -301,7 +301,9 @@ MCP má omezené/revokovatelné přístupy a read-only režim. Milník C.
 
 Každý řádek rozdělit při zahájení na samostatné dodávky v uvedeném pořadí.
 Před účetní implementací vlastní specifikace, migrační návrh a reference; nejde
-o jeden velký PR ani o pouhé přidání obrazovek. Implementace všech: `not-started`.
+o jeden velký PR ani o pouhé přidání obrazovek. Tabulka zachovává původní pořadí
+plánu; aktuální implementovaný rozsah a otevřené části jsou v
+[P16–P20](P16_P20_COMPLETION.md), nikoli ve výchozím stavu `not-started`.
 
 | ID  | Pořadí dílčích dodávek a rozsah FEATURES                                                                    | Závislosti                | Podmínka dokončení                                                                                     |
 | --- | ----------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------ |

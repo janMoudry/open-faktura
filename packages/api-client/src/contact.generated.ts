@@ -96,6 +96,11 @@ export interface components {
       revision: number;
       archived: boolean;
       data: components["schemas"]["ContactData"];
+      /**
+       * @description Terminal directory-only anonymization state.
+       * @default false
+       */
+      anonymized: boolean;
     };
     ContactPage: {
       items: components["schemas"]["Contact"][];

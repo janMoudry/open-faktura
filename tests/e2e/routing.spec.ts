@@ -3,6 +3,13 @@ import { test, expect } from "@playwright/test";
 test("workspace shell survives lazy loading, navigation, back and failed page data", async ({
   page,
 }) => {
+  // Keep every request isolated; newly added panels must not reach the real API.
+  await page.route("**/api/**", (route) =>
+    route.fulfill({ status: 503, json: { code: "unavailable" } }),
+  );
+  await page.route("**/api/companies/trash", (route) =>
+    route.fulfill({ json: [] }),
+  );
   let authRequests = 0;
   await page.route("**/api/auth/setup", (r) => {
     authRequests++;
@@ -35,10 +42,13 @@ test("workspace shell survives lazy loading, navigation, back and failed page da
   const moduleReady = new Promise<void>((resolve) => {
     releaseModule = resolve;
   });
-  await page.route("**/src/pages/CompanyPage.tsx*", async (r) => {
-    await moduleReady;
-    await r.continue();
-  });
+  await page.route(
+    /\/(?:src\/pages\/CompanyPage\.tsx|assets\/CompanyPage-[^/?]+\.js)(?:\?.*)?$/,
+    async (r) => {
+      await moduleReady;
+      await r.continue();
+    },
+  );
   try {
     await page.goto("/#/workspace", { waitUntil: "domcontentloaded" });
     const sidebar = page.locator(".workspace-sidebar");

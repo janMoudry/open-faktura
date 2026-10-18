@@ -9,6 +9,8 @@ pub struct Contact {
     pub company_id: String,
     pub revision: i64,
     pub archived: bool,
+    #[serde(default)]
+    pub anonymized: bool,
     pub data: ContactData,
 }
 #[derive(Debug, Serialize)]

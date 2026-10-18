@@ -30,6 +30,8 @@ export interface components {
       kind: "bulk_pdf" | "rtf" | "delivery_note" | "payment_confirmation";
       /** @enum {string} */
       language: "cs" | "en";
+      /** @description Delivery notes only. Omitted uses current company preference (default false); explicit true/false overrides for this output. Stored original line amounts, no recalculation or invoice PDF change. */
+      delivery_note_prices?: boolean;
     };
   };
   responses: never;

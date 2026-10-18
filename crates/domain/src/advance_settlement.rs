@@ -10,7 +10,14 @@ pub struct TaxDeduction {
     pub totals: Totals,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceValuation {
+    pub currency: String,
+    pub exchange_rate: Option<crate::exchange::ExchangeRate>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Source {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub valuation: Option<SourceValuation>,
     pub id: String,
     pub number: String,
     pub paid: String,
@@ -50,7 +57,53 @@ pub fn same_party(a: &PartySnapshot, b: &PartySnapshot) -> bool {
         a.name.trim() == b.name.trim() && a.address == b.address
     }
 }
+pub fn validate_calculation(
+    calculation: &crate::invoice::Calculation,
+    s: &Settlement,
+) -> Result<(), Vec<String>> {
+    if calculation.currency != s.currency || calculation.tax_mode != s.tax_mode {
+        return Err(vec!["advance_identity_or_date".into()]);
+    }
+    if s.tax_mode == TaxMode::VatPayer
+        && !crate::exchange::equivalent(
+            &s.currency,
+            calculation.exchange_rate.as_ref(),
+            s.exchange_rate.as_ref(),
+        )
+    {
+        return Err(vec!["advance_tax_exchange_rate".into()]);
+    }
+    if !crate::exchange::validate(&calculation.currency, calculation.exchange_rate.as_ref()) {
+        return Err(vec!["exchange_rate".into()]);
+    }
+    validate_sources(s)
+}
+fn validate_sources(s: &Settlement) -> Result<(), Vec<String>> {
+    for source in &s.sources {
+        if s.tax_mode == TaxMode::NonPayer && !source.tax_receipts.is_empty() {
+            return Err(vec!["advance_identity_or_date".into()]);
+        }
+        if let Some(v) = &source.valuation {
+            if v.currency != s.currency
+                || !crate::exchange::validate(&v.currency, v.exchange_rate.as_ref())
+            {
+                return Err(vec!["advance_identity_or_date".into()]);
+            }
+            if s.tax_mode == TaxMode::VatPayer
+                && !crate::exchange::equivalent(
+                    &s.currency,
+                    v.exchange_rate.as_ref(),
+                    s.exchange_rate.as_ref(),
+                )
+            {
+                return Err(vec!["advance_tax_exchange_rate".into()]);
+            }
+        }
+    }
+    Ok(())
+}
 pub fn validate(data: &DraftData, s: &Settlement) -> Result<(), Vec<String>> {
+    validate_calculation(&data.calculation, s)?;
     if data
         .customer
         .as_ref()
@@ -58,7 +111,6 @@ pub fn validate(data: &DraftData, s: &Settlement) -> Result<(), Vec<String>> {
         || !same_party(&data.supplier, &s.supplier)
         || data.calculation.tax_mode != s.tax_mode
         || data.calculation.currency != s.currency
-        || data.calculation.exchange_rate != s.exchange_rate
         || data.issued_on.is_none_or(|v| v < s.minimum_date)
         || (s.tax_mode == TaxMode::VatPayer && data.tax_on.is_none_or(|v| v < s.minimum_date))
     {
@@ -67,6 +119,7 @@ pub fn validate(data: &DraftData, s: &Settlement) -> Result<(), Vec<String>> {
     Ok(())
 }
 pub fn apply(mut total: Totals, s: &Settlement) -> Result<Totals, Vec<String>> {
+    validate_sources(s)?;
     if total.currency != s.currency
         || !crate::exchange::validate(&s.currency, s.exchange_rate.as_ref())
     {
@@ -183,6 +236,7 @@ mod tests {
     fn preserves_stored_penny_tax_breakdowns() {
         let mut s = snapshot();
         s.sources.push(Source {
+            valuation: None,
             id: "1".into(),
             number: "ZF1".into(),
             paid: "0.03".into(),

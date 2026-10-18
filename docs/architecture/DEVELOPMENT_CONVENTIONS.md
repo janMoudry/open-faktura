@@ -12,7 +12,7 @@ Datum: 10. 10. 2026. Tento dokument má přednost před staršími návrhy ve ST
 - Desktopové instalátory ke stažení jako assets v GitHub Releases.
 - Vývoj a úpravy budou provádět převážně agenti; pravidla mají být dohledatelná a kontrolovatelná.
 
-Při založení kostry byly použity TypeScript, Vite, pnpm, Axum a SQLx; konkrétní verze jsou v manifestech a lockfiles. Mobilní PWA zůstává plánovaným směrem. Desktopový runtime Tauri je potvrzen uživatelem 10. 10. 2026. Tento dokument neurčuje finální vzhled ani hodnoty tokenů.
+Při založení kostry byly použity TypeScript, Vite, pnpm, Axum a SQLx; konkrétní verze jsou v manifestech a lockfiles. Mobilní klient používá responzivní online web s PWA manifestem a statickou CS/EN obrazovkou při nedostupném připojení; účetní data se offline neukládají a offline fakturace ani synchronizace není součástí tohoto rozsahu. Stav ověření prohlížečů a instalace do OS uvádí [specifikace PWA](../specs/pwa.md). Desktopový runtime Tauri je potvrzen uživatelem 10. 10. 2026. Tento dokument neurčuje finální vzhled ani hodnoty tokenů.
 
 ## Cílová struktura monorepa
 

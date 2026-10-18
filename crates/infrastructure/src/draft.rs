@@ -251,7 +251,13 @@ impl DraftStore for PgDraft {
         if previous.number.is_some() || previous.revision != command.revision {
             return Err(Error::Conflict);
         }
-        check_contact(&mut tx, company, command.data.contact_id.as_deref()).await?;
+        check_existing_contact(
+            &mut tx,
+            company,
+            command.data.contact_id.as_deref(),
+            previous.data.contact_id.as_deref(),
+        )
+        .await?;
         crate::stock_documents::validate_links(&mut tx, company, &command.data.calculation).await?;
         let mut totals = faktura_domain::invoice::calculate(&command.data.calculation).ok();
         if let Some(s) = &previous.advances {
@@ -280,7 +286,7 @@ pub(crate) async fn check_contact(
 ) -> Result<()> {
     if let Some(contact) = contact {
         let exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM contact WHERE company_id=$1 AND id=$2)",
+            "SELECT EXISTS(SELECT 1 FROM contact WHERE company_id=$1 AND id=$2 AND anonymized_at IS NULL)",
         )
         .bind(company)
         .bind(id(contact)?)
@@ -292,6 +298,30 @@ pub(crate) async fn check_contact(
         }
     }
     Ok(())
+}
+
+/// Only the identity from the locked stored document may preserve an old link.
+/// A caller-supplied snapshot cannot grant permission for a new association.
+pub(crate) async fn check_existing_contact(
+    tx: &mut Transaction<'_, Postgres>,
+    company: i64,
+    contact: Option<&str>,
+    existing: Option<&str>,
+) -> Result<()> {
+    if let (Some(contact), Some(existing)) = (contact, existing) {
+        if id(contact)? == id(existing)? {
+            let exists: bool = sqlx::query_scalar(
+                "SELECT EXISTS(SELECT 1 FROM contact WHERE company_id=$1 AND id=$2)",
+            )
+            .bind(company)
+            .bind(id(contact)?)
+            .fetch_one(&mut **tx)
+            .await
+            .map_err(unavailable)?;
+            return if exists { Ok(()) } else { Err(Error::NotFound) };
+        }
+    }
+    check_contact(tx, company, contact).await
 }
 
 pub(crate) async fn issue_in_tx(
@@ -421,10 +451,27 @@ pub(crate) async fn create_in_tx(
     command: Create,
 ) -> Result<Draft> {
     let (actor, company) = authorize(tx, actor, company, true).await?;
+    // Replaying an existing command does not establish a new directory link.
+    // Compare immutable input and author before returning the owned snapshot.
+    let data = serde_json::to_value(&command.data).map_err(unavailable)?;
+    if let Some(row) =
+        sqlx::query("SELECT * FROM invoice_draft WHERE company_id=$1 AND request_id=$2::text::uuid")
+            .bind(company)
+            .bind(&command.request_id)
+            .fetch_optional(&mut **tx)
+            .await
+            .map_err(unavailable)?
+    {
+        if row.get::<serde_json::Value, _>("initial_data") != data
+            || row.get::<i64, _>("creator_id") != actor
+        {
+            return Err(Error::Conflict);
+        }
+        return map(row);
+    }
     check_contact(tx, company, command.data.contact_id.as_deref()).await?;
     crate::stock_documents::validate_links(tx, company, &command.data.calculation).await?;
     let totals = faktura_domain::invoice::calculate(&command.data.calculation).ok();
-    let data = serde_json::to_value(&command.data).map_err(unavailable)?;
     let inserted = sqlx::query("INSERT INTO invoice_draft(company_id,creator_id,request_id,initial_data,data,totals,contact_id) VALUES ($1,$2,$3::text::uuid,$4,$4,$5,$6) ON CONFLICT(company_id,request_id) DO NOTHING RETURNING *")
             .bind(company).bind(actor).bind(&command.request_id).bind(&data).bind(serde_json::to_value(totals).map_err(unavailable)?).bind(command.data.contact_id.as_deref().map(id).transpose()?).fetch_optional(&mut **tx).await.map_err(unavailable)?;
     let value = if let Some(row) = inserted {

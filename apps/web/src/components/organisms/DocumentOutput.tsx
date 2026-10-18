@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Button, Dialog } from "@open-faktura/ui";
+import { Alert, Button, Dialog, Select } from "@open-faktura/ui";
 import { useAppTranslation } from "../../locales";
 import { useDocumentOutput } from "../../hooks/useDocumentOutput";
 export function DocumentOutput({
@@ -11,6 +11,8 @@ export function DocumentOutput({
 }) {
   const { t, language } = useAppTranslation();
   const { busy, error, download } = useDocumentOutput(company);
+  const [delivery, setDelivery] = useState(false);
+  const [prices, setPrices] = useState("default");
   return (
     <div className="space-y-control">
       <div className="flex flex-wrap gap-control">
@@ -25,12 +27,64 @@ export function DocumentOutput({
             key={kind}
             variant="secondary"
             disabled={busy}
-            onClick={() => void download({ ids: [id], kind, language })}
+            onClick={() => {
+              if (kind === "delivery_note") {
+                setPrices("default");
+                setDelivery(true);
+              } else void download({ ids: [id], kind, language });
+            }}
           >
             {t(label)}
           </Button>
         ))}
       </div>
+      <Dialog
+        open={delivery}
+        title={t("documentOutputDelivery")}
+        description={t("deliveryPricesHint")}
+        onClose={() => {
+          if (!busy) setDelivery(false);
+        }}
+      >
+        <div className="space-y-field">
+          <Select
+            label={t("deliveryPricesChoice")}
+            value={prices}
+            onChange={setPrices}
+            disabled={busy}
+            options={[
+              { value: "default", label: t("deliveryPricesCompany") },
+              { value: "yes", label: t("deliveryPricesWith") },
+              { value: "no", label: t("deliveryPricesWithout") },
+            ]}
+          />
+          {error && <Alert tone="danger">{t("documentOutputError")}</Alert>}
+          <div className="flex justify-end gap-control">
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setDelivery(false)}
+            >
+              {t("cancelAction")}
+            </Button>
+            <Button
+              disabled={busy}
+              onClick={() =>
+                void download({
+                  ids: [id],
+                  kind: "delivery_note",
+                  language,
+                  ...(prices === "default"
+                    ? {}
+                    : { delivery_note_prices: prices === "yes" }),
+                })
+              }
+            >
+              {t("documentOutputDownload")}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
       {error && <Alert tone="danger">{t("documentOutputError")}</Alert>}
     </div>
   );

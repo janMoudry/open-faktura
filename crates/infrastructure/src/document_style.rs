@@ -91,6 +91,14 @@ impl StyleStore for PgStyle {
         }
         if uuid::Uuid::parse_str(&command.request_id).is_err()
             || command.revision < 0
+            || [&command.data.before_items_cs, &command.data.before_items_en]
+                .iter()
+                .any(|text| {
+                    text.chars().count() > 1000
+                        || text
+                            .chars()
+                            .any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t'))
+                })
             || command.data.footer_cs.chars().count() > 500
             || command.data.footer_en.chars().count() > 500
         {

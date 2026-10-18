@@ -69,6 +69,11 @@ export function AdvanceSettlementPicker({
       onExpired();
     else if (
       e instanceof InvoiceCalculationFailure &&
+      e.fields.includes("advance_tax_exchange_rate")
+    )
+      setError("settlementFxTaxUnsupported");
+    else if (
+      e instanceof InvoiceCalculationFailure &&
       e.fields.some((f) => f.startsWith("advance_"))
     )
       setError("settlementInvalid");
@@ -151,6 +156,7 @@ export function AdvanceSettlementPicker({
       description={t("settlementHelp")}
     >
       <div className="space-y-field">
+        <p className="text-sm text-muted">{t("settlementCurrencyHelp")}</p>
         {error && (
           <Alert tone="danger" role="alert">
             {t(error)}

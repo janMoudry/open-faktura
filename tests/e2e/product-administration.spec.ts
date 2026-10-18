@@ -136,6 +136,18 @@ for (const language of ["cs", "en"] as const) {
       .getByRole("button", { name: text("Zrušit", "Cancel"), exact: true })
       .click();
     await page
+      .getByLabel(
+        text("Text před položkami (čeština)", "Text before items (Czech)"),
+        { exact: true },
+      )
+      .fill("Synthetic Czech introduction\nSecond line");
+    await page
+      .getByLabel(
+        text("Text před položkami (angličtina)", "Text before items (English)"),
+        { exact: true },
+      )
+      .fill("Synthetic English introduction");
+    await page
       .getByLabel(text("Zápatí v češtině", "Czech footer"), { exact: true })
       .fill("Synthetic Czech footer");
     await page
@@ -150,6 +162,15 @@ for (const language of ["cs", "en"] as const) {
       page.getByRole("img", { name: text("Logo", "Logo"), exact: true }),
     ).toBeVisible();
     await page
+      .getByRole("checkbox", {
+        name: text(
+          "Dodací listy standardně tisknout s cenami",
+          "Include prices on delivery notes by default",
+        ),
+        exact: true,
+      })
+      .check();
+    await page
       .getByRole("button", {
         name: text("Uložit vzhled", "Save appearance"),
         exact: true,
@@ -163,10 +184,32 @@ for (const language of ["cs", "en"] as const) {
     ).toBeDisabled();
     await page.reload();
     await expect(
+      page.getByLabel(
+        text("Text před položkami (čeština)", "Text before items (Czech)"),
+        { exact: true },
+      ),
+    ).toHaveValue("Synthetic Czech introduction\nSecond line");
+    await expect(
+      page.getByLabel(
+        text("Text před položkami (angličtina)", "Text before items (English)"),
+        { exact: true },
+      ),
+    ).toHaveValue("Synthetic English introduction");
+    await expect(
       page.getByLabel(text("Zápatí v angličtině", "English footer"), {
         exact: true,
       }),
     ).toHaveValue("Synthetic English footer");
+    await expect(
+      page.getByRole("checkbox", {
+        name: text(
+          "Dodací listy standardně tisknout s cenami",
+          "Include prices on delivery notes by default",
+        ),
+        exact: true,
+      }),
+    ).toBeChecked();
+
     await expect(
       page.getByText("Renamed tag (0)", { exact: true }),
     ).toBeVisible();

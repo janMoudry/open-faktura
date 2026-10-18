@@ -18,9 +18,32 @@ impl OutputStore for PgOutput {
             || request.ids.len() > 50
             || !["cs", "en"].contains(&request.language.as_str())
             || (!matches!(request.kind, Kind::BulkPdf) && request.ids.len() != 1)
+            || (request.delivery_note_prices.is_some()
+                && !matches!(request.kind, Kind::DeliveryNote))
         {
             return Err(Error::Invalid(vec!["ids".into(), "language".into()]));
         }
+        let delivery_prices = if matches!(request.kind, Kind::DeliveryNote) {
+            match request.delivery_note_prices {
+                Some(value) => value,
+                None => {
+                    let style: Option<serde_json::Value> = sqlx::query_scalar(
+                        "SELECT data FROM company_document_style WHERE company_id=$1",
+                    )
+                    .bind(cid)
+                    .fetch_optional(&mut *tx)
+                    .await
+                    .map_err(err)?;
+                    style
+                        .map(serde_json::from_value::<faktura_application::document_style::Style>)
+                        .transpose()
+                        .map_err(err)?
+                        .is_some_and(|s| s.delivery_note_prices)
+                }
+            }
+        } else {
+            false
+        };
         if matches!(request.kind, Kind::BulkPdf) {
             use faktura_application::draft::DraftStore;
             let mut unique = std::collections::HashSet::new();
@@ -75,7 +98,17 @@ impl OutputStore for PgOutput {
                 pdfs.push(pdf);
                 continue;
             }
-            lines = content(&value, &request.kind, &request.language);
+            if delivery_prices
+                && value.data.calculation.lines.iter().any(|line| {
+                    value
+                        .totals
+                        .as_ref()
+                        .is_none_or(|t| !t.lines.iter().any(|r| r.id == line.id))
+                })
+            {
+                return Err(Error::Conflict);
+            }
+            lines = content(&value, &request.kind, &request.language, delivery_prices);
             if matches!(request.kind, Kind::PaymentConfirmation) {
                 let payments=sqlx::query("SELECT p.amount::text amount,p.paid_on::text paid_on,p.method FROM invoice_payment p WHERE p.company_id=$1 AND p.invoice_id=$2 AND NOT EXISTS(SELECT 1 FROM invoice_payment_reversal r WHERE r.company_id=p.company_id AND r.invoice_id=p.invoice_id AND r.payment_id=p.id) ORDER BY p.paid_on,p.id").bind(cid).bind(id).fetch_all(&mut *tx).await.map_err(err)?;
                 if payments.is_empty() {
@@ -151,7 +184,12 @@ impl OutputStore for PgOutput {
         })
     }
 }
-fn content(d: &faktura_application::draft::Draft, k: &Kind, language: &str) -> Vec<String> {
+fn content(
+    d: &faktura_application::draft::Draft,
+    k: &Kind,
+    language: &str,
+    delivery_prices: bool,
+) -> Vec<String> {
     let en = language == "en";
     let label = |cs: &str, en_text: &str| {
         if en {
@@ -261,11 +299,54 @@ fn content(d: &faktura_application::draft::Draft, k: &Kind, language: &str) -> V
     }
     lines.push(String::new());
     lines.push(label("Položky a množství", "Items and quantity"));
+    if matches!(k, Kind::DeliveryNote) {
+        lines.push(if delivery_prices {
+            label(
+                "Ceny z původní faktury; nejde o výzvu k úhradě.",
+                "Prices from the original invoice; not a payment request.",
+            )
+        } else {
+            label("Bez cen", "Prices omitted")
+        });
+    }
     for line in &d.data.calculation.lines {
         lines.push(format!(
             "{} | {} {}",
             line.description, line.quantity, line.unit
         ));
+        if matches!(k, Kind::DeliveryNote) && delivery_prices {
+            let amounts = d
+                .totals
+                .as_ref()
+                .and_then(|t| t.lines.iter().find(|r| r.id == line.id))
+                .map(|r| &r.amounts);
+            if let Some(amounts) = amounts {
+                lines.push(format!(
+                    "{}: {} {} | {}: {} {} | {}: {} {}",
+                    label("Základ položky", "Line net"),
+                    if en {
+                        amounts.net.clone()
+                    } else {
+                        amounts.net.replace('.', ",")
+                    },
+                    d.data.calculation.currency,
+                    label("DPH položky", "Line VAT"),
+                    if en {
+                        amounts.vat.clone()
+                    } else {
+                        amounts.vat.replace('.', ",")
+                    },
+                    d.data.calculation.currency,
+                    label("Celkem položka", "Line gross"),
+                    if en {
+                        amounts.gross.clone()
+                    } else {
+                        amounts.gross.replace('.', ",")
+                    },
+                    d.data.calculation.currency
+                ));
+            }
+        }
         if matches!(k, Kind::Rtf) {
             lines.push(format!(
                 "{}: {} %",

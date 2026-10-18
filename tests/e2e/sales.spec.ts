@@ -940,6 +940,119 @@ for (const english of [false, true])
           { exact: true },
         ),
       ).toBeVisible();
+      // Additional disposable source documents; no customer mail is sent here.
+      const originalForTrash = await (
+        await page.request.get(
+          `http://127.0.0.1:${port}/api/companies/${alpha.id}/sales/${qid}`,
+        )
+      ).json();
+      for (const kind of ["quote", "template"] as const) {
+        const createdForTrash = await page.request.post(
+          `http://127.0.0.1:${port}/api/companies/${alpha.id}/sales`,
+          {
+            headers: {
+              Origin: "http://127.0.0.1:5173",
+              "X-Faktura-Request": "1",
+            },
+            data: {
+              request_id: crypto.randomUUID(),
+              kind,
+              data: {
+                ...originalForTrash.data,
+                name: `Synthetic trash ${kind}`,
+                status: "created",
+              },
+            },
+          },
+        );
+        expect(createdForTrash.ok()).toBe(true);
+        const disposable = await createdForTrash.json();
+        const disposableUrl = `/#/companies/${alpha.id}/${kind === "quote" ? "quotes" : "templates"}/${disposable.id}`;
+        await page.goto(disposableUrl);
+        await page
+          .getByRole("button", {
+            name: text("Přesunout do koše", "Move to trash"),
+            exact: true,
+          })
+          .click();
+        const trashDialog = page.getByRole("dialog", {
+          name: text("Přesunout do koše", "Move to trash"),
+          exact: true,
+        });
+        await expect(trashDialog).toContainText(
+          text("Jeho obsah se nesmaže", "Its content stays preserved"),
+        );
+        await trashDialog
+          .getByRole("button", { name: text("Zrušit", "Cancel"), exact: true })
+          .click();
+        await expect(page).toHaveURL(new RegExp(`/${disposable.id}$`));
+        await page
+          .getByRole("button", {
+            name: text("Přesunout do koše", "Move to trash"),
+            exact: true,
+          })
+          .click();
+        await trashDialog
+          .getByRole("button", {
+            name: text("Přesunout do koše", "Move to trash"),
+            exact: true,
+          })
+          .click();
+        await expect(page).toHaveURL(
+          new RegExp(`/${kind === "quote" ? "quotes" : "templates"}$`),
+        );
+        await expect(
+          page.getByText(`Synthetic trash ${kind}`, { exact: true }),
+        ).toHaveCount(0);
+        await page
+          .getByRole("link", {
+            name: text(
+              "Koš nabídek a šablon",
+              "Quotations and templates trash",
+            ),
+            exact: true,
+          })
+          .click();
+        const trashRow = page
+          .getByRole("row")
+          .filter({ hasText: `Synthetic trash ${kind}` });
+        await expect(trashRow).toBeVisible();
+        await page.reload();
+        await expect(trashRow).toBeVisible();
+        await trashRow
+          .getByRole("button", {
+            name: text("Obnovit dokument", "Restore document"),
+            exact: true,
+          })
+          .click();
+        await expect(trashRow).toHaveCount(0);
+        await page.goto(disposableUrl);
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+        const restored = await (
+          await page.request.get(
+            `http://127.0.0.1:${port}/api/companies/${alpha.id}/sales/${disposable.id}`,
+          )
+        ).json();
+        expect(restored.data).toEqual(disposable.data);
+        expect(restored.revision).toBe(disposable.revision + 2);
+      }
+      // Converted/published original remains protected by server, never hidden.
+      const protectedResponse = await page.request.post(
+        `http://127.0.0.1:${port}/api/companies/${alpha.id}/sales-trash`,
+        {
+          headers: {
+            Origin: "http://127.0.0.1:5173",
+            "X-Faktura-Request": "1",
+          },
+          data: {
+            request_id: crypto.randomUUID(),
+            id: qid,
+            revision: originalForTrash.revision,
+            action: "trash",
+          },
+        },
+      );
+      expect(protectedResponse.status()).toBe(409);
     } catch (error) {
       await page.screenshot({
         path: `test-results/quote-failure-${english ? "en" : "cs"}-${info.project.name}.png`,

@@ -24,7 +24,11 @@ export function AdvanceDeductions({
         {t("settlementDeductions")}
       </Heading>
       <p className="text-sm text-muted">
-        {t("settlementStoredTax")} {t("settlementCurrencyHelp")}
+        {t(
+          value.tax_mode === "non_payer"
+            ? "settlementNonpayerFxHelp"
+            : "settlementTaxFxHelp",
+        )}
       </p>
       {value.sources.map((s) => (
         <div key={s.id} className="space-y-control">
@@ -39,6 +43,20 @@ export function AdvanceDeductions({
               −{moneyText(s.paid, language, value.currency ?? "CZK")}
             </span>
           </div>
+          {s.valuation?.exchange_rate && (
+            <p className="text-sm text-muted">
+              {t("settlementSourceRate", {
+                currency: s.valuation.currency,
+                rate: s.valuation.exchange_rate.rate.replace(
+                  ".",
+                  language === "cs" ? "," : ".",
+                ),
+                units: BigInt(s.valuation.exchange_rate.units).toLocaleString(
+                  language === "cs" ? "cs-CZ" : "en-GB",
+                ),
+              })}
+            </p>
+          )}
           {s.tax_receipts.map((r) => (
             <div key={r.id}>
               <Link

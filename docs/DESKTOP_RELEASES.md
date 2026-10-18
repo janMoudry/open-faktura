@@ -13,8 +13,11 @@ Manifest u každé platformy obsahuje commit, verzi, názvy a SHA-256 souborů.
 
 Současná pipeline je **nepodepsaná a nenotarizovaná**. Nepotřebuje přístup
 k podpisovým tajemstvím; právo zápisu do Releases má jen závěrečný job na tagu.
-Automatický updater není zapnutý. Pro jeho zavedení jsou potřeba vlastní
-podpisové klíče, ověřování podpisu aktualizace a otestovaný aktualizační kanál.
+Ruční signed updater je implementovaný jako explicitní opt-in při sestavení;
+bez konfigurace zůstává vypnutý. Vyžaduje vlastní veřejný endpoint/klíč a
+privátní release signing key. Podpis aktualizace není platformní Code Signing
+nebo notarizace. Postup, parametry a meze ověření jsou ve
+[specifikaci aktualizací](specs/desktop-updates.md).
 Instalátor neobsahuje backend ani PostgreSQL. Použijte server ze stejného
 vydání a před upgradem serveru zálohujte DB podle [instalačního návodu](INSTALLATION.md).
 
@@ -40,3 +43,25 @@ vytvořilo DMG 6,62 MiB a `hdiutil verify` potvrdilo integritu obrazu.
 Sběr instalátoru a generování SHA-256 manifestu proběhlo nad tímto skutečným
 balíčkem. Jde o debug sestavení bez ověření instalace a přihlášení v tomto běhu,
 nikoli o podepsané veřejné vydání.
+
+## Volitelný podepsaný aktualizační kanál
+
+Ve workflow nastavuje provozovatel veřejné variables
+`DESKTOP_UPDATER_ENDPOINT` (HTTPS) a `DESKTOP_UPDATER_PUBLIC_KEY` (Tauri public
+key obsah, nikoli cesta). Obě musí být přítomné; samotný jeden parametr je
+chyba. Privátní klíč a heslo jsou pouze release secrets
+`TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Nikdy je
+nepřidávejte do repa nebo PR workflow. Klíče se při běžném buildu nevytvářejí.
+
+Build wrapper zapne updater artefakty pouze v tomto režimu. Collector a
+manifest generátor ověří podpis souborů i podepsanou verzi, včetně úplnosti
+čtyř cílových variant. Bez `.sig` nesmí vydání tvrdit updater podporu.
+`latest.json` odkazuje na assets tohoto tagu; celý release zůstane draft
+a bez samostatné autorizace se nezveřejní. Endpoint lze provozovat vlastní.
+Před zveřejněním vždy ověřte skutečný upgrade a zachování dat v instalované
+aplikaci na každém cíli; fixture testy tento krok nenahrazují.
+
+Reprodukovatelné syntetické kontroly: `pnpm test:desktop-updater` ověří
+CLI/Minisign fixture, collector/manifest a nativní mock plugin s loopbackem.
+Dočasný testovací klíč zůstává pouze v privátním temp adresáři a po testu
+se odstraní. Žádný test neprovádí OS instalaci ani publikaci.

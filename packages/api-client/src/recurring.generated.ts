@@ -331,6 +331,8 @@ export interface components {
       paid: string;
       payment_ids: string[];
       tax_receipts: components["schemas"]["AdvanceTaxDeduction"][];
+      /** @description Optional immutable source currency/rate snapshot. Missing on legacy settlements; final rate remains in invoice calculation. */
+      valuation?: components["schemas"]["AdvanceSourceValuation"] | null;
     };
     AdvanceSettlement: {
       version: string;
@@ -452,6 +454,13 @@ export interface components {
     RecurringPreview: {
       schedule: components["schemas"]["RecurringSchedule"];
       index: number;
+    };
+    AdvanceSourceValuation: {
+      currency: string;
+      exchange_rate: {
+        rate: string;
+        units: string;
+      };
     };
   };
   responses: never;

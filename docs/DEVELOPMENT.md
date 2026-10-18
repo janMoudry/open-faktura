@@ -1,6 +1,6 @@
 # Lokální vývoj
 
-Monorepo obsahuje web/Tauri UI, Rust API a PostgreSQL. Aktuální implementované moduly a jejich omezení uvádí [checklist](FEATURE_CHECKLIST.md). API klienti a MCP schémata se generují přes `pnpm generate:api`; lokální MCP a fakturační moduly jsou implementované, PWA/offline režim zatím ne.
+Monorepo obsahuje web/Tauri UI, Rust API a PostgreSQL. Aktuální implementované moduly a jejich omezení uvádí [checklist](FEATURE_CHECKLIST.md). API klienti a MCP schémata se generují přes `pnpm generate:api`; lokální MCP a fakturační moduly jsou implementované. Produkční web obsahuje online PWA a statickou offline obrazovku; offline fakturace ani synchronizace není podporovaná.
 
 ## Požadavky
 
@@ -54,7 +54,7 @@ Tento příkaz sestaví nativní balíčky aktuálního OS do `target/release/bu
 pnpm --filter @open-faktura/desktop build --debug --bundles app
 ```
 
-Matice instalátorů a draft GitHub Releases je připravena v [postupu vydání](DESKTOP_RELEASES.md). Podpisy, notarizace a automatický updater ještě nejsou nakonfigurované. Lokálně vytvořený balíček není vydaná podepsaná aplikace. Desktop neinstaluje backend ani PostgreSQL.
+Matice instalátorů a draft GitHub Releases je připravena v [postupu vydání](DESKTOP_RELEASES.md). Platformní podpisy a notarizace nejsou nakonfigurované. Ruční signed updater je implementován jako build-time opt-in, výchozí vypnutý; viz [specifikace](specs/desktop-updates.md). Lokálně vytvořený balíček není vydaná podepsaná aplikace. Desktop neinstaluje backend ani PostgreSQL.
 
 ## Kontroly
 
@@ -175,3 +175,18 @@ P19-01j: `DATABASE_URL=… pnpm test:exchange-rates` ověřuje izolovanou
 PostgreSQL a injektovaný kurzový provider bez živé sítě. Parser:
 `cargo test -p faktura-infrastructure exchange_rate`; CS/EN desktop/mobile:
 `pnpm test:e2e tests/e2e/dashboard.spec.ts`. [Specifikace](specs/exchange-rates.md).
+
+## Ověření online PWA
+
+PWA se záměrně neregistruje ve Vite dev ani v Tauri. Pro reprodukovatelný test bez DB a skutečných účetních údajů:
+
+```sh
+pnpm build:web
+pnpm test:pwa
+pnpm exec playwright install chromium
+pnpm exec playwright test --config=playwright.pwa.config.ts
+```
+
+Samostatná konfigurace spustí produkční Vite preview na loopback portu4173 a pouze PWA testy pro CS/EN v desktopovém a mobilním Chromium. Port lze změnit přes PWA_WEB_PORT; existující server se lokálně použije znovu, v CI musí být port volný. Nepoužívat vývojový server na tomto portu. V běžné dev E2E sadě se PWA scénář bez PWA_BASE_URL explicitně přeskočí. Pro koordinované existující preview lze použít `PWA_BASE_URL=http://127.0.0.1:5173 pnpm exec playwright test tests/e2e/pwa.spec.ts`; předpokladem je produkční obsah na tomto portu.
+
+CI má samostatný pwa job, který sestaví produkční web a spustí stejnou konfiguraci, a unit `test:pwa` v checks jobu. Výsledky/screenshoty a případný trace ukládá jako artefakt pwa-browser-results. Testy neprovádějí instalaci do OS, neověřují fyzický Android/iOS ani offline účetní operace; [přesný rozsah](specs/pwa.md).

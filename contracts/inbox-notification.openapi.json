@@ -1,0 +1,228 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Private inbox notifications",
+    "version": "1.0.0",
+    "description": "Own-user opt-in within authorized company. No external sends. Default categories disabled; persisted safe events only, no historical backfill. 400 invalid, 401 session, 404 inaccessible company/cursor, 409 stale settings."
+  },
+  "paths": {
+    "/api/companies/{company}/inbox/notifications": {
+      "get": {
+        "operationId": "inbox_notification_feed",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Own-user feed, latest 50 enabled events. through is maximum returned ID; read is monotonic and idempotent. Enabling starts at current position.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationFeed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/notifications/settings": {
+      "post": {
+        "operationId": "inbox_notification_configure",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Own-user feed, latest 50 enabled events. through is maximum returned ID; read is monotonic and idempotent. Enabling starts at current position.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationFeed"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationConfigure"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company}/inbox/notifications/read": {
+      "post": {
+        "operationId": "inbox_notification_read",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Own-user feed, latest 50 enabled events. through is maximum returned ID; read is monotonic and idempotent. Enabling starts at current position.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationFeed"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationRead"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NotificationSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "new_documents": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "boolean"
+          }
+        },
+        "required": ["revision", "new_documents", "errors"]
+      },
+      "NotificationConfigure": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "new_documents": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "boolean"
+          }
+        },
+        "required": ["revision", "new_documents", "errors"]
+      },
+      "NotificationRead": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "through": {
+            "type": "string"
+          }
+        },
+        "required": ["through"]
+      },
+      "NotificationEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["document", "error"]
+          },
+          "document_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "filename": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "mailbox_failed",
+              "message_rejected",
+              "gateway_failed",
+              null
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "unread": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "document_id",
+          "filename",
+          "code",
+          "created_at",
+          "unread"
+        ]
+      },
+      "NotificationFeed": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/NotificationSettings"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationEvent"
+            }
+          },
+          "unread": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "through": {
+            "type": "string"
+          }
+        },
+        "required": ["settings", "events", "unread", "through"]
+      }
+    }
+  }
+}

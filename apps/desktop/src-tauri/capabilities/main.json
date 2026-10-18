@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "local-main",
+  "description": "Only local main UI. Generic updater IPC is explicitly denied; updates use our confirmed custom commands.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "updater:deny-check",
+    "updater:deny-download",
+    "updater:deny-install",
+    "updater:deny-download-and-install"
+  ]
+}

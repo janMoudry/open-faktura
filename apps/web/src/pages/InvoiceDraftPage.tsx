@@ -754,7 +754,12 @@ function Editor({
                   <DocumentCurrencyFields
                     value={data.calculation}
                     documentDate={data.issued_on}
-                    disabled={disabled || !!draft?.advances}
+                    disabled={
+                      disabled ||
+                      (!!draft?.advances &&
+                        data.calculation.tax_mode === "vat_payer")
+                    }
+                    currencyDisabled={!!draft?.advances}
                     onChange={(v) =>
                       change({
                         ...data,

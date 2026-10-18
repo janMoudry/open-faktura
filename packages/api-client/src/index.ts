@@ -110,3 +110,11 @@ export * from "./draft-trash";
 export * from "./tax-classification";
 
 export * from "./taxpayer-filing-profile";
+
+export * from "./contact-anonymization";
+
+export * from "./inbox-notification";
+
+export * from "./inbox-delivery";
+
+export * from "./sales-trash";

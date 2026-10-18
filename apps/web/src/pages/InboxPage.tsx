@@ -1,3 +1,4 @@
+import { InboxOriginalDelivery } from "../components/organisms/InboxOriginalDelivery";
 import { InboxMailbox } from "../components/organisms/InboxMailbox";
 import { InboxAdapters } from "../components/organisms/InboxAdapters";
 import { useEffect, useState } from "react";
@@ -46,6 +47,10 @@ export function InboxPage() {
     [error, setError] = useState(false),
     [history, setHistory] = useState<InboxAudit[] | null>(null),
     [attaching, setAttaching] = useState<InboxDocument | null>(null),
+    [detaching, setDetaching] = useState<{
+      document: InboxDocument;
+      requestId: string;
+    } | null>(null),
     [candidates, setCandidates] = useState<ReceivedInvoice[]>([]),
     [targetQuery, setTargetQuery] = useState(""),
     [targetKind, setTargetKind] = useState<"invoice" | "receipt">("invoice");
@@ -267,6 +272,27 @@ export function InboxPage() {
                           {t("inboxAttach")}
                         </Button>
                       )}
+                      <InboxOriginalDelivery
+                        key={`${companyId}:${d.id}`}
+                        companyId={companyId}
+                        document={d}
+                        write={write}
+                        onExpired={onExpired}
+                      />
+                      {write && d.received_id && (
+                        <Button
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            setDetaching({
+                              document: d,
+                              requestId: crypto.randomUUID(),
+                            })
+                          }
+                        >
+                          {t("inboxDetach")}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         onClick={() =>
@@ -373,6 +399,35 @@ export function InboxPage() {
         </div>
       </Dialog>
       <Dialog
+        open={!!detaching}
+        onClose={() => {
+          if (!busy) setDetaching(null);
+        }}
+        title={t("inboxDetach")}
+        description={t("inboxDetachDescription")}
+      >
+        <div className="space-y-field">
+          <p className="break-all">{detaching?.document.filename}</p>
+          <Button
+            disabled={busy}
+            onClick={() =>
+              void run(async () => {
+                if (!detaching) return;
+                await inboxExecute(apiUrl, companyId, {
+                  request_id: detaching.requestId,
+                  id: detaching.document.id,
+                  revision: detaching.document.revision,
+                  action: "detach",
+                });
+                setDetaching(null);
+              })
+            }
+          >
+            {t("inboxDetachConfirm")}
+          </Button>
+        </div>
+      </Dialog>
+      <Dialog
         open={history !== null}
         onClose={() => setHistory(null)}
         title={t("inboxHistory")}
@@ -390,7 +445,9 @@ export function InboxPage() {
                     ? "inboxUpload"
                     : h.action === "process"
                       ? "inboxProcessed"
-                      : "inboxArchiveEvent",
+                      : h.action === "detach"
+                        ? "inboxDetached"
+                        : "inboxArchiveEvent",
               )}
             </p>
           ))}

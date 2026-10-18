@@ -292,6 +292,19 @@ fn render_document(
             }
         )
     };
+    if let Some(style) = style {
+        let before = if en {
+            &style.before_items_en
+        } else {
+            &style.before_items_cs
+        };
+        if !before.is_empty() {
+            for line in before.lines() {
+                doc.push(Paragraph::new(text(line)));
+            }
+            doc.push(Break::new(1));
+        }
+    }
     for (i, (line, result)) in d.calculation.lines.iter().zip(&totals.lines).enumerate() {
         if quote {
             doc.push(QuoteLineSpace(32.0));

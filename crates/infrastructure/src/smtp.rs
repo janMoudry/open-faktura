@@ -127,6 +127,17 @@ pub async fn resolve(
         .map_err(err)?;
     config(&row, fallback)
 }
+/// Resolve settings on an already borrowed connection, without exhausting the pool.
+pub(crate) async fn resolve_in_tx(
+    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    fallback: Option<Arc<MailConfig>>,
+) -> Result<Option<Arc<MailConfig>>> {
+    let row = sqlx::query("SELECT * FROM smtp_settings WHERE id")
+        .fetch_one(&mut **tx)
+        .await
+        .map_err(err)?;
+    config(&row, fallback)
+}
 #[async_trait]
 impl SmtpStore for PgSmtp {
     async fn get(&self, actor: &str) -> Result<State> {

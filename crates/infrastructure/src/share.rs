@@ -57,7 +57,9 @@ fn map(r: sqlx::postgres::PgRow) -> Link {
 }
 const STATS:&str="SELECT s.*, (SELECT count(*) FROM quote_view v WHERE v.share_id=s.id) AS view_count,(SELECT min(viewed_at) FROM quote_view v WHERE v.share_id=s.id) AS first_viewed_at,(SELECT max(viewed_at) FROM quote_view v WHERE v.share_id=s.id) AS last_viewed_at FROM quote_share s";
 async fn quote(tx: &mut Transaction<'_, Postgres>, c: i64, d: i64) -> Result<Document> {
-    crate::sales::map(sqlx::query("SELECT s.*,i.number AS linked_number FROM sales_document s LEFT JOIN invoice_draft i ON i.company_id=s.company_id AND i.id=s.invoice_id WHERE s.company_id=$1 AND s.id=$2 AND s.kind='quote' FOR SHARE OF s").bind(c).bind(d).fetch_optional(&mut **tx).await.map_err(err)?.ok_or(Error::NotFound)?)
+    let value=crate::sales::map(sqlx::query("SELECT s.*,i.number AS linked_number FROM sales_document s LEFT JOIN invoice_draft i ON i.company_id=s.company_id AND i.id=s.invoice_id WHERE s.company_id=$1 AND s.id=$2 AND s.kind='quote' FOR SHARE OF s").bind(c).bind(d).fetch_optional(&mut **tx).await.map_err(err)?.ok_or(Error::NotFound)?)?;
+    crate::sales::ensure_not_trashed(tx, c, d).await?;
+    Ok(value)
 }
 impl PgShare {
     async fn resolve(&self, t: &str) -> Result<Document> {

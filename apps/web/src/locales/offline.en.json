@@ -1,0 +1,7 @@
+{
+  "title": "Connection unavailable",
+  "intro": "Open Faktura needs a connection to your server.",
+  "detail": "Documents and their status are unavailable offline. Nothing can be saved or sent from this screen. When the connection returns, check the status of your last action in the app.",
+  "retry": "Try again",
+  "language": "Jazyk / Language"
+}

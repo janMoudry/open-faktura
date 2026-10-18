@@ -12,6 +12,8 @@ pub enum Kind {
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Request {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_note_prices: Option<bool>,
     pub ids: Vec<String>,
     pub kind: Kind,
     pub language: String,

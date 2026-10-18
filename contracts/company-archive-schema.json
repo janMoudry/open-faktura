@@ -359,7 +359,17 @@
     "revision",
     "archived",
     "created_at",
-    "updated_at"
+    "updated_at",
+    "anonymized_at"
+  ],
+  "contact_anonymization_command": [
+    "company_id",
+    "request_id",
+    "contact_id",
+    "actor_id",
+    "command",
+    "result",
+    "created_at"
   ],
   "contact_audit": [
     "company_id",
@@ -552,6 +562,30 @@
     "result",
     "created_at"
   ],
+  "inbox_delivery": [
+    "id",
+    "company_id",
+    "document_id",
+    "actor_id",
+    "request_id",
+    "command",
+    "revision",
+    "sender",
+    "recipient",
+    "subject",
+    "body",
+    "message_id",
+    "filename",
+    "media_type",
+    "sha256",
+    "size",
+    "content",
+    "status",
+    "error_code",
+    "created_at",
+    "started_at",
+    "finished_at"
+  ],
   "inbox_document": [
     "id",
     "company_id",
@@ -621,6 +655,25 @@
     "provider",
     "created_at",
     "automatic"
+  ],
+  "inbox_notification_event": [
+    "id",
+    "company_id",
+    "category",
+    "document_id",
+    "filename",
+    "code",
+    "source_key",
+    "created_at"
+  ],
+  "inbox_notification_settings": [
+    "company_id",
+    "user_id",
+    "revision",
+    "new_documents",
+    "errors",
+    "documents_read",
+    "errors_read"
   ],
   "inbox_settings": [
     "company_id",
@@ -1019,6 +1072,20 @@
     "name",
     "archived",
     "revision"
+  ],
+  "sales_trash": [
+    "company_id",
+    "document_id",
+    "deleted_at"
+  ],
+  "sales_trash_command": [
+    "company_id",
+    "request_id",
+    "actor_id",
+    "document_id",
+    "command",
+    "result",
+    "created_at"
   ],
   "stock_card": [
     "company_id",

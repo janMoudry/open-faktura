@@ -351,6 +351,7 @@ impl DeliveryStore for PgDelivery {
                 .await
                 .map_err(err)?
                 .ok_or(Error::NotFound)?;
+        crate::sales::ensure_not_trashed(&mut tx, company, id(d)?).await?;
         let current = crate::sales::map(row)?;
         if current.revision != cmd.revision || current.archived {
             return Err(Error::Conflict);
@@ -471,17 +472,20 @@ impl MailConfig {
             })();
         match build {
             Err(_) => ("failed", Some("message_invalid")),
-            Ok(message) => {
-                match tokio::time::timeout(Duration::from_secs(45), self.transport.send(message))
-                    .await
-                {
-                    Ok(Ok(_)) => ("sent", None),
-                    Ok(Err(e)) if e.is_permanent() || e.is_transient() => {
-                        ("failed", Some("smtp_rejected"))
-                    }
-                    _ => ("uncertain", Some("smtp_unknown")),
-                }
-            }
+            Ok(message) => self.dispatch_message(message).await,
+        }
+    }
+}
+
+impl MailConfig {
+    pub(crate) async fn dispatch_message(
+        &self,
+        message: Message,
+    ) -> (&'static str, Option<&'static str>) {
+        match tokio::time::timeout(Duration::from_secs(45), self.transport.send(message)).await {
+            Ok(Ok(_)) => ("sent", None),
+            Ok(Err(e)) if e.is_permanent() || e.is_transient() => ("failed", Some("smtp_rejected")),
+            _ => ("uncertain", Some("smtp_unknown")),
         }
     }
 }

@@ -137,3 +137,11 @@ pub mod document_exports;
 pub mod tax_classification;
 
 pub mod taxpayer_filing_profile;
+
+pub mod contact_anonymization;
+
+pub mod inbox_notification;
+
+pub mod inbox_delivery;
+
+pub mod sales_trash;

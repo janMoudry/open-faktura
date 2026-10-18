@@ -1,0 +1,62 @@
+[
+  {
+    "name": "inbox_delivery_history",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["company_id", "id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "inbox_delivery_send",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "recipient": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "confirm_original": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "company_id",
+        "id",
+        "request_id",
+        "revision",
+        "recipient",
+        "subject",
+        "body",
+        "confirm_original"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

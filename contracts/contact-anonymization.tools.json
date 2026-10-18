@@ -1,0 +1,36 @@
+[
+  {
+    "name": "contact_anonymize",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "type": "string"
+        },
+        "contact_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confirm": {
+          "type": "boolean",
+          "enum": [true]
+        }
+      },
+      "required": [
+        "company_id",
+        "contact_id",
+        "request_id",
+        "revision",
+        "confirm"
+      ]
+    }
+  }
+]

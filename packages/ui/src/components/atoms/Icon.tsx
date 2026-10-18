@@ -1,4 +1,5 @@
 import {
+  Bell,
   Mail,
   Download,
   Printer,
@@ -39,6 +40,7 @@ import {
 
 // Explicit imports keep unused icons out of the application bundle.
 const icons = {
+  bell: Bell,
   mail: Mail,
   download: Download,
   print: Printer,

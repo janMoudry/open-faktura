@@ -251,10 +251,16 @@ export function ContactsPage() {
                           <TableCell className="font-medium">
                             <Link
                               className="block truncate hover:underline underline-offset-4"
-                              title={contact.data.name}
+                              title={
+                                contact.anonymized
+                                  ? t("contactAnonymized")
+                                  : contact.data.name
+                              }
                               to={contact.id}
                             >
-                              {contact.data.name}
+                              {contact.anonymized
+                                ? t("contactAnonymized")
+                                : contact.data.name}
                             </Link>
                           </TableCell>
                           <TableCell className="whitespace-nowrap tabular-nums text-muted">
@@ -280,7 +286,7 @@ export function ContactsPage() {
                                   ? `${contact.id}?edit=true`
                                   : contact.id
                               }
-                              aria-label={`${t(canWrite && !archived ? "contactEdit" : "contactDetail")}: ${contact.data.name}`}
+                              aria-label={`${t(canWrite && !archived ? "contactEdit" : "contactDetail")}: ${contact.anonymized ? t("contactAnonymized") : contact.data.name}`}
                               title={t(
                                 canWrite && !archived
                                   ? "contactEdit"

@@ -6,7 +6,7 @@ use faktura_application::{
     draft::Draft,
 };
 use faktura_domain::{
-    advance_settlement::{same_party, Settlement, Source, TaxDeduction},
+    advance_settlement::{same_party, Settlement, Source, SourceValuation, TaxDeduction},
     invoice::{Calculation, PriceMode, Rounding, Totals},
 };
 use rust_decimal::Decimal;
@@ -129,14 +129,25 @@ impl SettlementStore for PgSettlement {
             if let Some(first) = documents.first() {
                 let first: &faktura_application::sales::Document = first;
                 if first.data.invoice.calculation.currency != v.data.invoice.calculation.currency
-                    || first.data.invoice.calculation.exchange_rate
-                        != v.data.invoice.calculation.exchange_rate
                     || !same_party(first.data.invoice.customer.as_ref().unwrap(), party)
                     || !same_party(&first.data.invoice.supplier, &v.data.invoice.supplier)
                     || first.data.invoice.calculation.tax_mode
                         != v.data.invoice.calculation.tax_mode
                 {
                     return Err(Error::Invalid(vec!["advance_identity_or_date".into()]));
+                }
+            }
+            if let Some(first) = documents.first() {
+                let first: &faktura_application::sales::Document = first;
+                if first.data.invoice.calculation.tax_mode
+                    == faktura_domain::invoice::TaxMode::VatPayer
+                    && !faktura_domain::exchange::equivalent(
+                        &first.data.invoice.calculation.currency,
+                        first.data.invoice.calculation.exchange_rate.as_ref(),
+                        v.data.invoice.calculation.exchange_rate.as_ref(),
+                    )
+                {
+                    return Err(Error::Invalid(vec!["advance_tax_exchange_rate".into()]));
                 }
             }
             let payments=sqlx::query("SELECT id,paid_on FROM advance_payment WHERE company_id=$1 AND document_id=$2 AND reversed_at IS NULL ORDER BY id").bind(c).bind(id(&v.id)?).fetch_all(&mut *tx).await.map_err(err)?;
@@ -160,6 +171,10 @@ impl SettlementStore for PgSettlement {
             credited += paid;
             rounding += dec(&t.rounding)?;
             sources.push(Source {
+                valuation: Some(SourceValuation {
+                    currency: v.data.invoice.calculation.currency.clone(),
+                    exchange_rate: v.data.invoice.calculation.exchange_rate.clone(),
+                }),
                 id: v.id.clone(),
                 number: v.number.clone().unwrap_or_default(),
                 paid: money(paid),
@@ -248,7 +263,13 @@ impl SettlementStore for PgSettlement {
             totals =
                 faktura_domain::advance_settlement::apply(totals, s).map_err(Error::Invalid)?;
         }
-        crate::draft::check_contact(&mut tx, c, data.contact_id.as_deref()).await?;
+        crate::draft::check_existing_contact(
+            &mut tx,
+            c,
+            data.contact_id.as_deref(),
+            old.as_ref().and_then(|v| v.data.contact_id.as_deref()),
+        )
+        .await?;
         let value = if let Some(v) = &old {
             draft_map(sqlx::query("UPDATE invoice_draft SET advances=$3,totals=$4,revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2 RETURNING *").bind(c).bind(id(&v.id)?).bind(serde_json::to_value(&advances).map_err(err)?).bind(serde_json::to_value(totals).map_err(err)?).fetch_one(&mut *tx).await.map_err(err)?)?
         } else {
@@ -340,12 +361,8 @@ impl SettlementStore for PgSettlement {
         )?;
         let totals = faktura_domain::invoice::calculate(&calculation).map_err(Error::Invalid)?;
         if let Some(s) = v.advances {
-            if calculation.tax_mode != s.tax_mode
-                || calculation.currency != s.currency
-                || calculation.exchange_rate != s.exchange_rate
-            {
-                return Err(Error::Invalid(vec!["tax_mode".into()]));
-            }
+            faktura_domain::advance_settlement::validate_calculation(&calculation, &s)
+                .map_err(Error::Invalid)?;
             faktura_domain::advance_settlement::apply(totals, &s).map_err(Error::Invalid)
         } else {
             Ok(totals)

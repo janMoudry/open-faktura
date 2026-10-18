@@ -90,6 +90,23 @@
           "footer_en": {
             "type": "string",
             "maxLength": 500
+          },
+          "delivery_note_prices": {
+            "type": "boolean",
+            "default": false,
+            "description": "Default for newly requested auxiliary delivery notes; does not modify original invoice PDF."
+          },
+          "before_items_cs": {
+            "type": "string",
+            "maxLength": 1000,
+            "default": "",
+            "description": "Plain text before item lines in the document language; snapshotted for new documents only."
+          },
+          "before_items_en": {
+            "type": "string",
+            "maxLength": 1000,
+            "default": "",
+            "description": "Plain text before item lines in the document language; snapshotted for new documents only."
           }
         },
         "required": [
@@ -127,6 +144,23 @@
               "footer_en": {
                 "type": "string",
                 "maxLength": 500
+              },
+              "delivery_note_prices": {
+                "type": "boolean",
+                "default": false,
+                "description": "Default for newly requested auxiliary delivery notes; does not modify original invoice PDF."
+              },
+              "before_items_cs": {
+                "type": "string",
+                "maxLength": 1000,
+                "default": "",
+                "description": "Plain text before item lines in the document language; snapshotted for new documents only."
+              },
+              "before_items_en": {
+                "type": "string",
+                "maxLength": 1000,
+                "default": "",
+                "description": "Plain text before item lines in the document language; snapshotted for new documents only."
               }
             },
             "required": [
@@ -138,10 +172,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "revision",
-          "data"
-        ],
+        "required": ["revision", "data"],
         "additionalProperties": false
       },
       "Command": {
@@ -175,6 +206,23 @@
               "footer_en": {
                 "type": "string",
                 "maxLength": 500
+              },
+              "delivery_note_prices": {
+                "type": "boolean",
+                "default": false,
+                "description": "Default for newly requested auxiliary delivery notes; does not modify original invoice PDF."
+              },
+              "before_items_cs": {
+                "type": "string",
+                "maxLength": 1000,
+                "default": "",
+                "description": "Plain text before item lines in the document language; snapshotted for new documents only."
+              },
+              "before_items_en": {
+                "type": "string",
+                "maxLength": 1000,
+                "default": "",
+                "description": "Plain text before item lines in the document language; snapshotted for new documents only."
               }
             },
             "required": [
@@ -186,11 +234,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "request_id",
-          "revision",
-          "data"
-        ],
+        "required": ["request_id", "revision", "data"],
         "additionalProperties": false
       }
     }

@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 export function AppLayout({
   children,
   profileSwitcher,
+  notifications,
   workspace = false,
   homeTo = "/workspace",
   actions,
@@ -18,6 +19,7 @@ export function AppLayout({
 }: {
   children: ReactNode;
   profileSwitcher?: ReactNode;
+  notifications?: ReactNode;
   workspace?: boolean;
   homeTo?: string;
   actions?: ReactNode;
@@ -96,10 +98,12 @@ export function AppLayout({
             </div>
           )}
           {workspace && <WorkspaceBreadcrumb homeTo={homeTo} />}
-          {!workspace && accountControls}
+          {workspace && notifications && (
+            <div className="ml-auto px-inline">{notifications}</div>
+          )}
+          {accountControls}
         </div>
       </header>
-      {workspace && accountControls}
       <main
         className={
           workspace ? "" : "mx-auto max-w-6xl px-group py-page md:py-20"

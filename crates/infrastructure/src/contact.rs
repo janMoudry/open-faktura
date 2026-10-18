@@ -17,6 +17,13 @@ fn map(row: sqlx::postgres::PgRow) -> Result<Contact> {
         company_id: row.get::<i64, _>("company_id").to_string(),
         revision: row.get("revision"),
         archived: row.get("archived"),
+        anonymized: row
+            .try_get::<Option<sqlx::types::chrono::DateTime<sqlx::types::chrono::Utc>>, _>(
+                "anonymized_at",
+            )
+            .ok()
+            .flatten()
+            .is_some(),
         data: serde_json::from_value(row.get("data")).map_err(unavailable)?,
     })
 }
@@ -143,7 +150,7 @@ impl ContactStore for PgContact {
         .await
         .map_err(unavailable)?
         .ok_or(Error::NotFound)?)?;
-        if previous.revision != command.revision {
+        if previous.anonymized || previous.revision != command.revision {
             return Err(Error::Conflict);
         }
         let action = match (previous.archived, command.archived) {

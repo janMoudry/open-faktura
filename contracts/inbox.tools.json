@@ -376,6 +376,30 @@
               "type": "string"
             }
           }
+        },
+        {
+          "type": "object",
+          "required": ["request_id", "id", "revision", "action", "company_id"],
+          "additionalProperties": false,
+          "description": "Disconnect the inbox link only. Preserves the received document, its attachment copy, original file and archive state. Conflicts when unlinked or revision is stale; request UUID replay returns original result.",
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "action": {
+              "type": "string",
+              "enum": ["detach"]
+            },
+            "company_id": {
+              "type": "string"
+            }
+          }
         }
       ]
     }

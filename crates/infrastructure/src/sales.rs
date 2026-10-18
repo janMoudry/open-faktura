@@ -69,6 +69,18 @@ pub(crate) fn map(r: sqlx::postgres::PgRow) -> Result<Document> {
         data,
     })
 }
+pub(crate) async fn ensure_not_trashed(
+    tx: &mut Transaction<'_, Postgres>,
+    company: i64,
+    document: i64,
+) -> Result<()> {
+    let deleted:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM sales_trash WHERE company_id=$1 AND document_id=$2 AND deleted_at IS NOT NULL)").bind(company).bind(document).fetch_one(&mut **tx).await.map_err(err)?;
+    if deleted {
+        Err(Error::NotFound)
+    } else {
+        Ok(())
+    }
+}
 pub(crate) async fn audit(
     tx: &mut Transaction<'_, Postgres>,
     actor: i64,
@@ -93,7 +105,7 @@ impl SalesStore for PgSales {
         {
             return Err(Error::Invalid(vec!["tag_id".into()]));
         }
-        let predicate="s.company_id=$1 AND s.kind=$2 AND s.archived=$3 AND strpos(lower(concat_ws(' ',s.number,s.data->>'name',s.data->'invoice'->'customer'->>'name')),lower($4))>0 AND ($5='all' OR ($2='advance' AND (($5='paid' AND s.advance_paid >= (s.advance_totals->>'payable')::numeric) OR ($5='outstanding' AND s.advance_paid < (s.advance_totals->>'payable')::numeric) OR ($5='overdue' AND s.advance_paid < (s.advance_totals->>'payable')::numeric AND (s.data#>>'{invoice,due_on}')::date < (now() AT TIME ZONE 'Europe/Prague')::date))) OR CASE WHEN i.number IS NOT NULL THEN 'invoiced' ELSE s.data->>'status' END=$5) AND ($6='' OR EXISTS(SELECT 1 FROM document_tag_link l WHERE l.company_id=s.company_id AND l.sales_id=s.id AND l.tag_id::text=$6))";
+        let predicate="NOT EXISTS(SELECT 1 FROM sales_trash t WHERE t.company_id=s.company_id AND t.document_id=s.id AND t.deleted_at IS NOT NULL) AND s.company_id=$1 AND s.kind=$2 AND s.archived=$3 AND strpos(lower(concat_ws(' ',s.number,s.data->>'name',s.data->'invoice'->'customer'->>'name')),lower($4))>0 AND ($5='all' OR ($2='advance' AND (($5='paid' AND s.advance_paid >= (s.advance_totals->>'payable')::numeric) OR ($5='outstanding' AND s.advance_paid < (s.advance_totals->>'payable')::numeric) OR ($5='overdue' AND s.advance_paid < (s.advance_totals->>'payable')::numeric AND (s.data#>>'{invoice,due_on}')::date < (now() AT TIME ZONE 'Europe/Prague')::date))) OR CASE WHEN i.number IS NOT NULL THEN 'invoiced' ELSE s.data->>'status' END=$5) AND ($6='' OR EXISTS(SELECT 1 FROM document_tag_link l WHERE l.company_id=s.company_id AND l.sales_id=s.id AND l.tag_id::text=$6))";
         let total:i64=sqlx::query_scalar(&format!("SELECT count(*) FROM sales_document s LEFT JOIN invoice_draft i ON i.company_id=s.company_id AND i.id=s.invoice_id WHERE {predicate}" )).bind(c).bind(kind(&s.kind)).bind(s.archived).bind(&s.query).bind(&s.status).bind(&s.tag_id).fetch_one(&mut *tx).await.map_err(err)?;
         let items = sqlx::query(&format!(
             "{SELECT} WHERE {predicate} ORDER BY s.updated_at DESC,s.id DESC LIMIT $7 OFFSET $8"
@@ -124,7 +136,7 @@ impl SalesStore for PgSales {
         let mut tx = self.0.begin().await.map_err(err)?;
         let (_, c) = authorize(&mut tx, a, c, false).await?;
         let v = map(
-            sqlx::query(&format!("{SELECT} WHERE s.company_id=$1 AND s.id=$2"))
+            sqlx::query(&format!("{SELECT} WHERE s.company_id=$1 AND s.id=$2 AND NOT EXISTS(SELECT 1 FROM sales_trash t WHERE t.company_id=s.company_id AND t.document_id=s.id AND t.deleted_at IS NOT NULL)"))
                 .bind(c)
                 .bind(id(d)?)
                 .fetch_optional(&mut *tx)
@@ -160,6 +172,7 @@ impl SalesStore for PgSales {
             {
                 return Err(Error::Conflict);
             }
+            ensure_not_trashed(&mut tx, c, r.get("id")).await?;
             return map(r);
         }
         check_contact(&mut tx, c, cmd.data.invoice.contact_id.as_deref()).await?;
@@ -209,6 +222,7 @@ impl SalesStore for PgSales {
         .await
         .map_err(err)?
         .ok_or(Error::NotFound)?)?;
+        ensure_not_trashed(&mut tx, c, id(d)?).await?;
         if old.revision != cmd.revision
             || (old.invoice_id.is_some()
                 && serde_json::to_value(&old.data).map_err(err)?
@@ -227,7 +241,13 @@ impl SalesStore for PgSales {
         {
             return Err(Error::Conflict);
         }
-        check_contact(&mut tx, c, cmd.data.invoice.contact_id.as_deref()).await?;
+        crate::draft::check_existing_contact(
+            &mut tx,
+            c,
+            cmd.data.invoice.contact_id.as_deref(),
+            old.data.invoice.contact_id.as_deref(),
+        )
+        .await?;
         crate::stock_documents::validate_links(&mut tx, c, &cmd.data.invoice.calculation).await?;
         let mut v=map(sqlx::query("UPDATE sales_document SET document_style=CASE WHEN data IS DISTINCT FROM $3 THEN (SELECT data FROM company_document_style WHERE company_id=$1) ELSE document_style END,data=$3,archived=$4,revision=revision+1,updated_at=now() WHERE company_id=$1 AND id=$2 RETURNING *").bind(c).bind(id(d)?).bind(serde_json::to_value(cmd.data).map_err(err)?).bind(cmd.archived).fetch_one(&mut *tx).await.map_err(err)?)?;
         if v.kind == Kind::Advance {
@@ -260,6 +280,7 @@ impl SalesStore for PgSales {
         .await
         .map_err(err)?
         .ok_or(Error::NotFound)?)?;
+        ensure_not_trashed(&mut tx, c, id(d)?).await?;
         if old.kind == Kind::Advance {
             return Err(Error::Invalid(vec![
                 "advance_settlement_not_available".into()

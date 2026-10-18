@@ -1,7 +1,7 @@
 # Vzhled nových dokladů (P20-05a/b)
 
 18. 10. 2026. Podklad: FEATURES §2/14 a P20-05; konkrétní chování je návrhem
-Open Faktury, nikoli ověřenou shodou s iDokladem.
+              Open Faktury, nikoli ověřenou shodou s iDokladem.
 
 Vlastník aktivní firmy spravuje logo, podpis/razítko a zápatí samostatně v CS/EN.
 Čtenář/editor mohou nastavení číst, změna vyžaduje owner a aktuální revizi.
@@ -48,3 +48,45 @@ Transparentní PNG se bezpečně skládá na bílou barvu papíru před předán
 rendereru, který alfa kanál nepodporuje; SVG se nevykresluje. PDF integrace
 používá Poppler pdftotext (testovací závislost), protože lopdf 0.26 neumí
 správně interpretovat Unicode mapy vloženého Noto fontu.
+
+Výchozí přítomnost cen na dodacím listu (`delivery_note_prices`, false) je
+společnou tiskovou předvolbou pro nově vyžádané pomocné výstupy. Nemění již
+uložené finanční PDF; jednotlivé stažení může volbu přepsat. Pravidla a
+veřejný podklad jsou v [tiskových výstupech](document-outputs.md).
+Výchozí false se při serializaci vynechává kvůli kompatibilitě starých
+příkazů a jejich UUID replay; klient doplní chybějící pole na false.
+
+## P20 — Text před položkami (18. 10. 2026)
+
+E-028 dokládá samostatný text před/za položkami v nápovědě nabídek
+(https://www.idoklad.cz/podpora/karta-cenove-nabidky, aktualizace 3. 9. 2026,
+veřejná dokumentace přečtená 11. 10. 2026). Firemní výchozí text a limity níže
+jsou vlastní návrh; individuální editace textu každého dokladu tím nevzniká.
+
+Owner nastaví `before_items_cs`/`before_items_en`, prostý víceřádkový text
+nejvýše 1000 Unicode znaků na jazyk. Řídicí znaky mimo CR/LF/tab jsou odmítnuté.
+Prázdná pole mají zpětně kompatibilní default a při serializaci se vynechají,
+aby starý příkazový replay neměnil svůj JSON. Nastavení používá stejnou revizi,
+UUID, firemní oprávnění a existující snapshot jako ostatní vzhled.
+
+Renderer faktur, nabídek, záloh, DDPP a dobropisů vloží uložený text v jazyce
+dokladu před první položku, za nadpis a informaci o cenách/kurzu. Není to interní
+poznámka, HTML ani nový daňový údaj. Cash renderer bez seznamu položek jej
+nepoužívá. Pomocné dodací listy/RTF/potvrzení plateb tuto předvolbu nepřebírají.
+Úprava nastavení nemění staré snapshoty, uložená PDF ani odeslané přílohy;
+bez migrace, žádné doplňování historických hodnot.
+
+Datum tisku nebylo v uložených podkladech doloženo. Tato dodávka jej nezavádí:
+aktuální čas při opakovaném renderu by měnil historický obsah originálu.
+Nejde o uzavření všech tiskových předvoleb P20.
+
+DB test `document_style` ověřuje limit/řídicí znaky, výběr anglického textu,
+pořadí před první položkou a neměnnost PDF po změně nastavení. UI regrese
+`product-administration.spec.ts` doplňuje uložení/reload obou jazykových textů.
+
+Ověření dodávky: `cargo test -p faktura-server --test document_style --
+--include-ignored --test-threads=1` s izolovanou DB prošel 4/4 (31,24 s),
+TypeScript a formátování prošly. Root ověřil product-admin UI 12/12 včetně
+uložení/reload textů CS/EN na desktopu a mobilu. PDF bylo ověřeno textovou
+extrakcí a byteovou neměnností; samostatná vizuální kontrola víceřádkového
+úvodu v PDF nebyla provedena. Fyzický tisk není ověřen.

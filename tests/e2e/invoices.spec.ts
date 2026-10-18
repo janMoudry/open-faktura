@@ -778,6 +778,59 @@ for (const english of [false, true])
       const download = await downloadPromise;
       expect(download.suggestedFilename()).toBe("FV2026000001.pdf");
       expect(await download.failure()).toBeNull();
+      // Real DB auxiliary delivery output: choices do not change original PDF.
+      await page
+        .getByRole("button", {
+          name: text("Dodací list PDF", "Delivery note PDF"),
+          exact: true,
+        })
+        .click();
+      const deliveryDialog = page.getByRole("dialog", {
+        name: text("Dodací list PDF", "Delivery note PDF"),
+        exact: true,
+      });
+      await expect(deliveryDialog).toContainText(
+        text("Nejde o výzvu k úhradě.", "It is not a payment request."),
+      );
+      for (const includePrices of [true, false]) {
+        await deliveryDialog
+          .getByRole("button", {
+            name: text("Ceny na dodacím listu", "Delivery note prices"),
+          })
+          .click();
+        await page
+          .getByRole("option", {
+            name: includePrices
+              ? text("Včetně cen", "Include prices")
+              : text("Bez cen", "Omit prices"),
+            exact: true,
+          })
+          .click();
+        const rendered = page.waitForResponse(
+          (r) =>
+            r.url().endsWith("/document-output") &&
+            r.request().method() === "POST",
+        );
+        const savedDelivery = page.waitForEvent("download");
+        await deliveryDialog
+          .getByRole("button", {
+            name: text("Stáhnout PDF", "Download PDF"),
+            exact: true,
+          })
+          .click();
+        const response = await rendered;
+        expect(response.ok()).toBe(true);
+        expect(response.request().postDataJSON().delivery_note_prices).toBe(
+          includePrices,
+        );
+        expect((await savedDelivery).suggestedFilename()).toBe(
+          "delivery_note.pdf",
+        );
+      }
+      await deliveryDialog
+        .getByRole("button", { name: text("Zrušit", "Cancel"), exact: true })
+        .click();
+      await expect(deliveryDialog).toHaveCount(0);
 
       await page
         .getByRole("tab", { name: text("Přílohy", "Attachments"), exact: true })

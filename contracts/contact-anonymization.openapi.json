@@ -1,0 +1,93 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Contact directory anonymization",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/companies/{company}/contacts/{contact}/anonymize": {
+      "post": {
+        "operationId": "contact_anonymize",
+        "description": "Owner-only irreversible directory and contact-audit anonymization. Preserves financial snapshots, exports, attachments and import originals. Current ownership checked before replay. UUID/revision/explicit confirmation required.",
+        "parameters": [
+          {
+            "name": "company",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sanitized archived contact",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./contact.openapi.json#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid confirmation"
+          },
+          "401": {
+            "description": "Session expired"
+          },
+          "403": {
+            "description": "Owner required"
+          },
+          "404": {
+            "description": "Contact or company not accessible"
+          },
+          "409": {
+            "description": "Revision, UUID or terminal-state conflict"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Command": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirm": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": ["request_id", "revision", "confirm"]
+      }
+    }
+  }
+}

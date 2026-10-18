@@ -1,3 +1,4 @@
+import { SalesTrashAction } from "../components/organisms/SalesTrashAction";
 import { DocumentExports } from "../components/organisms/DocumentExports";
 import { DocumentTags } from "../components/organisms/DocumentTags";
 import { DocumentCurrencyFields } from "../components/organisms/DocumentCurrencyFields";
@@ -288,6 +289,15 @@ function Editor({
               >
                 {t(record.archived ? "salesRestore" : "salesArchive")}
               </Button>
+              {kind !== "advance" && !record.invoice_id && (
+                <SalesTrashAction
+                  company={company.id}
+                  record={record}
+                  disabled={busy || dirty}
+                  onExpired={onExpired}
+                  onDone={() => navigateAfterSave(base)}
+                />
+              )}
               {record.invoice_id ? (
                 <Link
                   className="ui-button ui-button-primary ui-button-md"

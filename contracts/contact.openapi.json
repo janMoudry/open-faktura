@@ -755,6 +755,11 @@
           },
           "data": {
             "$ref": "#/components/schemas/ContactData"
+          },
+          "anonymized": {
+            "type": "boolean",
+            "default": false,
+            "description": "Terminal directory-only anonymization state."
           }
         }
       },

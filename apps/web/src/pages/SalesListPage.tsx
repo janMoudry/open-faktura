@@ -105,6 +105,14 @@ export function SalesListPage({ kind }: { kind: SalesKind }) {
               : "salesTemplates",
         )}
       </Heading>
+      {kind !== "advance" && (
+        <Link
+          className="ui-button ui-button-ghost ui-button-sm"
+          to={`/companies/${companyId}/sales-trash`}
+        >
+          {t("salesTrashTitle")}
+        </Link>
+      )}
       <DocumentTagFilter
         company={companyId}
         value={tagId}

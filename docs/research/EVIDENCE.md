@@ -1045,3 +1045,86 @@ validované ReceivedData jako návrh k ruční kontrole. Není to hotová
 specifická integrace libovolného AI modelu. Loopback testy používají
 syntetické requesty a ověřují velikost, redirect, validaci soukromých vazeb;
 žádný skutečný účetní originál nebyl odeslán externímu poskytovateli.
+
+## E-086 — Anonymizace adresářového kontaktu
+
+- Přečteno 18. 10. 2026, veřejný článek iDokladu publikovaný 16. 5. 2018:
+  https://www.idoklad.cz/blog/gdpr-v-idokladu-zadarmo-prehled-funkci-kterymi-vam-idoklad-usnadni-gdpr
+- Doloženo veřejným textem: výběr subjektu, přehled jeho dokladů, nevratná
+  anonymizace údajů v adresáři i na dokladech. Nejde o pozorování současného
+  API/UI; článek nedokládá současné role, transakce, auditní payloady či replay.
+- Záměrná odchylka Open Faktury: vlastník může explicitně anonymizovat
+  samostatný kontakt a jeho adresářovou historii. Historické finanční
+  snapshoty a původní PDF se nemění; importy/přílohy/exporty/zálohy zůstávají.
+  Tento rozsah je před potvrzením výslovně uveden a není tvrzením o splnění GDPR.
+- Vlastní rozhodnutí: owner-only, lokální opis názvu v UI, UUID+revize,
+  sanitizace data/initial_data/contact_audit, konečný archivovaný stav,
+  DB ochrana, aktuální oprávnění před replay; neutrální zástupný název.
+- Specifikace docs/specs/contact-anonymization.md; migrace100; syntetické
+  integrační testy contact_anonymization5/5 a contact3/3; reálná agenda nedotčena.
+
+## E-P17-DETACH-01 — Odpojení dokumentu v inboxu
+
+- Zdroj: https://www.idoklad.cz/podpora/inbox, veřejná nápověda,
+  poslední aktualizace 6. 5. 2026, znovu přečteno 18. 10. 2026.
+- Oddíl „Další úpravy v Inboxu“ výslovně dokládá odpárování pomocí tlačítka
+  Odpojit dokument. Samostatně popisuje mazání originálu s dotazem na přílohu;
+  toto není zaměňováno s odpojením. Nejde o přihlášené pozorování ani API.
+- Chybějící pravidla (vlastní návrh): detach vymaže jen vazbu inbox originálu,
+  zachová přijatý doklad, kopii přílohy, hash a archivaci, přidá revizi/audit;
+  role editor/owner, UUID replay a souběžné revizní konflikty jako ostatní
+  inbox příkazy. Reattach stejné entity reuse aktivní kopie stejného hashe,
+  vždy v téže firmě. Žádné automatické mazání nebo nové účetní zpracování.
+- Specifikace docs/specs/inbox.md §Odpojení originálu; syntetický test
+  crates/server/tests/inbox.rs `detach_preserves_document_attachment_archive_replay_and_scoped_reattach`.
+
+## E-P20-PRINT-01 — Dodací list s cenami
+
+18. 10. 2026, veřejná nápověda iDokladu „Nastavení – Prodej“, poslední
+aktualizace 23. 4. 2024:
+https://www.idoklad.cz/podpora/nastaveni-prodej
+Výslovně doložena volba dodacího listu s cenou / bez ceny. Přesné částky,
+API, role, snapshot či replay nejsou dokumentem doloženy. Open Faktura
+používá vlastní owner/revize/UUID nastavení, čtení aktuální preference při
+vyžádání pomocného výstupu a explicitní override true/false. Ceny jsou
+uložené net/VAT/gross jednotlivých původních řádků, bez přepočtu nebo
+odečítání plateb/záloh. Původní fakturační PDF se nepřepisuje.
+
+## E-P17-DELIVERY-01 — Předání původního originálu účetnímu
+
+- Zdroj: https://www.idoklad.cz/podpora/inbox, veřejná nápověda,
+  aktualizace6.5.2026, znovu přečteno18.10.2026; oddíl Zasílání dokladu účetní.
+- Doloženo: původní inbox přílohy při e-mailovém předání, reference zmiňuje
+  dva roky platný odkaz. Nejde o přihlášené pozorování či SMTP kontrakt.
+- Vlastní Open Faktura návrh: samostatný explicitní original-only SMTP send
+  s konkrétním adresátem a potvrzením jedné přílohy. Bez publicURL, bez
+  kopírování referenčního TTL a bez generovaného účetního PDF. Immutable
+  rawbytes snapshot, UUID/revision replay, currentcompany role před queue
+  i dispatch, durable queued/sending/sent/failed/uncertain, žádný auto retry.
+- Sdílí instalační SMTP a bounded dispatch existujících invoice/quote
+  outboxů. Specifikace docs/specs/inbox-delivery.md, migrace101,
+  kontrakt inbox-delivery.openapi.json; testy jen syntetické loopback SMTP.
+
+## E-P20-UPDATER-01 — Tauri signed updater a vlastní explicitní tok
+
+- Přečteno18.10.2026: https://v2.tauri.app/plugin/updater/,
+  https://docs.rs/tauri-plugin-updater/2.14.0/tauri_plugin_updater/struct.Update.html,
+  https://v2.tauri.app/distribute/sign/macos/ a
+  https://v2.tauri.app/distribute/sign/windows/.
+- Staticky ověřen pinned crate tauri-plugin-updater2.14.0 (Cargo.lock):
+  restore_update používá stejný target/comparator a vynucuje signed-version;
+  verify/install ověřují podpis, install jej kontroluje před OS operací.
+  get_urls hledá os-arch-installer před os-arch. Nejde o pozorování instalace.
+- Vlastní návrh: build-time důvěryhodný HTTPS endpoint/publickey, oba chybí
+  znamená disabled, lokální RustcustomIPC místo genericpluginIPC; explicitní
+  check a install s verzí/tokenem/confirm/TTL; žádný background check/install.
+  Bounded512KiB manifest +256MiB package, ruční restart a zachováníidentifieru,
+  žádné backend migrace nebo mazání klientských dat.
+- Odděleny Minisign update podpisy a platformní CodeSigning/notarizace;
+  chybějící certifikáty/cizíOS instalace se nevydávají za ověřené. Volitelné
+  release CI, kryptograficky ověřené.sig+verze, unsigneddefaultbezlatest.json.
+- Syntetický test dočasného klíče vtemp je výslovně autorizovaný; klíč ani
+  childsecretoutput nejde do repa/logů, po testu odstraněn. Rust3/3 ověřuje
+  podpisy/legacy/downgrade/tamper/limits/gates bez voláníOSinstall. Node
+  collector fixture test ověřuje4targets/defaultunsigned/crypto, nikoli
+  skutečné instalační balíčky. Spec docs/specs/desktop-updates.md.

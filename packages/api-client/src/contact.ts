@@ -11,7 +11,7 @@ export class ContactFailure extends Error {
     super(code);
   }
 }
-function parseContact(value: unknown): Contact {
+export function parseContact(value: unknown): Contact {
   if (!value || typeof value !== "object")
     throw new ContactFailure(502, "invalid_response");
   const c = value as Contact;
@@ -27,6 +27,7 @@ function parseContact(value: unknown): Contact {
     typeof c.company_id !== "string" ||
     !Number.isSafeInteger(c.revision) ||
     typeof c.archived !== "boolean" ||
+    !(c.anonymized === undefined || typeof c.anonymized === "boolean") ||
     !d ||
     ![
       "name",

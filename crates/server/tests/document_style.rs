@@ -46,6 +46,9 @@ async fn brand_revision_image_limits_roles_and_immutable_pdf(p: PgPool) {
     let drafts = PgDraft(p.clone());
     assert_eq!(styles.get(&actor, &c.id).await.unwrap().revision, 0);
     let mut style = Style {
+        delivery_note_prices: false,
+        before_items_cs: "Původní český úvod".into(),
+        before_items_en: "Original English introduction".into(),
         logo_base64: Some(
             base64::engine::general_purpose::STANDARD
                 .encode(include_bytes!("../../../tests/fixtures/document-logo.png")),
@@ -76,6 +79,14 @@ async fn brand_revision_image_limits_roles_and_immutable_pdf(p: PgPool) {
         styles.set(&actor, &c.id, command(1, bad)).await,
         Err(CompanyError::Invalid(_))
     ));
+    for invalid in ["x".repeat(1001), "invalid\0control".to_owned()] {
+        let mut bad = style.clone();
+        bad.before_items_en = invalid;
+        assert!(matches!(
+            styles.set(&actor, &c.id, command(1, bad)).await,
+            Err(CompanyError::Invalid(_))
+        ));
+    }
     let mut data: DraftData =
         serde_json::from_str(include_str!("../../../tests/fixtures/invoice-draft.json")).unwrap();
     let today: sqlx::types::chrono::NaiveDate =
@@ -116,10 +127,17 @@ async fn brand_revision_image_limits_roles_and_immutable_pdf(p: PgPool) {
     .await
     .unwrap();
     style.footer_en = "Changed English footer".into();
+    style.before_items_en = "Changed English introduction".into();
     styles.set(&actor, &c.id, command(1, style)).await.unwrap();
     let pdf = drafts.pdf(&actor, &c.id, &d.id).await.unwrap();
     let text = pdf_text::text(&pdf);
     assert!(text.contains("Original English footer"));
+    assert!(text.contains("Original English introduction"));
+    assert!(!text.contains("Changed English introduction"));
+    assert!(
+        text.find("Original English introduction").unwrap()
+            < text.find("Synthetic service").unwrap()
+    );
     assert!(!text.contains("Changed English footer"));
     assert!(!text.contains("Původní"));
     let cached = drafts.pdf(&actor, &c.id, &d.id).await.unwrap();
@@ -156,6 +174,9 @@ async fn quote_advance_cash_preserve_saved_style(p: PgPool) {
     .unwrap();
     let styles = PgStyle(p.clone());
     let mut style = Style {
+        delivery_note_prices: false,
+        before_items_cs: "Původní český úvod".into(),
+        before_items_en: "Original English introduction".into(),
         logo_base64: None,
         signature_base64: None,
         footer_cs: "Původní společné zápatí".into(),
@@ -277,6 +298,10 @@ async fn quote_advance_cash_preserve_saved_style(p: PgPool) {
         assert!(text.contains("Original shared footer"));
         assert!(!text.contains("Changed shared footer"));
     }
+    for pdf in [&quote_pdf, &advance_pdf] {
+        assert!(pdf_text::text(pdf).contains("Original English introduction"));
+    }
+    assert!(!pdf_text::text(&cash_pdf).contains("Original English introduction"));
     assert_eq!(
         cash_pdf,
         cash_store
@@ -342,6 +367,9 @@ async fn tax_receipt_credit_new_brand_and_legacy_pdf_history(p: PgPool) {
                     command(
                         0,
                         Style {
+                            delivery_note_prices: false,
+                            before_items_cs: "Původní český úvod".into(),
+                            before_items_en: "Original English introduction".into(),
                             logo_base64: None,
                             signature_base64: None,
                             footer_cs: "Původní daňové zápatí".into(),
@@ -496,7 +524,11 @@ async fn tax_receipt_credit_new_brand_and_legacy_pdf_history(p: PgPool) {
             assert_eq!(
                 pdf_text::text(bytes).contains("Original tax document footer"),
                 branded
-            )
+            );
+            assert_eq!(
+                pdf_text::text(bytes).contains("Original English introduction"),
+                branded
+            );
         }
         saved.push((
             branded,
@@ -515,6 +547,9 @@ async fn tax_receipt_credit_new_brand_and_legacy_pdf_history(p: PgPool) {
             command(
                 1,
                 Style {
+                    delivery_note_prices: false,
+                    before_items_cs: "Původní český úvod".into(),
+                    before_items_en: "Original English introduction".into(),
                     logo_base64: None,
                     signature_base64: None,
                     footer_cs: "Změněné".into(),
@@ -539,4 +574,13 @@ async fn tax_receipt_credit_new_brand_and_legacy_pdf_history(p: PgPool) {
             }
         }
     }
+}
+
+#[test]
+fn legacy_style_roundtrips_without_new_empty_fields() {
+    let legacy = serde_json::json!({"logo_base64":null,"signature_base64":null,"footer_cs":"","footer_en":""});
+    let style: Style = serde_json::from_value(legacy.clone()).unwrap();
+    assert!(style.before_items_cs.is_empty());
+    assert!(style.before_items_en.is_empty());
+    assert_eq!(serde_json::to_value(style).unwrap(), legacy);
 }

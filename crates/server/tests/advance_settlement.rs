@@ -709,7 +709,26 @@ async fn foreign_advance_tax_settlement_snapshot_and_payment(pool: PgPool) {
     assert_eq!(v.advances.as_ref().unwrap().currency, "EUR");
     let mut different = v.data.calculation.clone();
     different.exchange_rate.as_mut().unwrap().rate = "26".into();
-    assert!(s.preview(&a, &c, &v.id, different.clone()).await.is_err());
+    let error = s
+        .preview(&a, &c, &v.id, different.clone())
+        .await
+        .unwrap_err();
+    assert!(
+        matches!(error,faktura_application::company::CompanyError::Invalid(fields) if fields.contains(&"advance_tax_exchange_rate".into()))
+    );
+    let mut equivalent = v.data.calculation.clone();
+    equivalent.exchange_rate = Some(faktura_domain::exchange::ExchangeRate {
+        rate: "2500".into(),
+        units: "100".into(),
+    });
+    assert_eq!(
+        s.preview(&a, &c, &v.id, equivalent.clone())
+            .await
+            .unwrap()
+            .payable,
+        "0.00"
+    );
+    v.data.calculation = equivalent;
     let mut invalid = v.data.clone();
     invalid.calculation = different;
     assert!(draft::update(
@@ -844,4 +863,213 @@ async fn foreign_advance_tax_settlement_snapshot_and_payment(pool: PgPool) {
     .await
     .is_err());
     assert_eq!(PgDraft(pool.clone()).pdf(&a, &c, &v.id).await.unwrap(), pdf);
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn nonpayer_different_source_and_final_rates_preserve_native_reservations(pool: PgPool) {
+    use faktura_domain::{exchange::ExchangeRate, invoice::TaxMode};
+    let (a, _, _, other) = setup(&pool).await;
+    let c = company::create(
+        &PgCompany(pool.clone()),
+        &a,
+        &uuid::Uuid::new_v4().to_string(),
+        CompanySettings::default(),
+    )
+    .await
+    .unwrap()
+    .id;
+    let mut documents = Vec::new();
+    for (price, rate) in [("1000", "25"), ("500", "24")] {
+        let mut input = create(Kind::Advance, &uuid::Uuid::new_v4().to_string());
+        input.data.invoice.payment.method = "bank_transfer".into();
+        input.data.invoice.payment.bank_account = "12345678/0100".into();
+        input.data.invoice.calculation.tax_mode = TaxMode::NonPayer;
+        input.data.invoice.calculation.currency = "EUR".into();
+        input.data.invoice.calculation.exchange_rate = Some(ExchangeRate {
+            rate: rate.into(),
+            units: "1".into(),
+        });
+        input.data.invoice.calculation.lines[0].vat_percent = "0".into();
+        input.data.invoice.calculation.lines[0].unit_price = price.into();
+        let doc = sales::create(&PgSales(pool.clone()), &a, &c, input)
+            .await
+            .unwrap();
+        advance::register(
+            &PgAdvance(pool.clone()),
+            &a,
+            &c,
+            &doc.id,
+            payment(1, &uuid::Uuid::new_v4().to_string(), price),
+        )
+        .await
+        .unwrap();
+        documents.push(doc);
+    }
+    let store = PgSettlement(pool.clone());
+    let request = uuid::Uuid::new_v4().to_string();
+    let cmd = || Configure {
+        request_id: request.clone(),
+        invoice_id: None,
+        revision: None,
+        advances: documents
+            .iter()
+            .map(|d| faktura_application::advance_settlement::Selection {
+                id: d.id.clone(),
+                revision: 2,
+            })
+            .collect(),
+    };
+    let (first, replay) = tokio::join!(
+        advance_settlement::configure(&store, &a, &c, cmd()),
+        advance_settlement::configure(&store, &a, &c, cmd())
+    );
+    let mut v = first.unwrap();
+    assert_eq!(v.id, replay.unwrap().id);
+    assert_eq!(v.advances.as_ref().unwrap().credited, "1500.00");
+    assert_eq!(v.totals.as_ref().unwrap().payable, "0.00");
+    for (source, rate) in v
+        .advances
+        .as_ref()
+        .unwrap()
+        .sources
+        .iter()
+        .zip(["25", "24"])
+    {
+        assert_eq!(
+            source
+                .valuation
+                .as_ref()
+                .unwrap()
+                .exchange_rate
+                .as_ref()
+                .unwrap()
+                .rate,
+            rate
+        );
+        assert!(source.tax_receipts.is_empty());
+    }
+    assert!(advance_settlement::configure(
+        &store,
+        &a,
+        &c,
+        configure(&uuid::Uuid::new_v4().to_string(), &documents[0].id, 3)
+    )
+    .await
+    .is_err());
+    let source_payment = PgAdvance(pool.clone())
+        .payments(&a, &c, &documents[0].id)
+        .await
+        .unwrap()
+        .remove(0);
+    assert!(advance::reverse(
+        &PgAdvance(pool.clone()),
+        &a,
+        &c,
+        &documents[0].id,
+        &source_payment.id,
+        Reverse {
+            revision: 3,
+            reason: "Cannot reverse a reserved advance".into()
+        }
+    )
+    .await
+    .is_err());
+    let original_sources = serde_json::to_value(&v.advances.as_ref().unwrap().sources).unwrap();
+    v.data.calculation.exchange_rate = Some(ExchangeRate {
+        rate: "26".into(),
+        units: "1".into(),
+    });
+    let mut extra = v.data.calculation.lines[0].clone();
+    extra.id = "extra".into();
+    extra.unit_price = "100".into();
+    v.data.calculation.lines.push(extra);
+    assert_eq!(
+        store
+            .preview(&a, &c, &v.id, v.data.calculation.clone())
+            .await
+            .unwrap()
+            .payable,
+        "100.00"
+    );
+    assert!(store
+        .preview(&a, &other, &v.id, v.data.calculation.clone())
+        .await
+        .is_err());
+    v = draft::update(
+        &PgDraft(pool.clone()),
+        &a,
+        &c,
+        &v.id,
+        draft::Update {
+            revision: v.revision,
+            data: v.data.clone(),
+        },
+    )
+    .await
+    .unwrap();
+    let issued = draft::issue(
+        &PgDraft(pool.clone()),
+        &a,
+        &c,
+        &v.id,
+        draft::Issue {
+            request_id: KEY.into(),
+            revision: v.revision,
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(issued.totals.as_ref().unwrap().payable, "100.00");
+    assert_eq!(issued.totals.as_ref().unwrap().amounts.vat, "0.00");
+    assert_eq!(
+        issued.data.calculation.exchange_rate.as_ref().unwrap().rate,
+        "26"
+    );
+    assert_eq!(
+        serde_json::to_value(&issued.advances.as_ref().unwrap().sources).unwrap(),
+        original_sources
+    );
+    let pdf = PgDraft(pool.clone()).pdf(&a, &c, &issued.id).await.unwrap();
+    assert!(pdf.starts_with(b"%PDF"));
+    let replay = draft::issue(
+        &PgDraft(pool.clone()),
+        &a,
+        &c,
+        &v.id,
+        draft::Issue {
+            request_id: KEY.into(),
+            revision: v.revision,
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(replay.number, issued.number);
+    assert_eq!(
+        PgDraft(pool.clone()).pdf(&a, &c, &issued.id).await.unwrap(),
+        pdf
+    );
+    for (doc, rate) in documents.iter().zip(["25", "24"]) {
+        let source = sales::get(&PgSales(pool.clone()), &a, &c, &doc.id)
+            .await
+            .unwrap();
+        assert_eq!(
+            source
+                .data
+                .invoice
+                .calculation
+                .exchange_rate
+                .as_ref()
+                .unwrap()
+                .rate,
+            rate
+        );
+    }
+    use faktura_application::tax_report::TaxReportStore;
+    let report = faktura_infrastructure::tax_report::PgTaxReport(pool.clone())
+        .report(&a, &c, Default::default())
+        .await
+        .unwrap();
+    assert_eq!(report.output, "0.00");
+    assert_eq!(report.turnover, "41600.00");
 }

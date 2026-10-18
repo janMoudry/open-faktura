@@ -500,6 +500,30 @@ for (const english of [false, true])
           })
           .getByRole("status"),
       ).toContainText(labels.inboxAdapterSaved);
+      const notificationBell = page.getByRole("button", {
+        name: new RegExp(`^${labels.inboxNotifications}`),
+      });
+      await notificationBell.click();
+      const notifications = page.getByRole("dialog", {
+        name: labels.inboxNotifications,
+        exact: true,
+      });
+      await notifications
+        .getByLabel(labels.inboxNotificationsDocuments, { exact: true })
+        .check();
+      await notifications
+        .getByRole("button", {
+          name: labels.inboxNotificationsSave,
+          exact: true,
+        })
+        .click();
+      await expect(
+        notifications.getByRole("button", {
+          name: labels.inboxNotificationsSave,
+          exact: true,
+        }),
+      ).toBeDisabled();
+      await page.keyboard.press("Escape");
       const mail = await page.request.post(`${stockBase}/inbox/mail`, {
         headers: stockHeaders,
         data: {
@@ -544,6 +568,34 @@ for (const english of [false, true])
         .getByRole("row")
         .filter({ hasText: "synthetic.isdoc" });
       await expect(inboxRow).toBeVisible();
+      await notificationBell.click();
+      await notifications
+        .getByRole("button", {
+          name: labels.inboxNotificationsRefresh,
+          exact: true,
+        })
+        .click();
+      await expect(
+        notifications.getByRole("link").filter({ hasText: "synthetic.isdoc" }),
+      ).toBeVisible();
+      await notifications
+        .getByRole("button", {
+          name: labels.inboxNotificationsRead,
+          exact: true,
+        })
+        .click();
+      await expect(
+        notifications.getByRole("button", {
+          name: labels.inboxNotificationsRead,
+          exact: true,
+        }),
+      ).toBeDisabled();
+      await page.keyboard.press("Escape");
+      await page.reload();
+      await expect(notificationBell).toHaveAccessibleName(
+        labels.inboxNotificationsCount.replace("{{count}}", "0"),
+      );
+
       await inboxRow
         .getByRole("button", { name: labels.inboxHistory, exact: true })
         .click();
@@ -619,6 +671,40 @@ for (const english of [false, true])
         .getByRole("button", { name: labels.receivedSave, exact: true })
         .click();
       await expect(page).toHaveURL(/received-invoices\/\d+$/);
+      const processedDocumentUrl = page.url();
+      await page.goto(`/#/companies/${alpha.id}/inbox`);
+      await inboxRow
+        .getByRole("button", { name: labels.inboxDetach, exact: true })
+        .click();
+      const detachDialog = page.getByRole("dialog", {
+        name: labels.inboxDetach,
+        exact: true,
+      });
+      await expect(detachDialog).toContainText(labels.inboxDetachDescription);
+      await page.keyboard.press("Escape");
+      await expect(inboxRow).toContainText(labels.inboxProcessed);
+      await inboxRow
+        .getByRole("button", { name: labels.inboxDetach, exact: true })
+        .click();
+      await detachDialog
+        .getByRole("button", { name: labels.inboxDetachConfirm, exact: true })
+        .click();
+      await expect(detachDialog).not.toBeVisible();
+      await expect(inboxRow).toContainText(labels.inboxPending);
+      await page.reload();
+      await expect(inboxRow).toContainText(labels.inboxPending);
+      await inboxRow
+        .getByRole("button", { name: labels.inboxAttach, exact: true })
+        .click();
+      await page
+        .getByRole("dialog", { name: labels.inboxAttach, exact: true })
+        .getByRole("button", { name: /Reviewed supplier snapshot/ })
+        .click();
+      await expect(inboxRow).toContainText(labels.inboxProcessed);
+      await inboxRow
+        .getByRole("link", { name: labels.inboxDocument, exact: true })
+        .click();
+      await expect(page).toHaveURL(processedDocumentUrl);
       await page.goto(`/#/companies/${alpha.id}/inbox`);
       await page.getByLabel(labels.inboxUpload, { exact: true }).setInputFiles({
         name: "synthetic-preview.pdf",
@@ -642,6 +728,51 @@ for (const english of [false, true])
           .evaluate((canvas) => (canvas as HTMLCanvasElement).width),
       ).toBeGreaterThan(100);
       expect(messages).toHaveLength(0);
+      await page.goto(`/#/companies/${alpha.id}/inbox`);
+      await inboxRow
+        .getByRole("button", { name: labels.inboxOriginalEmail, exact: true })
+        .click();
+      const originalEmail = page.getByRole("dialog", {
+        name: labels.inboxOriginalEmail,
+        exact: true,
+      });
+      await expect(originalEmail).toContainText(
+        labels.inboxOriginalEmailDescription,
+      );
+      await originalEmail
+        .getByLabel(labels.quoteTo, { exact: true })
+        .fill("accountant@example.test");
+      const queueOriginal = originalEmail.getByRole("button", {
+        name: labels.inboxOriginalQueue,
+        exact: true,
+      });
+      await expect(queueOriginal).toBeDisabled();
+      await originalEmail.getByRole("checkbox").check();
+      await queueOriginal.click();
+      await expect(
+        originalEmail.getByText(labels.quoteQueuedNotice, { exact: true }),
+      ).toBeVisible();
+      await expect.poll(() => messages.length).toBe(1);
+      expect(messages[0]).toContain("accountant@example.test");
+      expect(messages[0]).toContain("synthetic.isdoc");
+      await originalEmail
+        .getByRole("button", {
+          name: labels.inboxOriginalHistoryRefresh,
+          exact: true,
+        })
+        .click();
+      await expect(
+        originalEmail.getByText(labels.quoteSent, { exact: true }),
+      ).toBeVisible();
+      await page.keyboard.press("Escape");
+      await page.reload();
+      await inboxRow
+        .getByRole("button", { name: labels.inboxOriginalEmail, exact: true })
+        .click();
+      await expect(
+        originalEmail.getByText(labels.quoteSent, { exact: true }),
+      ).toBeVisible();
+      expect(messages).toHaveLength(1);
     } catch (error) {
       await page.screenshot({
         path: `test-results/received-failure-${english ? "en" : "cs"}-${info.project.name}.png`,

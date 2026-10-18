@@ -14,6 +14,7 @@ use faktura_infrastructure::{company::PgCompany, document_output::PgOutput, draf
 use sqlx::PgPool;
 fn request(ids: Vec<String>, kind: Kind, language: &str) -> Request {
     Request {
+        delivery_note_prices: None,
         ids,
         kind,
         language: language.into(),
@@ -150,6 +151,116 @@ async fn outputs_snapshot_scope_batch_pages_and_reversed_payments(p: PgPool) {
             )
             .await,
         Err(CompanyError::Conflict)
+    ));
+    // Saved print default and explicit override apply to auxiliary output only.
+    use faktura_application::{
+        document_style::{Command as StyleCommand, Style, StyleStore},
+        draft::DraftStore,
+    };
+    use faktura_infrastructure::document_style::PgStyle;
+    let original = store.pdf(&actor, &c.id, &ids[0]).await.unwrap();
+    let styles = PgStyle(p.clone());
+    styles
+        .set(
+            &actor,
+            &c.id,
+            StyleCommand {
+                request_id: uuid::Uuid::new_v4().to_string(),
+                revision: 0,
+                data: Style {
+                    delivery_note_prices: true,
+                    ..Default::default()
+                },
+            },
+        )
+        .await
+        .unwrap();
+    assert!(
+        styles
+            .get(&actor, &c.id)
+            .await
+            .unwrap()
+            .data
+            .delivery_note_prices
+    );
+    assert!(
+        !styles
+            .get(&actor, &other.id)
+            .await
+            .unwrap()
+            .data
+            .delivery_note_prices
+    );
+    for language in ["cs", "en"] {
+        let priced = output
+            .render(
+                &actor,
+                &c.id,
+                request(vec![ids[0].clone()], Kind::DeliveryNote, language),
+            )
+            .await
+            .unwrap();
+        let text = pdf_text::text(&priced.bytes);
+        assert!(
+            text.contains(if language == "cs" {
+                "Celkem položka"
+            } else {
+                "Line gross"
+            }),
+            "{text}"
+        );
+        let amounts: serde_json::Value =
+            sqlx::query_scalar("SELECT totals FROM invoice_draft WHERE id=$1::text::bigint")
+                .bind(&ids[0])
+                .fetch_one(&p)
+                .await
+                .unwrap();
+        let gross = amounts["lines"][0]["amounts"]["gross"].as_str().unwrap();
+        assert!(text.contains(&if language == "cs" {
+            gross.replace('.', ",")
+        } else {
+            gross.to_owned()
+        }));
+        assert!(!text.contains("Payable"));
+        let mut without = request(vec![ids[0].clone()], Kind::DeliveryNote, language);
+        without.delivery_note_prices = Some(false);
+        let no_prices = output.render(&actor, &c.id, without).await.unwrap();
+        let text = pdf_text::text(&no_prices.bytes);
+        assert!(!text.contains("CZK"));
+        assert!(!text.contains("Line gross"));
+        assert!(!text.contains("Celkem položka"));
+        if let Ok(dir) = std::env::var("OUTPUT_REVIEW_DIR") {
+            std::fs::write(
+                format!("{dir}/delivery-note-prices-{language}.pdf"),
+                priced.bytes,
+            )
+            .unwrap();
+        }
+    }
+    styles
+        .set(
+            &actor,
+            &c.id,
+            StyleCommand {
+                request_id: uuid::Uuid::new_v4().to_string(),
+                revision: 1,
+                data: Style::default(),
+            },
+        )
+        .await
+        .unwrap();
+    let mut explicit = request(vec![ids[0].clone()], Kind::DeliveryNote, "en");
+    explicit.delivery_note_prices = Some(true);
+    assert!(
+        pdf_text::text(&output.render(&actor, &c.id, explicit).await.unwrap().bytes)
+            .contains("Line gross")
+    );
+    assert_eq!(store.pdf(&actor, &c.id, &ids[0]).await.unwrap(), original);
+    let mut invalid = request(vec![ids[0].clone()], Kind::Rtf, "en");
+    invalid.delivery_note_prices = Some(true);
+    assert!(matches!(
+        output.render(&actor, &c.id, invalid).await,
+        Err(CompanyError::Invalid(_))
     ));
     let payment:i64=sqlx::query_scalar("INSERT INTO invoice_payment(company_id,invoice_id,amount,paid_on,method,note,actor_id) VALUES($1::text::bigint,$2::text::bigint,1.23,current_date,'bank_transfer','synthetic',$3::text::bigint) RETURNING id").bind(&c.id).bind(&ids[0]).bind(&actor).fetch_one(&p).await.unwrap();
     let confirmation = output

@@ -31,11 +31,28 @@ export async function documentStyle(
     !Number.isSafeInteger(v.revision) ||
     Number(v.revision) < 0 ||
     !d ||
+    [d.before_items_cs, d.before_items_en].some(
+      (text) =>
+        text !== undefined &&
+        (typeof text !== "string" || [...text].length > 1000),
+    ) ||
     typeof d.footer_cs !== "string" ||
     typeof d.footer_en !== "string" ||
+    !(
+      d.delivery_note_prices === undefined ||
+      typeof d.delivery_note_prices === "boolean"
+    ) ||
     !(d.logo_base64 === null || typeof d.logo_base64 === "string") ||
     !(d.signature_base64 === null || typeof d.signature_base64 === "string")
   )
     throw new SalesFailure(502, "invalid_response");
-  return v as StyleSnapshot;
+  return {
+    ...v,
+    data: {
+      ...d,
+      delivery_note_prices: d.delivery_note_prices ?? false,
+      before_items_cs: d.before_items_cs ?? "",
+      before_items_en: d.before_items_en ?? "",
+    },
+  } as StyleSnapshot;
 }

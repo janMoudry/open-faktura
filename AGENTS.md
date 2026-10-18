@@ -441,3 +441,47 @@ Archiv profilu používá `contracts/company-archive-schema.json`: po nové migr
 Daňová klasifikace a EPO identifikační profil nejsou přiznání/KH/SH. Údaje nejsou automatický nárok na odpočet ani právní určení obratu. Money S4/S5 a neověřené účetní varianty podle rozhodnutí uživatele řeší obecné mapování nebo vlastní adaptér (`docs/INTEGRATION_ADAPTERS.md`); neoznačovat je za nativní podporu.
 
 Desktopové CI vytváří pouze draft Releases; viz `docs/DESKTOP_RELEASES.md`. Podpisy, updater a přibalený server nejsou automaticky hotové sestavením instalátoru.
+
+P17 oznámení příjmu: `docs/specs/inbox-notifications.md`, migrace 090,
+`inbox-notification.openapi.json`. `pnpm test:inbox-notification` pouze izolovaná DB;
+UI received CS/EN desktop/mobile. Nastavení i kurzor jsou vlastní uživateli/profilu,
+výchozí opt-out; GET nic nezapisuje. Gateway chyby po rollbacku znovu autorizovat,
+ukládat pouze pevný kód a UUID deduplikace, nikdy původní zprávu či token.
+
+P20 anonymizace kontaktů: `docs/specs/contact-anonymization.md`, migrace 100,
+`contact-anonymization.openapi.json`. `pnpm test:contact-anonymization` + test:contacts;
+UI contacts CS/EN. Jen vlastník s explicitním potvrzením, terminální archivovaný stav.
+Anonymizuje adresář i jeho historii, historické finanční snapshoty a původní PDF
+zachovává. Není globální výmaz kopií ani právní potvrzení GDPR. Před upgradem záloha
+DB a zastavení starého API.
+
+P17 předání originálu: `docs/specs/inbox-delivery.md`, migrace 101,
+`inbox-delivery.openapi.json`. `pnpm test:inbox-delivery` pouze izolovaná DB
+se SMTP capture na loopback; regrese delivery/invoice_delivery. Snapshot původních
+bytů, explicitní adresát a potvrzení, UUID replay, kontrola oprávnění před workerem.
+MCP inbox_delivery_send je externí odeslání vyžadující výslovný pokyn uživatele.
+Stav uncertain nesmí automaticky opakovat odeslání. Nepřidává PDF ani veřejný odkaz.
+
+P20 koš nabídek/šablon: `docs/specs/sales-trash.md`, migrace103, sales-trash kontrakt.
+Pouze nepropojené quote/template; sdílené/odeslané/exportem uzamčené zdroje chráněné.
+`pnpm test:sales-trash`, regrese sales/delivery/share/attachments/document_exports.
+Původní zálohy ani vystavené doklady tímto příkazem nemazat.
+
+Neplátcovské FX vyúčtování: `docs/specs/advance-settlement.md` a historický audit
+`docs/specs/advance-fx-invariants.md`. Per-source valuation zachovává původní kurzy,
+konečné plnění má vlastní kurz; částky odpočtů v původní měně se nemění. Plátcovské různé
+ekonomické kurzy DDPP zůstávají odmítnuté. Regrese settlement a advance-fx E2E.
+
+Online PWA: `docs/specs/pwa.md`, `pnpm test:pwa` a samostatný
+`playwright.pwa.config.ts`. Cache obsahuje pouze ověřené statické fallback soubory;
+nikdy API, PDF, účetní data ani offline zápisy. Test prohlížeče není instalace do OS.
+
+Desktop updater: `docs/specs/desktop-updates.md`, bez migrace.
+`pnpm test:desktop-updater` ověřuje syntetické podpisy, verze, bounded metadata,
+collector a lokální IPC; nikdy neinstaluje. Aktivace jen build-time endpoint/key,
+privátní klíče pouze mimo repo. Skutečná instalace/podpisy OS nejsou testem simulace.
+
+Text před položkami: `docs/specs/document-style.md`, bez migrace, optional
+before_items_cs/en v historickém Style snapshotu. Prázdné hodnoty se neserializují
+kvůli replay. Nevkládat do cash rendereru; nezpětně měnit uložené PDF.
+Regrese document_style a product-administration E2E v CS/EN.

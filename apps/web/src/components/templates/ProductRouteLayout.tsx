@@ -17,6 +17,7 @@ import { apiUrl } from "../../services/status";
 import { authMessage } from "../../utils/auth-error";
 import { SmtpSettingsDialog } from "../organisms/SmtpSettingsDialog";
 import { AccountSettingsDialog } from "../organisms/AccountSettingsDialog";
+import { InboxNotifications } from "../organisms/InboxNotifications";
 import { AppLayout } from "./AppLayout";
 import { ProductWorkspace } from "./ProductWorkspace";
 import { ProfileSwitcher } from "../molecules/ProfileSwitcher";
@@ -47,6 +48,15 @@ function AuthenticatedWorkspace({ session }: { session: SessionContext }) {
         workspace
         homeTo={
           homeProfile ? `/companies/${homeProfile}/overview` : "/workspace"
+        }
+        notifications={
+          homeProfile ? (
+            <InboxNotifications
+              key={homeProfile}
+              companyId={homeProfile}
+              onExpired={session.expire}
+            />
+          ) : undefined
         }
         email={session.user.email}
         name={session.user.name}

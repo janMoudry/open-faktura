@@ -139,7 +139,10 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] CZK prodejky: kombinované úhrady, terminál, číslování, historie a PDF CS/EN.
 - [x] Dávkové zaúčtování: náhled, uložené rozpisy, pokladní příjem pouze hotovosti, replay a storno; PDF celé dávky včetně interních skupin doplňuje P16-08b.
 - [x] Inbox základ: originály, deduplikace, archiv a atomické vytvoření přijaté faktury s přílohou v CS/EN.
-- [ ] P17: dokončení inboxu, ISDOC/QR, e-mailový příjem a volitelné vytěžování.
+- [x] P17: omezené ISDOC/PDF a QR adaptéry, autentizovaná e-mailová brána, IMAP a volitelné vytěžování; [rozsah](specs/inbox.md).
+- [x] P17: vlastní oznámení nových originálů a chyb příjmu, opt-in kategorií, historie a označení přečtení podle uživatele/profilu.
+- [x] P17: odpojení zpracovaného originálu s historií; účetní doklad a příloha zachované, opětovné připojení ke stejnému dokladu bez další kopie.
+- [x] P17: předání jednoho originálu účetnímu jako SMTP přílohy s explicitním potvrzením, historií a UUID replay; [rozsah](specs/inbox-delivery.md).
 - [x] P18 základ: skladové karty, ruční pohyby, reverzy a inventury s revizemi, historií a CS/EN.
 - [x] P18-03a: statistika vybrané karty za období, přesná salda, ruční příjmy/výdeje a oddělené inventurní/počáteční/opravné zápisy.
 - [x] P18-02: skladové vazby faktur, potvrzených nákupů, prodejek a množstevních vratek dobropisů; atomické opravy/storna a dohledatelnost.
@@ -154,10 +157,13 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] Měsíční CZK přehled prodeje/nákupu, kumulace, meziroční srovnání a zdrojové doklady s profilovou izolací.
 - [ ] P19: další přehledy, daňové podklady a účetní exporty.
 - [x] P20: štítky a serverové filtry, koš nepropojených návrhů, exportní snapshoty a zámky, hromadné PDF.
-- [ ] P20: koš dalších dokladů, anonymizace kontaktů a zbývající hromadné akce.
+- [x] P20: nevratná anonymizace adresáře a jeho historie vlastníkem; historické finanční snapshoty a původní dokumenty zachované. [Hranice](specs/contact-anonymization.md).
+- [x] P20: koš nepoužitých nabídek a šablon; obnova a audit, ochrana odeslaných/sdílených/navázaných/exportovaných zdrojů.
+- [ ] P20: další přípustné typy koše a zbývající hromadné akce.
 - [x] P20: logo, podpis/razítko a lokalizované patičky nových faktur, nabídek, záloh, pokladních dokladů, DDPP a dobropisů.
-- [x] P20: RTF faktury, dodací list a potvrzení úhrady.
-- [ ] P20: širší tiskové preference a výstupy dalších typů dokladů.
+- [x] P20: RTF faktury, dodací list s cenami/bez cen (předvolba profilu i jednorázová volba) a potvrzení úhrady.
+- [x] P20 (část): firemní text před položkami CS/EN v uloženém vzhledu nových faktur, nabídek, záloh, DDPP a dobropisů; pokladna a historická PDF beze změny. DB 4/4, UI CS/EN desktop/mobile ověřeno v product-admin 12/12. [Rozsah](specs/document-style.md).
+- [ ] P20: další tiskové preference (včetně nedoloženého data tisku) a výstupy dalších typů dokladů.
 
 ## Rozhraní a distribuce — L10N-01, P11, PERSONAL-01
 
@@ -166,9 +172,12 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] Vývojový katalog komponent mimo produkční vstup.
 - [x] Tauri klient sdílející webové UI a připojený k serveru.
 - [ ] Dokončení a ověření všech zbývajících rozdílů proti referenčnímu UX.
-- [ ] Instalovatelná PWA a offline režim.
+- [x] PWA manifest, skutečné 192/512 ikony a online registrace mimo dev/Tauri; statický CS/EN fallback ukládá pouze tři veřejné soubory ověřené SHA-256, bez offline fakturace.
+- [x] Produkční PWA: desktop Chromium CDP bez chyb instalovatelnosti, skutečný SW a pouze tři statické Cache API soubory; CS/EN offline scénáře prošly na desktopu i mobilní emulaci. Samostatná produkční CI konfigurace, bez offline fakturace.
+- [ ] Ověření instalace PWA na fyzickém Android/iOS a do desktopového OS; CDP a mobilní emulace instalaci do OS nedokládají.
 - [x] Matice CI pro instalátory do draft GitHub Releases; lokální macOS debug DMG ověřený sestavením a integritou.
-- [ ] Ověření instalace na všech OS, produkční podpisy a automatické aktualizace.
+- [x] [Signed desktop updater](specs/desktop-updates.md): výchozí vypnutý, trusted endpoint/public key při sestavení, explicitní CS/EN check/install, podpis i podepsaná verze, bounded manifest/balíček a oddělené ruční potvrzení. Fixture testy neinstalují OS balíčky.
+- [ ] Skutečný upgrade a zachování dat na všech cílových OS, produkční platformní podpisy/notarizace a živé vydání aktualizačního kanálu.
 - [ ] Osobní desktop s přibaleným lokálním Rust/PostgreSQL runtime.
 - [x] Světlý, tmavý a systémový vzhled s uložením preference uživatele v DB.
 - [ ] Další personalizace a preference oznámení.
@@ -183,7 +192,7 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P16-09a: správa označení prodejních terminálů (profil, revize, archiv/obnova, REST/MCP a CS/EN). Volba terminálu a jeho snapshot na prodejce jsou hotové; napojení platebního hardwaru zbývá. [Specifikace](specs/sales-terminals.md).
 
 - [x] QR Platba v nových PDF faktur a záloh s platnými bankovními údaji.
-- [ ] QR Faktura a kombinovaný formát Platba+F.
+- [x] QR Faktura a kombinovaný formát Platba+F pro podporované nové faktury; explicitní výběr, nezávislé dekódování CS/EN a původní PDF beze změny. [Podmínky QR](specs/payment-qr.md).
 
 - [x] P19-01c: měsíční, kvartální a roční přehled CZK hodnot dokladů, kumulace a srovnání roku, REST/MCP a CS/EN. [Specifikace](specs/period-report.md).
 

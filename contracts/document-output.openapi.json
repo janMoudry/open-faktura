@@ -60,11 +60,7 @@
     "schemas": {
       "Request": {
         "type": "object",
-        "required": [
-          "ids",
-          "kind",
-          "language"
-        ],
+        "required": ["ids", "kind", "language"],
         "additionalProperties": false,
         "properties": {
           "ids": {
@@ -78,19 +74,15 @@
           },
           "kind": {
             "type": "string",
-            "enum": [
-              "bulk_pdf",
-              "rtf",
-              "delivery_note",
-              "payment_confirmation"
-            ]
+            "enum": ["bulk_pdf", "rtf", "delivery_note", "payment_confirmation"]
           },
           "language": {
             "type": "string",
-            "enum": [
-              "cs",
-              "en"
-            ]
+            "enum": ["cs", "en"]
+          },
+          "delivery_note_prices": {
+            "type": "boolean",
+            "description": "Delivery notes only. Omitted uses current company preference (default false); explicit true/false overrides for this output. Stored original line amounts, no recalculation or invoice PDF change."
           }
         }
       }

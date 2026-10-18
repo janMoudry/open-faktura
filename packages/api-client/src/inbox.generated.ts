@@ -362,6 +362,13 @@ export interface components {
           /** @enum {string} */
           action: "attach";
           received_id: string;
+        }
+      | {
+          request_id: string;
+          id: string;
+          revision: number;
+          /** @enum {string} */
+          action: "detach";
         };
     InboxAudit: {
       id: string;

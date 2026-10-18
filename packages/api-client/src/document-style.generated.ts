@@ -29,6 +29,21 @@ export interface components {
       signature_base64: string | null;
       footer_cs: string;
       footer_en: string;
+      /**
+       * @description Default for newly requested auxiliary delivery notes; does not modify original invoice PDF.
+       * @default false
+       */
+      delivery_note_prices: boolean;
+      /**
+       * @description Plain text before item lines in the document language; snapshotted for new documents only.
+       * @default
+       */
+      before_items_cs: string;
+      /**
+       * @description Plain text before item lines in the document language; snapshotted for new documents only.
+       * @default
+       */
+      before_items_en: string;
     };
     Snapshot: {
       revision: number;
@@ -37,6 +52,21 @@ export interface components {
         signature_base64: string | null;
         footer_cs: string;
         footer_en: string;
+        /**
+         * @description Default for newly requested auxiliary delivery notes; does not modify original invoice PDF.
+         * @default false
+         */
+        delivery_note_prices: boolean;
+        /**
+         * @description Plain text before item lines in the document language; snapshotted for new documents only.
+         * @default
+         */
+        before_items_cs: string;
+        /**
+         * @description Plain text before item lines in the document language; snapshotted for new documents only.
+         * @default
+         */
+        before_items_en: string;
       };
     };
     Command: {
@@ -48,6 +78,21 @@ export interface components {
         signature_base64: string | null;
         footer_cs: string;
         footer_en: string;
+        /**
+         * @description Default for newly requested auxiliary delivery notes; does not modify original invoice PDF.
+         * @default false
+         */
+        delivery_note_prices: boolean;
+        /**
+         * @description Plain text before item lines in the document language; snapshotted for new documents only.
+         * @default
+         */
+        before_items_cs: string;
+        /**
+         * @description Plain text before item lines in the document language; snapshotted for new documents only.
+         * @default
+         */
+        before_items_en: string;
       };
     };
   };

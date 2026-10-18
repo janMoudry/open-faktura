@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Připojení není dostupné | Open Faktura</title>
+    <link rel="stylesheet" href="/pwa/offline.css" />
+    <script src="/pwa/offline.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <strong>Open Faktura</strong>
+      <h1 data-message="title">Připojení není dostupné</h1>
+      <p data-message="intro">
+        Open Faktura potřebuje připojení k vašemu serveru.
+      </p>
+      <p data-message="detail">
+        Doklady ani jejich stav nejsou dostupné offline. Z této obrazovky nelze
+        nic uložit nebo odeslat. Po obnovení připojení ověřte stav poslední
+        operace v aplikaci.
+      </p>
+      <a href="/" data-message="retry" id="retry">Zkusit znovu</a>
+      <nav aria-label="Jazyk / Language">
+        <button type="button" data-language="cs" lang="cs">Čeština</button
+        ><button type="button" data-language="en" lang="en">English</button>
+      </nav>
+    </main>
+  </body>
+</html>

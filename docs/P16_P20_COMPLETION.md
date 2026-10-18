@@ -19,14 +19,14 @@ Pokladna má ruční i automatické doklady, samostatná daňová plnění, PDF 
 slovy. Prodejky mají kombinované platby, terminálové snapshoty, souhrnné
 zaúčtování, storno, skladové návaznosti a PDF souhrnné dávky.
 
-| Návaznost | Aktuální stav |
-| --- | --- |
-| Párování různých měn záloh/vratek | P16-13j implementované; migrace 058, nové i existující úhrady, ochrana DDPP; bankovní regrese 71/71 |
-| Příjem bankovních notifikací | Implementovaná autentizovaná vlastní brána nad stejnými importními příkazy; nejde o univerzální parser textů e-mailů bank |
-| Tiskové předvolby | Navazují na P20; původní uložená PDF se nemění |
-| Členění DPH | Vyžaduje klasifikaci a verzovaná pravidla P19, samotný součet DPH ji nenahrazuje |
-| Terminálový hardware | Konfigurace a identifikace existují, externí zařízení potřebují konkrétní protokol |
-| Skutečné bankovní exporty | Syntetické testy fungování parserů nenahrazují ověření anonymizovaného výpisu konkrétní banky/verze |
+| Návaznost                         | Aktuální stav                                                                                                             |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Párování různých měn záloh/vratek | P16-13j implementované; migrace 058, nové i existující úhrady, ochrana DDPP; bankovní regrese 71/71                       |
+| Příjem bankovních notifikací      | Implementovaná autentizovaná vlastní brána nad stejnými importními příkazy; nejde o univerzální parser textů e-mailů bank |
+| Tiskové předvolby                 | Navazují na P20; původní uložená PDF se nemění                                                                            |
+| Členění DPH                       | Vyžaduje klasifikaci a verzovaná pravidla P19, samotný součet DPH ji nenahrazuje                                          |
+| Terminálový hardware              | Konfigurace a identifikace existují, externí zařízení potřebují konkrétní protokol                                        |
+| Skutečné bankovní exporty         | Syntetické testy fungování parserů nenahrazují ověření anonymizovaného výpisu konkrétní banky/verze                       |
 
 Podrobnosti: [akceptace P16](P16_COMPLETION.md), [bankovní měny](specs/bank-currencies.md),
 [párování různých měn](specs/bank-foreign-matching.md), [automatika](specs/bank-auto-matching.md).
@@ -43,7 +43,7 @@ není faktura; chybějící údaje se nevymýšlejí. Gateway může používat 
 ruční zadání nebo nastaveného poskytovatele. Další ISDOC režimy se uzavírají
 po jednotlivých kontraktech, ne označením celého formátu za podporovaný.
 
-Nahrávání přetažením, náhled originálu a explicitní vytvoření/porovnání dodavatele jsou implementované; nejnovější browser regrese je zaznamenaná v [validačním protokolu](VALIDATION_2026_10_18.md). Oznámení, odpojení zpracovaného dokladu a předání účetnímu zůstávají otevřené.
+Nahrávání přetažením, náhled originálu a explicitní vytvoření/porovnání dodavatele jsou implementované; nejnovější browser regrese je zaznamenaná v [validačním protokolu](VALIDATION_2026_10_18.md). Vlastní oznámení příjmu jsou implementovaná s opt-in kategoriemi a kurzorem přečtení pro uživatele/profil. Odpojení originálu je implementované s potvrzením, historií a zachováním účetního dokladu i jeho přílohy. Předání účetnímu je explicitní SMTP odeslání jednoho původního souboru s potvrzením, snapshotem, historií a ochranou proti opakování; bez veřejného odkazu.
 
 Podrobnosti: [schránka dokladů](specs/inbox.md), [IMAP](specs/inbox-mailbox.md).
 
@@ -73,38 +73,41 @@ jsou implementované. Přehledy používají uložené kurzy do CZK, zahrnují
 samostatná pokladní plnění a nezapočítávají úhrady či prodejky podruhé.
 Uložené bankovní kurzové rozdíly mají samostatný přehled.
 
-| Návaznost | Aktuální stav |
-| --- | --- |
-| ARES | Implementovaný v kontaktech i fakturačním profilu |
-| Registr DIČ | Implementované oficiální české RWS a EU VIES: typ subjektu, spolehlivost, zveřejněné účty a odlišení výpadku od nenalezení |
-| ISDOC export | Implementovaný ISDOC 6.0.2 běžných vystavených faktur v podporovaných měnách; ověření oficiálním XSD, vyúčtování záloh zatím vyloučené |
-| Evidence DPH CSV/XLSX | Implementovaný export filtrovaných zdrojů ze společného databázového snapshotu |
-| Kurzy ČNB | Návrh kurzu v editoru a explicitní volba aktuálního kurzu pro pravidelné faktury; výpadek ČNB nevystaví doklad s vymyšleným kurzem |
-| Varianty widgetů | Implementované preference vlastního účtu: pořadí, viditelnost a kompaktní/podrobná varianta |
-| Různé kurzy záloh/DDPP/vyúčtování | Otevřené; stejný uložený kurz je podporovaný |
-| Účetní exporty dalších systémů | Doložené formáty jako nativní adaptéry; ostatní může podle rozhodnutí uživatele 18. 10. 2026 doplnit provozovatel přes dokumentované rozhraní |
-| Údaje daňového subjektu | Explicitní profil s verzí, auditem a oficiálním číselníkem finančních úřadů/pracovišť; neověřuje místní příslušnost ani nepodává přiznání |
-| Daňové režimy a formuláře | Explicitní klasifikace podkladů obratu a uplatňované vstupní DPH se snapshotem zdroje implementovaná; vlastní přiznání/KH/SH stále otevřené; nutná klasifikace plnění, pravidla nároku na odpočet a oficiální schémata konkrétního období |
+| Návaznost                         | Aktuální stav                                                                                                                                                                                                                             |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ARES                              | Implementovaný v kontaktech i fakturačním profilu                                                                                                                                                                                         |
+| Registr DIČ                       | Implementované oficiální české RWS a EU VIES: typ subjektu, spolehlivost, zveřejněné účty a odlišení výpadku od nenalezení                                                                                                                |
+| ISDOC export                      | Implementovaný ISDOC 6.0.2 běžných vystavených faktur v podporovaných měnách; ověření oficiálním XSD, vyúčtování záloh zatím vyloučené                                                                                                    |
+| Evidence DPH CSV/XLSX             | Implementovaný export filtrovaných zdrojů ze společného databázového snapshotu                                                                                                                                                            |
+| Kurzy ČNB                         | Návrh kurzu v editoru a explicitní volba aktuálního kurzu pro pravidelné faktury; výpadek ČNB nevystaví doklad s vymyšleným kurzem                                                                                                        |
+| Varianty widgetů                  | Implementované preference vlastního účtu: pořadí, viditelnost a kompaktní/podrobná varianta                                                                                                                                               |
+| Různé kurzy záloh/DDPP/vyúčtování | Neplátce bez DDPP má samostatné původní kurzy záloh a kurz konečného plnění; přesné native odpočty zůstávají. Různé ekonomické kurzy DDPP u plátce zůstávají blokované do ověření daňového algoritmu                                      |
+| Účetní exporty dalších systémů    | Doložené formáty jako nativní adaptéry; ostatní může podle rozhodnutí uživatele 18. 10. 2026 doplnit provozovatel přes dokumentované rozhraní                                                                                             |
+| Údaje daňového subjektu           | Explicitní profil s verzí, auditem a oficiálním číselníkem finančních úřadů/pracovišť; neověřuje místní příslušnost ani nepodává přiznání                                                                                                 |
+| Daňové režimy a formuláře         | Explicitní klasifikace podkladů obratu a uplatňované vstupní DPH se snapshotem zdroje implementovaná; vlastní přiznání/KH/SH stále otevřené; nutná klasifikace plnění, pravidla nároku na odpočet a oficiální schémata konkrétního období |
 
 Evidence DPH není daňové přiznání a orientační obrat není právní posouzení
 zákonného obratu. Technické regresní testy tato pravidla nenahrazují.
 
 ## P20 — úplnost produktu
 
-| Oblast | Aktuální stav |
-| --- | --- |
-| Správa profilů | Implementovaná správa členů podle e-mailu, role, převod vlastnictví, odchod a obnova smazaného profilu; ochrana posledního vlastníka |
-| Přenosný export profilu | Implementovaný ZIP s explicitním manifestem tabulek/sloupců, přílohami a redakcí tajemství; není databázovou zálohou |
-| Štítky | Implementovaný profilový číselník, vazby a serverové filtrování faktur, prodejních/nákupních dokladů a kontaktů |
-| Tiskové výstupy | Implementované hromadné fakturační PDF, RTF faktury, dodací list a potvrzení úhrady |
-| QR Platba | QR Platba, QR Faktura a Platba+F pro podporované nové faktury; explicitní výběr a nezávisle dekódované CS/EN testy, původní PDF beze změny |
-| Vzhled aplikace | Světlý/tmavý/systémový režim je uložený na účtu |
-| Nápověda | Uživatelské postupy CS/EN, stav serveru/databáze a odkazy na instalaci, vydání a hlášení chyb |
-| Vratný koš | Nevystavené nepropojené návrhy, obnova, revize/audit; vydané a exportem uzamčené doklady jsou chráněné |
-| Exportní zámky | Neměnné JSON snapshoty, SHA-256, historie, ochrana obsahu a vlastnické odemčení s důvodem; není nativní účetní export |
-| Brand dokumentů | Logo, podpis/razítko a CS/EN patičky; snapshoty nových faktur, nabídek, záloh, pokladních dokladů, DDPP a dobropisů; historická PDF beze změny |
-| Desktopové instalátory | Připravená matice do draft Releases, lokálně ověřený macOS debug DMG a SHA-256; podpisy, instalace dalších OS a updater neověřené/neimplementované |
-| Stále otevřené | Koš dalších typů dokladů, anonymizace kontaktů, oznámení, širší tiskové preference/výstupy, úplný audit přístupnosti, pokročilé migrace, klientské aktualizace a osobní desktopový provoz |
+| Oblast                      | Aktuální stav                                                                                                                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Správa profilů              | Implementovaná správa členů podle e-mailu, role, převod vlastnictví, odchod a obnova smazaného profilu; ochrana posledního vlastníka                                                                                                                                       |
+| Přenosný export profilu     | Implementovaný ZIP s explicitním manifestem tabulek/sloupců, přílohami a redakcí tajemství; není databázovou zálohou                                                                                                                                                       |
+| Štítky                      | Implementovaný profilový číselník, vazby a serverové filtrování faktur, prodejních/nákupních dokladů a kontaktů                                                                                                                                                            |
+| Tiskové výstupy             | Implementované hromadné fakturační PDF, RTF faktury, dodací list s volbou cen (profilová předvolba nebo jednorázově) a potvrzení úhrady                                                                                                                                    |
+| QR Platba                   | QR Platba, QR Faktura a Platba+F pro podporované nové faktury; explicitní výběr a nezávisle dekódované CS/EN testy, původní PDF beze změny                                                                                                                                 |
+| Vzhled aplikace             | Světlý/tmavý/systémový režim je uložený na účtu                                                                                                                                                                                                                            |
+| Nápověda                    | Uživatelské postupy CS/EN, stav serveru/databáze a odkazy na instalaci, vydání a hlášení chyb                                                                                                                                                                              |
+| Vratný koš                  | Nevystavené nepropojené návrhy a nepoužité nabídky/šablony; obnova, revize/audit. Vydané, navázané, sdílené, odeslané a exportem uzamčené doklady jsou chráněné                                                                                                            |
+| Exportní zámky              | Neměnné JSON snapshoty, SHA-256, historie, ochrana obsahu a vlastnické odemčení s důvodem; není nativní účetní export                                                                                                                                                      |
+| Brand dokumentů             | Logo, podpis/razítko a CS/EN patičky; snapshoty nových faktur, nabídek, záloh, pokladních dokladů, DDPP a dobropisů; historická PDF beze změny                                                                                                                             |
+| Desktopové instalátory      | Matice do draft Releases, lokálně ověřený macOS debug DMG a SHA-256; ručně potvrzený signed updater je build-time opt-in, výchozí vypnutý. Kryptografické/loopback fixture testy, nikoli skutečný OS upgrade; platformní podpisy/notarizace a instalace dalších OS zbývají |
+| Anonymizace adresáře        | Pouze vlastník po potvrzení; záznam a adresářová historie, konečný archivovaný stav; finanční snapshoty, původní PDF a ostatní kopie zůstávají                                                                                                                             |
+| Instalovatelný web          | Manifest, ikony a online režim; při nedostupné navigaci obecná CS/EN obrazovka, bez offline ukládání účetních dat                                                                                                                                                          |
+| Tiskový text před položkami | Firemní CS/EN předvolba přes uložený document_style; nové faktury/nabídky/zálohy/DDPP/dobropisy, bez pokladny. DB 4/4 a product-admin UI 12/12; [rozsah](specs/document-style.md). Samostatný vizuální PDF důkaz víceřádkového textu nebyl pořízen.                        |
+| Stále otevřené              | Koš dalších typů dokladů, rozšíření oznámení, širší tiskové preference/výstupy, úplný audit přístupnosti, pokročilé migrace, skutečné OS upgrade/release ověření a osobní desktopový provoz                                                                                |
 
 ## Pravidla uzavření
 

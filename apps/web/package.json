@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "build": "node ../../scripts/generate-pwa-offline.mjs && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -14,6 +14,7 @@
     "@open-faktura/api-client": "workspace:*",
     "@open-faktura/design-tokens": "workspace:*",
     "@open-faktura/ui": "workspace:*",
+    "@tauri-apps/api": "2.12.4",
     "decimal.js": "^10.6.0",
     "i18next": "25.6.3",
     "pdfjs-dist": "6.4.299",

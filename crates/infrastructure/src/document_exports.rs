@@ -34,6 +34,9 @@ async fn source(
             return Err(Error::Conflict);
         }
     }
+    if matches!(target.kind, Kind::Sales) {
+        crate::sales::ensure_not_trashed(tx, c, id(&target.id)?).await?;
+    }
     Ok(value)
 }
 async fn history(tx: &mut Transaction<'_, Postgres>, c: i64, target: Target) -> Result<History> {

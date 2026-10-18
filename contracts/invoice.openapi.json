@@ -1796,6 +1796,15 @@
             "items": {
               "$ref": "#/components/schemas/AdvanceTaxDeduction"
             }
+          },
+          "valuation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdvanceSourceValuation"
+              }
+            ],
+            "nullable": true,
+            "description": "Optional immutable source currency/rate snapshot. Missing on legacy settlements; final rate remains in invoice calculation."
           }
         },
         "required": ["id", "number", "paid", "payment_ids", "tax_receipts"]
@@ -1875,6 +1884,31 @@
           "tax_mode",
           "minimum_date"
         ]
+      },
+      "AdvanceSourceValuation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["currency", "exchange_rate"],
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "exchange_rate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rate", "units"],
+            "properties": {
+              "rate": {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+              },
+              "units": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          }
+        }
       }
     },
     "securitySchemes": {

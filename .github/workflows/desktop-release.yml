@@ -39,10 +39,26 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
       - run: pnpm check:locales
       - run: pnpm typecheck
-      - run: pnpm --filter @open-faktura/desktop build --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+      - name: Build development installers (updater disabled)
+        if: vars.DESKTOP_UPDATER_ENDPOINT == '' || vars.DESKTOP_UPDATER_PUBLIC_KEY == ''
+        run: pnpm --filter @open-faktura/desktop build --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
         env:
           CARGO_INCREMENTAL: "0"
+          OPEN_FAKTURA_UPDATER_ENDPOINT: ${{ vars.DESKTOP_UPDATER_ENDPOINT }}
+          OPEN_FAKTURA_UPDATER_PUBLIC_KEY: ${{ vars.DESKTOP_UPDATER_PUBLIC_KEY }}
+      - name: Build updater-signed installers (operator opt-in)
+        if: vars.DESKTOP_UPDATER_ENDPOINT != '' && vars.DESKTOP_UPDATER_PUBLIC_KEY != ''
+        run: pnpm --filter @open-faktura/desktop build --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+        env:
+          CARGO_INCREMENTAL: "0"
+          OPEN_FAKTURA_UPDATER_ENDPOINT: ${{ vars.DESKTOP_UPDATER_ENDPOINT }}
+          OPEN_FAKTURA_UPDATER_PUBLIC_KEY: ${{ vars.DESKTOP_UPDATER_PUBLIC_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       - run: node scripts/release/collect-desktop.mjs ${{ matrix.target }} target/${{ matrix.target }}/release/bundle release-assets
+        env:
+          OPEN_FAKTURA_UPDATER_ENDPOINT: ${{ vars.DESKTOP_UPDATER_ENDPOINT }}
+          OPEN_FAKTURA_UPDATER_PUBLIC_KEY: ${{ vars.DESKTOP_UPDATER_PUBLIC_KEY }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: desktop-${{ matrix.target }}
@@ -55,11 +71,20 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.0"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           pattern: desktop-*
           path: release-assets
           merge-multiple: true
+      - name: Verify complete signed updater manifest when configured
+        run: node scripts/release/create-updater-manifest.mjs release-assets "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}"
+        env:
+          OPEN_FAKTURA_UPDATER_ENDPOINT: ${{ vars.DESKTOP_UPDATER_ENDPOINT }}
+          OPEN_FAKTURA_UPDATER_PUBLIC_KEY: ${{ vars.DESKTOP_UPDATER_PUBLIC_KEY }}
       - name: Create reviewable draft with all targets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -71,8 +96,8 @@ jobs:
           cat > notes.md <<'NOTES'
           Vývojové instalátory / Development installers
 
-          Nepodepsané a nenotarizované balíčky. Instalace na každém cílovém OS musí projít ověřením před zveřejněním. Neobsahují server ani PostgreSQL a nemají automatický updater.
-          Unsigned, non-notarized packages. Verify installation on every target OS before publishing. Server and PostgreSQL are not bundled; automatic updating is not enabled.
+          Balíčky bez platformních podpisů a notarizace. Instalace na každém cílovém OS musí projít ověřením před zveřejněním. Neobsahují server ani PostgreSQL. Ruční signed updater je dostupný pouze v explicitně nakonfigurovaných buildech a s ověřenými .sig assets v manifestech.
+          Packages without platform code signing or notarization. Verify installation on every target OS before publishing. Server and PostgreSQL are not bundled. Manual signed updating is available only in explicitly configured builds with verified .sig assets in their manifests.
 
           Použijte server ze stejného vydání. Před upgradem serveru zálohujte databázi. Manifesty uvádějí commit, cílovou platformu a SHA-256 instalátorů.
           Use the server from the same release. Back up the database before upgrading the server. Manifests identify the commit, target and installer SHA-256 checksums.

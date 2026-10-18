@@ -14,11 +14,13 @@ export function DocumentCurrencyFields({
   value,
   onChange,
   disabled = false,
+  currencyDisabled = false,
   documentDate,
 }: {
   value: Value;
   onChange: (v: Value) => void;
   disabled?: boolean;
+  currencyDisabled?: boolean;
   documentDate?: string | null;
 }) {
   const { t, language } = useAppTranslation();
@@ -79,7 +81,7 @@ export function DocumentCurrencyFields({
         <Select
           label={t("documentCurrency")}
           value={value.currency}
-          disabled={disabled || loading}
+          disabled={disabled || currencyDisabled || loading}
           options={[
             "CZK",
             "EUR",

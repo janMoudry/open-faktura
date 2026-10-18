@@ -191,10 +191,39 @@ potřebují další autentizační adaptér. Podklady aktuální dodávky E-083�
 | Rozdíly proti kontaktu | Porovnání údajů dodavatele/adresy/účtu s kontaktem; uživatel ponechá snapshot nebo výslovně převezme kontaktní údaje. |
 | Faktura/účtenka/příloha existujícího dokladu | Hotové společné transakční příkazy a kontrola rolí. |
 | Stav zpracování | Pending/processed, archiv/obnova a historie. |
-| Připojení/odpojení dokumentu | Připojení je hotové; odpojení uložené inbox vazby zatím chybí. |
-| Upozornění na nové dokumenty | Historie příjmu je hotová; aktivní uživatelské oznámení zatím chybí. |
-| Předání originálu účetnímu | Stažení originálu je hotové; zvláštní přeposlání e-mailem účetnímu zatím chybí. |
+| Připojení/odpojení dokumentu | Explicitní detach pouze vazby, revize/replay/audit; přijatý doklad i příloha zůstávají zachované. |
+| Upozornění na nové dokumenty | Soukromý opt-in feed nových originálů a bezpečných uložených chyb, vlastní kurzory uživatele; viz [inbox-notifications.md](inbox-notifications.md). |
+| Předání originálu účetnímu | Explicitní original-only SMTP send s potvrzením adresáta/přílohy, durable historie/replay; viz [inbox-delivery.md](inbox-delivery.md). Bez veřejného odkazu nebo nového účetního PDF. |
 
 Tento audit neoznačuje celý P17 ani univerzální podporu všech formátů jako
 hotové. Výše chybějící body jsou skutečný rozsah, nikoli přejmenované
 předpoklady nebo nahrazení jinou funkcí.
+
+## Odpojení originálu (P17-DETACH-01)
+
+Veřejná nápověda iDokladu, aktualizace 6. 5. 2026, znovu přečtena
+18. 10. 2026, výslovně popisuje tlačítko Odpojit dokument
+(https://www.idoklad.cz/podpora/inbox, Další úpravy v Inboxu). Neodhaluje
+přesný dopad na kopii přílohy ani transakční/revizní pravidla.
+
+Následující je vlastní návrh Open Faktury: `inbox_execute action=detach`
+vyžaduje editor/owner v aktuální firmě, request UUID a očekávanou revizi.
+Existující vazbu `received_id` vymaže a zvýší revizi; zaznamená příkaz a
+auditní akci `detach` ve stejné transakci. Nenavázaný originál a neaktuální
+revize jsou konflikt. Replay stejného UUID/aktéra/payloadu vrací původní
+výsledek i po dalších změnách; neprovádí další odpojení. Souběžné různé
+příkazy se stejnou revizí mohou uspět nejvýše jednou.
+
+Originál/jeho hash, účetní doklad, platby a kopie přílohy se nemění a
+nemažou. Zůstane také dosavadní stav archivace; archivovaný originál je
+pro nové připojení nutné nejprve obnovit. Odpojení lze provést i u vazby na
+stornovaný doklad, protože jej nijak neopravuje. Stav zpracování je poté
+pending. UI před potvrzením upozorní na zachování dokladu/přílohy a riziko
+dvojího zpracování; nic automaticky znovu nepřevádí.
+
+Nové připojení ke stejnému dokladu znovu použije jeho aktivní přílohu
+stejného SHA-256, kontrolovanou přes company_id a received_id. Nejde o
+globální deduplikaci. Jiný doklad dostane vlastní kopii; smazaná příloha
+se nereaktivuje. Limity pěti příloh/256 MiB se kontrolují při tvorbě nové
+kopie. Odpojení nevyžaduje migraci: nullable FK, revision, command/audit
+a původní obsah už schéma obsahuje.

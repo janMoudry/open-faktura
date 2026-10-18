@@ -749,6 +749,126 @@ for (const english of [false, true])
           exact: true,
         }),
       ).toHaveCount(0);
+      await expect(
+        page.getByRole("button", {
+          name: text("Anonymizovat kontakt", "Anonymize contact"),
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      // Restore owner only inside this disposable test DB, then exercise an
+      // explicitly synthetic contact. Never anonymize a developer agenda.
+      sql(
+        `UPDATE membership SET role='owner' WHERE company_id=${Number(alpha.id)}`,
+        database,
+      );
+      const fresh = await page.request.post(
+        `http://127.0.0.1:${port}/api/companies/${alpha.id}/contacts`,
+        {
+          headers: {
+            Origin: "http://127.0.0.1:5173",
+            "X-Faktura-Request": "1",
+          },
+          data: {
+            request_id: crypto.randomUUID(),
+            data: {
+              name: "Synthetic anonymization subject",
+              registration_number: "",
+              vat_number: "",
+              billing_address: {
+                street: "Synthetic private street",
+                city: "",
+                postal_code: "",
+                country: "CZ",
+              },
+              delivery_addresses: [],
+              default_delivery_id: null,
+              email: "synthetic-private@example.test",
+              phone: "",
+              persons: [],
+              recipients: [],
+              maturity_days: null,
+              payment_method: "",
+              bank_account: "",
+              iban: "",
+              note: "Synthetic private note",
+            },
+          },
+        },
+      );
+      expect(fresh.ok()).toBe(true);
+      const synthetic = await fresh.json();
+      const anonymousUrl = `/#/companies/${alpha.id}/contacts/${synthetic.id}`;
+      await page.goto(anonymousUrl);
+      await page.reload();
+      const anonymize = page.getByRole("button", {
+        name: text("Anonymizovat kontakt", "Anonymize contact"),
+        exact: true,
+      });
+      await anonymize.click();
+      const anonymizationDialog = page.getByRole("dialog", {
+        name: text(
+          "Anonymizace kontaktu v adresáři",
+          "Anonymize directory contact",
+        ),
+      });
+      await expect(anonymizationDialog).toContainText(
+        text("Historické doklady", "Historical documents"),
+      );
+      const confirm = anonymizationDialog.getByRole("button", {
+        name: text("Nevratně anonymizovat", "Permanently anonymize"),
+        exact: true,
+      });
+      await expect(confirm).toBeDisabled();
+      await anonymizationDialog
+        .getByLabel(
+          text(
+            "Pro potvrzení opište název kontaktu",
+            "Type the contact name to confirm",
+          ),
+        )
+        .fill("wrong name");
+      await expect(confirm).toBeDisabled();
+      await anonymizationDialog
+        .getByRole("button", { name: text("Zrušit", "Cancel"), exact: true })
+        .click();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        "Synthetic anonymization subject",
+      );
+      await anonymize.click();
+      await anonymizationDialog
+        .getByLabel(
+          text(
+            "Pro potvrzení opište název kontaktu",
+            "Type the contact name to confirm",
+          ),
+        )
+        .fill("Synthetic anonymization subject");
+      await confirm.click();
+      await expect(anonymizationDialog).toHaveCount(0);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        text("Anonymizovaný kontakt", "Anonymized contact"),
+      );
+      await page.reload();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        text("Anonymizovaný kontakt", "Anonymized contact"),
+      );
+      await expect(anonymize).toHaveCount(0);
+      await expect(
+        page.getByRole("button", {
+          name: text("Akce kontaktu", "Contact actions"),
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      const sanitized = await (
+        await page.request.get(
+          `http://127.0.0.1:${port}/api/companies/${alpha.id}/contacts/${synthetic.id}`,
+        )
+      ).json();
+      expect(sanitized.anonymized).toBe(true);
+      expect(sanitized.archived).toBe(true);
+      expect(sanitized.data.email).toBe("");
+      expect(sanitized.data.note).toBe("");
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     } finally {
       await page.unrouteAll({ behavior: "wait" }).catch(() => {});
       if (server && server.exitCode === null) {

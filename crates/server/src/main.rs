@@ -160,6 +160,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         pool: pool.clone(),
         mail: delivery.mail.clone(),
     };
+    let inbox_delivery = faktura_infrastructure::inbox_delivery::PgInboxDelivery {
+        pool: pool.clone(),
+        mail: delivery.mail.clone(),
+    };
     let communication_store = faktura_infrastructure::communication::PgCommunication(pool.clone());
     let recurring_store = faktura_infrastructure::recurring::PgRecurring(pool.clone());
     let recurring_mail = invoice_delivery.clone();
@@ -215,6 +219,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             tokio::select! {_=mailbox_shutdown.changed()=>{},_=tokio::time::sleep(std::time::Duration::from_secs(15))=>{}}
         }
     });
+    let inbox_worker = inbox_delivery.clone();
     let invoice_worker = invoice_delivery.clone();
     let worker_store = delivery.clone();
     let delivery_worker = tokio::spawn(async move {
@@ -222,6 +227,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if *delivery_shutdown.borrow() {
                 break;
             }
+            let inbox_work = match inbox_worker.process_one().await {
+                Ok(work) => work,
+                Err(_) => {
+                    tracing::warn!("Inbox delivery worker unavailable");
+                    false
+                }
+            };
             let invoice_work = match invoice_worker.process_one().await {
                 Ok(work) => work,
                 Err(_) => {
@@ -231,7 +243,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             match worker_store.process_one().await {
                 Ok(true) => continue,
-                Ok(false) if invoice_work => continue,
+                Ok(false) if invoice_work || inbox_work => continue,
                 Ok(false) => {}
                 Err(_) => tracing::warn!("Quotation delivery worker unavailable"),
             }
@@ -308,12 +320,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             origins.clone(),
             secure,
         ))
+        .merge(faktura_server::contact_anonymization::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::inbox_delivery::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+            inbox_delivery,
+        ))
+        .merge(faktura_server::inbox_notification::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
         .merge(faktura_server::taxpayer_filing_profile::router(
             pool.clone(),
             origins.clone(),
             secure,
         ))
         .merge(faktura_server::tax_classification::router(
+            pool.clone(),
+            origins.clone(),
+            secure,
+        ))
+        .merge(faktura_server::sales_trash::router(
             pool.clone(),
             origins.clone(),
             secure,

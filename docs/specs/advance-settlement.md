@@ -118,3 +118,17 @@ storno, DDPP, vyúčtování a PDF; ostatní nabídky/šablony zůstávají CZK 
 Text PDF zálohy, DDPP a vyúčtování ověřen na EUR a 25 CZK / 1 EUR.
 Screenshoty v docs/design jsou syntetická agenda. Lokální server byl po
 kontrolách restartován a vrací ready; bez nové migrace.
+
+## Rozšíření 18. 10. 2026 — různé obchodní kurzy neplátce
+
+Vlastní omezený návrh: neplátce bez DDPP může vyúčtovat plně uhrazené zálohy ve stejné měně a se stejným odběratelem, jejichž obchodní kurzy se liší. Finální návrh má svůj vlastní ručně zadaný kurz. Native credited a payable zůstávají přesnými native částkami; změna kurzu nevytváří úhradu ani účetní zápis. Orientační hodnotu konečného plnění přehled konvertuje kurzem konečného dokladu. Není to podpora různých daňových kurzů DDPP.
+
+Každý nově vytvořený Settlement.Source ukládá valuation={currency,exchange_rate} přesně převzatou ze zdrojové zálohy. Původní kurz konečné faktury je nadále v data.calculation.exchange_rate; vrchní Settlement.exchange_rate je referenční kurz při konfiguraci, nikoli náhrada per-source či final hodnot. Starý Source bez valuation se načte beze změny a neobohacuje se dnešním kurzem. Nevyžaduje migraci tabulek. Historická vydaná PDF a snapshoty se nepřepisují.
+
+Plátce nadále vyžaduje jeden ekonomický kurz pro zálohy/DDPP/final. Přesně ekvivalentní zápisy, např.25/1 a2500/100, jsou nyní povolené; porovnání používá validované Decimal křížové součiny, checked_mul, nikoli floating point. Původní řetězce se nekanonizují. Rozdíl skutečného kurzu vrací explicitní advance_tax_exchange_rate v konfiguraci, preview i validaci návrhu/issue, UI má CS/EN důvod. Neplátce s neprázdným DDPP snapshotem se odmítne jako nekonzistentní.
+
+Ostatní invarianty zůstávají: firma, přístup/role, měna, odběratel/vystavitel, data, plná úhrada, rezervace proti druhému vyúčtování a změnám plateb, revize, UUID replay a atomické vystavení. [Audit a doložené mezery plátcovských výpočtů](advance-fx-invariants.md) výslovně odlišuje SDK od numerického ověření. Zákaz různých daňových kurzů plátce není odstraněn a celý differing-DDPP rozsah není hotový.
+
+Syntetická regresní agenda: neplátce,1000EUR@25 a500EUR@24, plná úhrada, konfigurace1500EUR, následné konečné plnění1600EUR@26 a doplatek100EUR. Sources musí zachovat25/24, final26, DPH0; orientační konečná hodnota41600CZK. Jde o vlastní finanční invariantu, nikoli referenční daňový výpočet. VAT scénář potvrzuje ekvivalentní2500/100 a zákaz26 proti zdroji25 při zachování původních DDPP/PDF.
+
+Ověření tohoto rozšíření18.10.2026: `DATABASE_URL=… CARGO_INCREMENTAL=0 cargo test -p faktura-server --test advance_settlement -- --include-ignored --test-threads=1` prošlo8/8 (64,26s), včetně REST/MCP a upgrade019. `cargo test -p faktura-domain exchange::tests --lib` prošlo2/2; původní advance_settlement doménový haléřový test také prošel. Web TypeScript noEmit prošel. První nové testovací fixture byly opraveny kvůli skutečné signatuře Reverse a unikátnímu company payment UUID; nešlo o produkční opravu. Nový CS/EN desktop/mobile realDB UI scénář v advance-fx.spec.ts zatím čeká na aktuální produkční build; numerická shoda s iDokladem není těmito syntetickými výsledky potvrzena.

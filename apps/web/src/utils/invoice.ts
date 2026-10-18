@@ -90,6 +90,8 @@ export function newDraft(company: Company, language: "cs" | "en"): DraftData {
 }
 export function invoiceError(error: unknown): AppKey {
   if (error instanceof InvoiceCalculationFailure) {
+    if (error.fields.includes("advance_tax_exchange_rate"))
+      return "settlementFxTaxUnsupported";
     if (error.status === 409) return "draftConflict";
     if (error.status === 404) return "draftNotFound";
     if (error.status === 403) return "companyForbidden";

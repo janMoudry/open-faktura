@@ -16,6 +16,11 @@ import { AuthPage } from "../pages/AuthPage";
 import { useAppTranslation } from "../locales";
 import { NotFoundPage } from "../pages/NotFoundPage";
 
+const SalesTrashPage = lazy(() =>
+  import("../pages/SalesTrashPage").then((m) => ({
+    default: m.SalesTrashPage,
+  })),
+);
 const DraftTrashPage = lazy(() =>
   import("../pages/DraftTrashPage").then((m) => ({
     default: m.DraftTrashPage,
@@ -367,6 +372,10 @@ const router = createHashRouter([
           {
             path: "companies/:companyId/templates",
             element: <SalesListPage kind="template" />,
+          },
+          {
+            path: "companies/:companyId/sales-trash",
+            element: <SalesTrashPage />,
           },
           {
             path: "companies/:companyId/quotes/:salesId",

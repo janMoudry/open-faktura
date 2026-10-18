@@ -1,0 +1,7 @@
+{
+  "title": "Připojení není dostupné",
+  "intro": "Open Faktura potřebuje připojení k vašemu serveru.",
+  "detail": "Doklady ani jejich stav nejsou dostupné offline. Z této obrazovky nelze nic uložit nebo odeslat. Po obnovení připojení ověřte stav poslední operace v aplikaci.",
+  "retry": "Zkusit znovu",
+  "language": "Jazyk / Language"
+}

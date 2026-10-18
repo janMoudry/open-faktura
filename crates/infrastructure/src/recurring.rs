@@ -1,4 +1,4 @@
-use crate::draft::{authorize, check_contact, create_in_tx, issue_in_tx};
+use crate::draft::{authorize, create_in_tx, issue_in_tx};
 use async_trait::async_trait;
 use faktura_application::{
     delivery::SendQuote,
@@ -116,8 +116,14 @@ async fn record(
     sqlx::query("INSERT INTO recurring_command(company_id,request_id,actor_id,rule_id,command) VALUES($1,$2::text::uuid,$3,$4,$5)").bind(c).bind(key).bind(a).bind(id(&v.id)?).bind(input).execute(&mut **tx).await.map_err(err)?;
     audit(tx, a, c, v, action).await
 }
-async fn check(tx: &mut Transaction<'_, Postgres>, c: i64, data: &Data) -> Result<()> {
-    check_contact(tx, c, data.invoice.contact_id.as_deref()).await?;
+async fn check(
+    tx: &mut Transaction<'_, Postgres>,
+    c: i64,
+    data: &Data,
+    existing: Option<&str>,
+) -> Result<()> {
+    crate::draft::check_existing_contact(tx, c, data.invoice.contact_id.as_deref(), existing)
+        .await?;
     if let Some(m) = &data.mail {
         m.recipient
             .parse::<lettre::Address>()
@@ -143,7 +149,7 @@ impl RecurringStore for PgRecurring {
         if let Some(v) = replay(&mut tx, a, c, &cmd.request_id, &input).await? {
             return Ok(v);
         }
-        check(&mut tx, c, &cmd.data).await?;
+        check(&mut tx, c, &cmd.data, None).await?;
         let i:i64=sqlx::query_scalar("INSERT INTO recurring_rule(company_id,actor_id,data,next_on) VALUES($1,$2,$3,$4) RETURNING id").bind(c).bind(a).bind(serde_json::to_value(&cmd.data).map_err(err)?).bind(cmd.data.schedule.date(0)).fetch_one(&mut *tx).await.map_err(err)?;
         let v = load(&mut tx, c, i).await?;
         record(&mut tx, a, c, &cmd.request_id, input, &v, "create").await?;
@@ -319,7 +325,7 @@ impl PgRecurring {
                 {
                     return Err(Error::Conflict);
                 }
-                check(&mut tx, c, &data).await?;
+                check(&mut tx, c, &data, v.data.invoice.contact_id.as_deref()).await?;
                 sqlx::query("UPDATE recurring_rule SET data=$3,next_on=$4,status='paused',error_code=NULL WHERE company_id=$1 AND id=$2").bind(c).bind(i).bind(serde_json::to_value(&data).map_err(err)?).bind(data.schedule.date(v.generated as u32)).execute(&mut *tx).await.map_err(err)?;
                 "save"
             }

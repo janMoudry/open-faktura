@@ -1,3 +1,4 @@
+import { ContactAnonymization } from "../components/organisms/ContactAnonymization";
 import { DocumentTags } from "../components/organisms/DocumentTags";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
@@ -157,7 +158,9 @@ function ContactEditor({
           <Heading level={1} size="page">
             {creating
               ? t("contactNew")
-              : (contact?.data.name ?? t("contactDetail"))}
+              : contact?.anonymized
+                ? t("contactAnonymized")
+                : (contact?.data.name ?? t("contactDetail"))}
           </Heading>
           {contact && !editing && canWrite && !contact.archived && (
             <Button
@@ -171,6 +174,7 @@ function ContactEditor({
               {t("contactEdit")}
             </Button>
           )}
+          {contact?.anonymized && <Badge>{t("contactAnonymized")}</Badge>}
           {contact?.archived && (
             <Badge tone="warning">{t("contactArchived")}</Badge>
           )}
@@ -179,11 +183,11 @@ function ContactEditor({
           <div className="flex flex-wrap items-center gap-inline">
             <Link
               className="ui-button ui-button-ghost ui-button-sm"
-              to={`/companies/${companyId}/invoices?${new URLSearchParams({ customer: contact.id, customerName: contact.data.name })}`}
+              to={`/companies/${companyId}/invoices?${new URLSearchParams({ customer: contact.id, customerName: contact.anonymized ? t("contactAnonymized") : contact.data.name })}`}
             >
               {t("contactRelated")}
             </Link>
-            {canWrite && (
+            {canWrite && !contact.anonymized && (
               <ActionMenu
                 label={t("contactActions")}
                 disabled={busy || dirty}
@@ -197,6 +201,21 @@ function ContactEditor({
                       setAction(contact.archived ? "restore" : "archive"),
                   },
                 ]}
+              />
+            )}
+            {company?.role === "owner" && !contact.anonymized && (
+              <ContactAnonymization
+                company={companyId}
+                contact={contact}
+                disabled={busy || dirty}
+                onExpired={onExpired}
+                onChanged={(value) => {
+                  setContact(value);
+                  setData(value.data);
+                  setSaved(false);
+                  setError("");
+                  finishEditing();
+                }}
               />
             )}
           </div>
@@ -242,7 +261,15 @@ function ContactEditor({
         vatNumber={data.vat_number}
         onExpired={onExpired}
       />
-      {!editing && contact && <ContactOverview data={contact.data} />}
+      {!editing && contact && (
+        <ContactOverview
+          data={
+            contact.anonymized
+              ? { ...contact.data, name: t("contactAnonymized") }
+              : contact.data
+          }
+        />
+      )}
       {!canWrite && contact && (
         <p className="text-sm text-muted">{t("contactReadOnly")}</p>
       )}

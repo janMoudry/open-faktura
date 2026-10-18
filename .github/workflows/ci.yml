@@ -16,6 +16,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: rustup show
       - run: pnpm build:web
+      - run: pnpm test:pwa
+      - run: pnpm test:desktop-updater
       - run: pnpm check
       - run: pnpm test
       - run: pnpm --filter @open-faktura/desktop build --debug --bundles app
@@ -52,7 +54,7 @@ jobs:
       - run: cargo test --locked -p faktura-server --test sales --test delivery --test share --test invoice_delivery --test attachment --test export --test advance --test tax_receipt --test advance_settlement --test credit_note --test payment --test recurring --test communication --test invoice_share --test received --test bank -- --ignored --test-threads=1
         env:
           DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
-      - run: cargo test --locked -p faktura-server --test inbox --test inbox_mailbox --test bank_notification --test stock --test retail --test cash --test period_report --test isdoc --test vat_registry --test vies --test company_admin --test document_tags --test document_output --test document_style --test document_exports --test dashboard_widgets --test tax_classification --test draft_trash -- --include-ignored --test-threads=1
+      - run: cargo test --locked -p faktura-server --test inbox --test inbox_mailbox --test bank_notification --test stock --test retail --test cash --test period_report --test isdoc --test vat_registry --test vies --test company_admin --test document_tags --test document_output --test document_style --test document_exports --test dashboard_widgets --test tax_classification --test draft_trash --test inbox_notification --test contact_anonymization --test inbox_delivery --test sales_trash -- --include-ignored --test-threads=1
         env:
           DATABASE_URL: postgres://faktura:faktura@127.0.0.1:54329/faktura
           BANK_ENCRYPTION_KEY_FILE: .secrets/bank-key
@@ -67,3 +69,24 @@ jobs:
           pnpm test:e2e
       - if: always()
         run: cat /tmp/faktura-api.log || true
+
+  pwa:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22.22.0"
+      - run: npm install --global pnpm@10.29.3
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:web
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Production PWA manifest, installability and offline boundaries
+        run: pnpm exec playwright test --config=playwright.pwa.config.ts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: pwa-browser-results
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

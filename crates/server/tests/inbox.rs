@@ -398,3 +398,252 @@ async fn gateway_opt_in_atomic_dedup_conflict_and_isolation(p: PgPool) {
         .await
         .is_err());
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+#[ignore = "isolated PostgreSQL"]
+async fn detach_preserves_document_attachment_archive_replay_and_scoped_reattach(p: PgPool) {
+    use axum::{
+        body::{to_bytes, Body},
+        http::Request,
+    };
+    use tower::ServiceExt;
+    let (a, token, c, other) = setup(&p).await;
+    let s = PgInbox(p.clone());
+    let d = s.upload(&a, &c, upload()).await.unwrap();
+    let done = s
+        .execute(
+            &a,
+            &c,
+            inbox::Command {
+                request_id: key(),
+                id: d.id.clone(),
+                revision: d.revision,
+                action: inbox::Action::Convert {
+                    data: Box::new(data()),
+                },
+            },
+        )
+        .await
+        .unwrap();
+    let target = done.received_id.clone().unwrap();
+    let before = PgReceived(p.clone()).get(&a, &c, &target).await.unwrap();
+    let files = PgAttachment(p.clone())
+        .list(&a, &c, "received", &target)
+        .await
+        .unwrap();
+    assert_eq!(files.len(), 1);
+    let detach = inbox::Command {
+        request_id: key(),
+        id: d.id.clone(),
+        revision: done.revision,
+        action: inbox::Action::Detach,
+    };
+    assert!(s
+        .execute(
+            &a,
+            &other,
+            serde_json::from_value(serde_json::to_value(&detach).unwrap()).unwrap()
+        )
+        .await
+        .is_err());
+    let app = faktura_server::inbox::router(p.clone(), vec!["http://localhost:5173".into()], false);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/api/companies/{c}/inbox/commands"))
+                .header("cookie", format!("faktura_session={token}"))
+                .header("origin", "http://localhost:5173")
+                .header("X-Faktura-Request", "1")
+                .header("content-type", "application/json")
+                .body(Body::from(serde_json::to_vec(&detach).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    let detached: inbox::Document =
+        serde_json::from_slice(&to_bytes(response.into_body(), 100000).await.unwrap()).unwrap();
+    assert!(detached.received_id.is_none());
+    assert!(detached.received_kind.is_none());
+    assert_eq!(detached.revision, done.revision + 1);
+    assert_eq!(
+        s.download(&a, &c, &d.id).await.unwrap().1,
+        b"%PDF-1.4\nsynthetic test only"
+    );
+    assert_eq!(
+        s.execute(&a, &c, detach).await.unwrap().revision,
+        detached.revision
+    );
+    assert_eq!(
+        serde_json::to_value(PgReceived(p.clone()).get(&a, &c, &target).await.unwrap()).unwrap(),
+        serde_json::to_value(before).unwrap()
+    );
+    assert_eq!(
+        PgAttachment(p.clone())
+            .list(&a, &c, "received", &target)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(s
+        .execute(
+            &a,
+            &c,
+            inbox::Command {
+                request_id: key(),
+                id: d.id.clone(),
+                revision: detached.revision,
+                action: inbox::Action::Detach
+            }
+        )
+        .await
+        .is_err());
+    // Reattach to the same target reuses its existing active hash copy.
+    let again = s
+        .execute(
+            &a,
+            &c,
+            inbox::Command {
+                request_id: key(),
+                id: d.id.clone(),
+                revision: detached.revision,
+                action: inbox::Action::Attach {
+                    received_id: target.clone(),
+                },
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        PgAttachment(p.clone())
+            .list(&a, &c, "received", &target)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+    let archived = s
+        .execute(
+            &a,
+            &c,
+            inbox::Command {
+                request_id: key(),
+                id: d.id.clone(),
+                revision: again.revision,
+                action: inbox::Action::Archive { archived: true },
+            },
+        )
+        .await
+        .unwrap();
+    // Parallel detach requests sharing the revision cannot both succeed.
+    let first = s.execute(
+        &a,
+        &c,
+        inbox::Command {
+            request_id: key(),
+            id: d.id.clone(),
+            revision: archived.revision,
+            action: inbox::Action::Detach,
+        },
+    );
+    let second = s.execute(
+        &a,
+        &c,
+        inbox::Command {
+            request_id: key(),
+            id: d.id.clone(),
+            revision: archived.revision,
+            action: inbox::Action::Detach,
+        },
+    );
+    let (one, two) = tokio::join!(first, second);
+    assert_eq!(usize::from(one.is_ok()) + usize::from(two.is_ok()), 1);
+    let final_doc = one.or(two).unwrap();
+    assert!(final_doc.archived);
+    assert!(final_doc.received_id.is_none());
+    let history = s.history(&a, &c, &d.id).await.unwrap();
+    assert_eq!(history.iter().filter(|h| h.action == "detach").count(), 2);
+    let target2 = PgReceived(p.clone())
+        .create(
+            &a,
+            &c,
+            faktura_application::received::Create {
+                request_id: key(),
+                data: data(),
+            },
+        )
+        .await
+        .unwrap();
+    let restored = s
+        .execute(
+            &a,
+            &c,
+            inbox::Command {
+                request_id: key(),
+                id: d.id.clone(),
+                revision: final_doc.revision,
+                action: inbox::Action::Archive { archived: false },
+            },
+        )
+        .await
+        .unwrap();
+    let linked = s
+        .execute(
+            &a,
+            &c,
+            inbox::Command {
+                request_id: key(),
+                id: d.id.clone(),
+                revision: restored.revision,
+                action: inbox::Action::Attach {
+                    received_id: target2.id.clone(),
+                },
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        PgAttachment(p.clone())
+            .list(&a, &c, "received", &target2.id)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+    assert_eq!(
+        PgAttachment(p.clone())
+            .list(&a, &c, "received", &target)
+            .await
+            .unwrap()[0]
+            .id,
+        files[0].id
+    );
+    sqlx::query("UPDATE membership SET role='viewer' WHERE company_id=$1::text::bigint")
+        .bind(&c)
+        .execute(&p)
+        .await
+        .unwrap();
+    assert!(s
+        .execute(
+            &a,
+            &c,
+            inbox::Command {
+                request_id: key(),
+                id: d.id.clone(),
+                revision: linked.revision,
+                action: inbox::Action::Detach
+            }
+        )
+        .await
+        .is_err());
+    assert_eq!(
+        PgAttachment(p.clone())
+            .list(&a, &c, "received", &target)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+}
