@@ -4,6 +4,10 @@ Fakturační aplikace pro živnostníky a firmy, kterou můžete provozovat na v
 
 **Projekt je ve vývoji.** Základní fakturační průchod funguje; další účetní moduly, veřejná beta a samostatný osobní desktop se připravují. Projekt je plně open source pod [GNU AGPL v3](LICENSE).
 
+![Open Faktura — skutečné rozhraní, hlavní moduly a možnosti rozšíření](docs/media/open-faktura-preview.gif)
+
+[Přehrát celé promo video (76 s)](docs/media/open-faktura-promo.mp4) · Skutečné záběry aplikace se syntetickými ukázkovými daty.
+
 [Dokumentace](docs/README.md) · [Přehled funkcí](FEATURES.md) · [Checklist funkcí](docs/FEATURE_CHECKLIST.md) · [Instalace](docs/INSTALLATION.md) · [Lokální vývoj](docs/DEVELOPMENT.md) · [Implementační plán](docs/IMPLEMENTATION_PLAN.md)
 
 Pokladna P16-06: příjmy/výdaje, saldo, volitelné automatické doklady, samostatná položka s DPH a PDF/tisk v CS/EN. [Rozsah a omezení](docs/specs/cash-register.md). Nová pokladní PDF obsahují částku slovy CS/EN.
