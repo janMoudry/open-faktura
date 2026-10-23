@@ -2,7 +2,7 @@
 
 Fakturační aplikace pro živnostníky a firmy, kterou můžete provozovat na vlastním serveru. Jeden účet, více fakturačních profilů, české i anglické rozhraní a společný základ pro web a desktop.
 
-**Projekt je ve vývoji.** Základní fakturační průchod funguje; další účetní moduly, veřejná beta a samostatný osobní desktop se připravují. Projekt je plně open source pod [GNU AGPL v3](LICENSE).
+**Projekt je ve vývoji; implementace už zahrnuje prodej, nákup, banku, pokladnu, prodejky, inbox, sklad a přehledy.** Probíhá doplňování a ověřování zbývajícího rozsahu P16–P20 a příprava veřejné distribuce. Veřejná beta ani samostatný osobní desktop zatím nejsou dokončené. Projekt je plně open source pod [GNU AGPL v3](LICENSE).
 
 ![Open Faktura — skutečné rozhraní, hlavní moduly a možnosti rozšíření](docs/media/open-faktura-preview.gif)
 
@@ -10,8 +10,11 @@ Fakturační aplikace pro živnostníky a firmy, kterou můžete provozovat na v
 
 [Dokumentace](docs/README.md) · [Přehled funkcí](FEATURES.md) · [Checklist funkcí](docs/FEATURE_CHECKLIST.md) · [Instalace](docs/INSTALLATION.md) · [Lokální vývoj](docs/DEVELOPMENT.md) · [Implementační plán](docs/IMPLEMENTATION_PLAN.md)
 
-Pokladna P16-06: příjmy/výdaje, saldo, volitelné automatické doklady, samostatná položka s DPH a PDF/tisk v CS/EN. [Rozsah a omezení](docs/specs/cash-register.md). Nová pokladní PDF obsahují částku slovy CS/EN.
-Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balances.md). [Vlastní bankovní napojení](docs/specs/bank-connections.md) přidává test spojení, ruční i volitelnou plánovanou synchronizaci a diagnostiku (Fio / vlastní gateway; živě neověřeno). Pohyb lze [rozdělit mezi více dokladů](docs/specs/bank-split-matching.md); přeplatek zůstává nerozdělený. Samostatně lze zapnout [automatické párování přesných shod](docs/specs/bank-auto-matching.md), i pro importované výpisy. [Zálohy a vratky dobropisů](docs/specs/treasury-documents.md) lze ručně párovat v bance i pokladně. [Zbývající P16–P20](docs/P16_P20_COMPLETION.md).
+## Aktuální fáze
+
+Stav dokumentace zkontrolován 23. 10. 2026 proti implementaci v repozitáři. Funkční rozsah přesahuje první fakturační pilot (milník B) a zahrnuje velkou část modulů milníků D/E. Podmínky veřejné self-hosted bety (milník C) však nejsou všechny splněné; dokončení modulů a připravenost vydání sledujeme odděleně.
+
+[Checklist funkcí](docs/FEATURE_CHECKLIST.md) eviduje implementovaný i zbývající rozsah; [stav P16–P20](docs/P16_P20_COMPLETION.md) shrnuje návaznosti. [Implementační plán](docs/IMPLEMENTATION_PLAN.md) zachovává také historické záznamy dodávek. Implementace sama neznamená úplnou shodu s iDokladem ani provozní ověření na všech platformách.
 
 ## Co už můžete používat
 
@@ -22,18 +25,21 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 - Výchozí splatnost v nastavení firmy, automaticky předvyplněná na nové faktuře.
 - Ceník, opakovaně použitelné šablony a cenové nabídky s převodem na fakturu.
 - Veřejné odkazy na nabídky i faktury, odvolání odkazu a historie zobrazení.
-- Bankovní účty s českým i zahraničním IBAN v CZK i cizích měnách, [import výpisů](docs/specs/bank-statements.md), kontrola duplicit a ruční i dávkové párování úhrad.
+- Bankovní účty s českým i zahraničním IBAN v CZK i cizích měnách, počáteční salda, [import výpisů](docs/specs/bank-statements.md), ruční, dělené a dávkové párování úhrad.
+- [Bankovní napojení](docs/specs/bank-connections.md) přes Fio nebo vlastní gateway, ruční i plánovaná synchronizace, notifikační brána a samostatně zapínané automatické párování. Živé ověření bank zůstává otevřené.
+- [Pokladna](docs/specs/cash-register.md): příjmy/výdaje, saldo, volitelné automatické doklady, samostatná plnění s DPH a PDF s částkou slovy CS/EN.
 - [Cizoměnové doklady a přehledy](docs/specs/report-currencies.md), uložené kurzy a návrh kurzu ČNB na vyžádání.
 - [Párování rozdílných měn](docs/specs/bank-foreign-matching.md) u faktur, záloh a vratek dobropisů a přehled uložených kurzových rozdílů bez účetního zaúčtování.
 - [Evidence DPH a orientační obrat](docs/specs/tax-dashboard.md) včetně samostatných pokladních plnění; nejde o daňové přiznání ani zákonný obrat.
 - Přijaté faktury a účtenky, originální přílohy, výdajové úhrady a přehled nákladů.
-- Zálohové faktury s vlastní číselnou řadou, PDF a ručními úhradami.
+- Zálohové faktury, daňové doklady k přijaté platbě a vyúčtování plně uhrazených záloh; dobropisy se zápočty a vratkami.
+- Pravidelné faktury s volitelným vystavením a odesláním, upomínky a poděkování; automatizace se zapíná výslovně.
 - Vlastní SMTP, testovací odeslání, historie e-mailů a souborové přílohy.
 - Export seznamu faktur a odběratelů do CSV/XLSX s filtry a výběrem sloupců.
 - Obecný import kontaktů a ceníku CSV/XLSX s mapováním a kontrolou před zápisem.
 - [Import ceníku Money S3 XML](docs/specs/catalog-import.md): základní CZK ceny, náhled, konflikty a ochrana proti duplicitám.
 - Prodejky v CZK s kombinovanými úhradami a dávkovým zaúčtováním.
-- [Inbox originálů](docs/specs/inbox.md), bezpečný náhled, kontrolovaný návrh ISDOC/QR, práce s dodavatelem a volitelný příjem přes vlastní bránu nebo IMAP, oznámení, odpojení originálu a [předání účetnímu](docs/specs/inbox-delivery.md).
+- [Inbox originálů](docs/specs/inbox.md), bezpečný náhled, kontrolovaný návrh ISDOC/QR, práce s dodavatelem a volitelný příjem přes vlastní bránu nebo IMAP i vytěžování přes nakonfigurovaného poskytovatele, oznámení, odpojení originálu a [předání účetnímu](docs/specs/inbox-delivery.md).
 - Správa členů a vlastnictví profilů, přenosný archiv, štítky s filtry a koš nevystavených nepropojených návrhů a nepoužitých nabídek/šablon.
 - Logo/podpis na nových PDF, hromadný tisk, dodací list s volbou cen, potvrzení úhrady a exportní snapshoty se zámkem obsahu.
 - Export běžných faktur do ISDOC 6.0.2, ruční kontrola DIČ přes RWS/VIES a [vlastní importní adaptéry](docs/INTEGRATION_ADAPTERS.md).
@@ -46,25 +52,15 @@ Banka podporuje [počáteční stavy a saldo za období](docs/specs/bank-balance
 
 Aplikace podporuje CZK i vybrané cizoměnové postupy; konkrétní omezení uvádí [checklist funkcí](docs/FEATURE_CHECKLIST.md). Výpočty mají dokumentovaná vlastní pravidla; numerická shoda s externími systémy není kompletně ověřená. Importní předvolby **pro konkrétní služby nejsou ověřené adaptéry**. CSV/XLSX export je tabulkový přehled, ne úplná záloha ani účetní export.
 
-Daňové doklady k přijaté platbě mají náhled DPH, samostatné číslování DDPP, uložené PDF a seznam/detail; vystavují se z úhrady zálohy plátce DPH. [Rozsah P13-02](docs/specs/advance-tax-receipts.md).
+## Co zbývá
 
-Vyúčtování spojuje plně zaplacené zálohy do faktury, odečítá uložené daňové rozpisy a zachovává vazby na DDPP. Podporuje doplatek i nulovou fakturu, CS/EN a PDF. [Rozsah P13-03](docs/specs/advance-settlement.md).
+- Pravidelné zálohy, rozšíření nákupního editoru a výstupů, další hromadné operace a tiskové preference.
+- Úplné daňové režimy, přiznání DPH/KH/SH a různé daňové kurzy DDPP při vyúčtování plátce. Evidence DPH a uživatelská klasifikace podkladů jsou dostupné, podání nenahrazují.
+- Ověření bankovních adaptérů na skutečných anonymizovaných exportech, další nativní integrace a terminálový hardware. Podpora vlastní gateway neznamená nativní napojení všech bank.
+- E-mailové pozvánky, dvoufázové ověření, vzdálené MCP s OAuth, úplný audit přístupnosti a provozní, bezpečnostní a zátěžové ověření veřejné bety.
+- Produkční podpisy/notarizace, skutečné instalační a aktualizační zkoušky cílových OS a osobní desktop s přibaleným backendem a PostgreSQL.
 
-Dobropisy mají částečné opravy položek, vlastní číslování a PDF, zápočet proti faktuře a evidenci vratek se stornem. [Rozsah P13-04](docs/specs/credit-notes.md).
-
-Pravidelné faktury mají kalendář opakování, náhled termínů, pozastavení a historii. Volitelně automaticky vystaví doklad a samostatně odešlou PDF e-mailem. [Rozsah P14-01](docs/specs/recurring-invoices.md).
-
-Upomínky a poděkování mají ruční náhled, PDF přílohu a historii. Automatizaci lze zapnout v nastavení profilu a pozastavit u faktury; poděkování reagují na nové úhrady včetně úhrad z ručního bankovního párování. [Rozsah P14-02](docs/specs/invoice-communication.md).
-
-Fakturu lze poslat také odkazem: příjemce bez přihlášení otevře původní PDF a uvidí aktuální stav úhrady. Odkazy mají expiraci, možnost odvolání a technickou historii zobrazení. [Rozsah P14-03](docs/specs/invoice-sharing.md).
-
-Přijaté faktury mají vlastní řadu PF, dodavatele, částky přepsané z originálu a oddělené závazky. Jejich platby nevstupují do příjmů. Podporují také cizí měny s uloženým kurzem; přeplatky a výpočet nároku na odpočet DPH zatím chybí. [Rozsah P15-01](docs/specs/received-invoices.md).
-
-Účtenky mají vlastní řadu UC, nepovinného dodavatele a platbu hotově nebo kartou. Společný seznam úhrad a přehled v CZK odděluje nákupy, zaplacené výdaje a aktuální závazky. [Rozsah P15-02](docs/specs/purchase-receipts.md).
-
-Banka pracuje s [dokumentovaným CSV Open Faktury](docs/specs/banking.md) a vybranými [bankovními formáty](docs/specs/bank-statements.md), nikoli s libovolným exportem banky. Ověření adaptérů na skutečných exportech zůstává otevřené. Umí propojit existující platbu bez dvojí úhrady; odpojení stornuje jen platbu vytvořenou párováním.
-
-**Co chybí:** pravidelné zálohy a rozšířené nákladové přehledy, ověření bankovních adaptérů na skutečných exportech a cizí měny, dokončení návazných výstupů prodejek, příjmu dokumentů a automatického pořizovacího ocenění, daňové výstupy a další moduly. [Celý checklist s hranicemi jednotlivých funkcí →](docs/FEATURE_CHECKLIST.md)
+Podrobné hranice včetně měnových omezení uvádí [checklist](docs/FEATURE_CHECKLIST.md). Neověřené externí formáty lze řešit [vlastním adaptérem](docs/INTEGRATION_ADAPTERS.md); tím se nedeklaruje jejich nativní kompatibilita.
 
 ## Spuštění pro vývoj
 

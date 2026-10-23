@@ -3,10 +3,9 @@
 
 # Implementační plán Open Faktury
 
-Aktualizováno 12. 10. 2026. Tento plán nahrazuje původních šest širokých etap.
-Rozsah shrnuje [FEATURES.md](../FEATURES.md); pořadí je návrh dodávek, nikoli
-vyřazení pozdějších funkcí. P00–P20 jsou stabilní ID pracovních balíků, jednotlivé
-požadavky mají vlastní ID (INV-001…, SETUP-001…, MIG-01). P01–P08 a L10N-01 jsou implementované (výpočty podle vlastních pravidel); P09 má obecný import, ale dosud neověřené adaptéry zdrojových služeb. P12-01 přidává ceník, P12-02/P12-03 šablony a nabídky s převodem do faktury. Navazující dodávky přidaly odesílání faktur a nabídek, veřejné odkazy nabídek, nastavení SMTP, vlastní přílohy a export seznamů CSV/XLSX. Stav každé dodávky je uveden níže; souhrn dostupných funkcí je v [přehledu](../FEATURES.md). Projekt zatím není kompletní účetní systém.
+Aktuální souhrn zkontrolován 23. 10. 2026. Plán nahrazuje původních šest širokých etap; P00–P20 jsou stabilní ID pracovních balíků, nikoli postupně uzavřená vydání. Implementace už zahrnuje prodejní a nákupní agendu, banku, pokladnu, prodejky, inbox, sklad, přehledy a část produktových funkcí P20. Pokračuje dokončování a ověřování přijatého rozsahu P16–P20 i veřejné distribuce; projekt zatím není kompletní účetní systém ani dokončená veřejná beta.
+
+**Současný stav** určují [checklist funkcí](FEATURE_CHECKLIST.md), [souhrn P16–P20](P16_P20_COMPLETION.md) a specifikace. Dále uvedené datované dodávky zachovávají historii implementace a ověření. Jejich tehdejší věty „zbývá“, „nepodporuje“ nebo „zatím chybí“ mohou být překonané pozdější dodávkou; nepoužívat je samostatně jako aktuální backlog. Tento dokument nesjednocuje všechna historická omezení do dnešního stavu.
 
 Odkazy „FEATURES §…“ níže označují oddíly původního [referenčního soupisu](research/FEATURES_REFERENCE.md).
 
@@ -64,6 +63,8 @@ Schválené obrázkové návrhy převedené do tokenů, společného shellu, Př
 | C — Veřejná self-hosted beta | B + P09–P11       | Ověřený přechod z podporovaných zdrojů, vlastní SMTP, zálohy, aktualizace a distribuovaný klient |
 | D — Prodej a finance         | C + P12–P16       | Nabídky, zálohy, opravy, opakování, nákup, banka a pokladna                                      |
 | E — Širší pokrytí            | D + P17–P20       | Inbox, sklad, přehledy, daňové podklady a ověřené integrace                                      |
+
+**Aktuální vyhodnocení milníků (23. 10. 2026):** A/B jsou implementované v popsaném rozsahu a s vlastními výpočtovými pravidly. Funkce D/E jsou z velké části implementované, ale oba milníky mají otevřené části. C není uzavřený: ověření zdrojových adaptérů, distribuce a provozní připravenost zůstávají neúplné. Rozsah D/E proto nelze vykládat jako dokončení C ani celého plánu. Poslední zaznamenané integrační výsledky a jejich meze uvádí [validační protokol 18. 10. 2026](VALIDATION_2026_10_18.md); aktualizace dokumentace neznamená nový běh testů.
 
 Beta C smí deklarovat jen otestované importní adaptéry a podporované platformy.
 Nedostupný export zdroje zaznamenat jako omezení, nikoli předstírat úplnou migraci.

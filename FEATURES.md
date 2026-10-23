@@ -1,61 +1,46 @@
 # Funkce Open Faktury
 
-Přehled dostupných funkcí a plánovaného rozšíření. Aktualizováno 18. 10. 2026.
-Podrobný [checklist](docs/FEATURE_CHECKLIST.md) rozepisuje jednotlivé funkce. Stav dodávek, testů a otevřených pravidel sleduje [implementační plán](docs/IMPLEMENTATION_PLAN.md).
+Stav zkontrolován 23. 10. 2026 proti implementaci v repozitáři. Open Faktura má implementovanou fakturaci i navazující prodejní, nákupní a finanční agendu; pokračuje dokončování a ověřování rozsahu P16–P20 a veřejné distribuce. Nejde zatím o kompletní účetní systém ani dokončenou veřejnou betu.
 
-[Podrobný checklist hotových a chybějících funkcí](docs/FEATURE_CHECKLIST.md).
+[Podrobný checklist](docs/FEATURE_CHECKLIST.md) eviduje jednotlivé funkce a mezery. [Aktuální stav P16–P20](docs/P16_P20_COMPLETION.md) shrnuje návaznosti; [implementační plán](docs/IMPLEMENTATION_PLAN.md) obsahuje i historii dodávek a kritéria milníků.
 
 ## Dostupné funkce
 
-„Dostupné“ znamená implementované v popsaném rozsahu, nikoli dokončený účetní systém nebo veřejné stabilní vydání.
+„Dostupné“ znamená implementované v popsaném rozsahu. Konkrétní omezení a dosavadní ověření určují odkazované specifikace.
 
 | Oblast | Co aplikace umí | Podrobnosti |
 | --- | --- | --- |
-| Fakturační profily | Založení firmy, její údaje, účetní nastavení, přepínání profilů a kontrola členství | [Firmy a nastavení](docs/COMPANIES.md) |
-| Kontakty | Evidence, hledání a úpravy obchodních partnerů | [Adresář](docs/specs/contacts.md) |
-| Faktury | Uložené návrhy, výpočty, vystavení, přidělení čísla a PDF | [Návrhy](docs/specs/invoice-drafts.md), [vystavení](docs/specs/invoice-issue.md) |
-| Zálohy | Samostatná řada ZF, PDF, ruční úhrady a storna; DDPP a vyúčtování plně uhrazených záloh | [Zálohové faktury](docs/specs/advance-invoices.md) |
-| Úhrady | Ruční úhrady, jejich opravy a zůstatek faktury | [Úhrady](docs/specs/invoice-payments.md) |
-| Sklad | Pohyby z dokladů, inventury, souhrnné stavy k datu a ruční skladové ceny s historií | [Sklad](docs/specs/stock.md) |
-| Ceník | Položky a jejich výběr do dokladu, archivace a obnova | [Ceník](docs/specs/catalog.md) |
-| Nabídky a šablony | Opakované použití šablony, nabídka s PDF a převod do návrhu faktury | [Prodejní dokumenty](docs/specs/sales-documents.md) |
-| Odesílání a sdílení | E-maily s historií přes vlastní SMTP; veřejné odkazy pro nabídky | [Odesílání faktur](docs/specs/invoice-delivery.md), [nabídky](docs/specs/sales-documents.md) |
-| Přílohy | Vlastní soubory u faktur a nabídek, výběr příloh do e-mailu | [Přílohy](docs/specs/document-attachments.md) |
-| Export | CSV/XLSX seznamy faktur a odběratelů, aplikované filtry, výběr sloupců, CS/EN | [Export seznamů](docs/specs/register-export.md) |
-| Import | Obecný CSV/XLSX import kontaktů a historických faktur; ceník CSV/XLSX a Money S3 XML, mapování a náhled | [Přenos dat](docs/specs/data-migration.md) |
-| Export seznamů | CSV/XLSX s filtry a výběrem sloupců; nejde o úplnou zálohu ani účetní export | [Exporty](docs/specs/register-export.md) |
-| Daňové doklady k platbě | Náhled DPH z úhrady zálohy, řada DDPP, neměnné PDF, seznam/detail CS/EN | [P13-02](docs/specs/advance-tax-receipts.md) |
-| Rozhraní | Čeština a angličtina, základní přehled, REST API a lokální MCP | [Lokalizace](docs/LOCALIZATION.md), [MCP](docs/COMPANIES.md#lokální-mcp) |
-| Provoz | Vlastní server, první správce, zálohování a obnova | [Instalace](docs/INSTALLATION.md) |
+| Účty a profily | První správce, přihlášení, více firem, profilové role, správa existujících členů, převod vlastnictví a obnova profilu | [Nastavení](docs/COMPANIES.md), [správa](docs/specs/company-administration.md) |
+| Kontakty | Adresář, ARES, archivace a anonymizace; ověření DIČ přes RWS/VIES | [Kontakty](docs/specs/contacts.md), [RWS](docs/specs/vat-registry.md), [VIES](docs/specs/vies.md) |
+| Faktury a úhrady | Návrhy, vystavení, číslování, neměnné PDF, plné/částečné úhrady, přeplatky a storna úhrad | [Vystavení](docs/specs/invoice-issue.md), [úhrady](docs/specs/invoice-payments.md) |
+| Ceník, nabídky a šablony | Ceník a výběr položek, opakované šablony, nabídky s PDF a převodem do návrhu faktury | [Ceník](docs/specs/catalog.md), [prodejní dokumenty](docs/specs/sales-documents.md) |
+| Zálohy a opravy | Zálohové faktury, DDPP, vyúčtování plně uhrazených záloh, dobropisy se zápočty a vratkami | [Zálohy](docs/specs/advance-invoices.md), [DDPP](docs/specs/advance-tax-receipts.md), [vyúčtování](docs/specs/advance-settlement.md), [dobropisy](docs/specs/credit-notes.md) |
+| Automatizace | Pravidelné faktury, volitelné vystavení/e-mail, upomínky a poděkování; cizoměnové opakování s uloženým nebo výslovně zvoleným kurzem ČNB | [Opakování](docs/specs/recurring-invoices.md), [komunikace](docs/specs/invoice-communication.md), [kurzy](docs/specs/exchange-rates.md) |
+| Odesílání a sdílení | Vlastní SMTP, fronta a historie, přílohy, veřejné odkazy na nabídky i faktury s expirací/odvoláním | [E-mail](docs/specs/invoice-delivery.md), [sdílení faktur](docs/specs/invoice-sharing.md), [přílohy](docs/specs/document-attachments.md) |
+| Nákup | Přijaté faktury a účtenky, originály, závazky, oddělené výdajové úhrady a přehled nákladů | [Přijaté faktury](docs/specs/received-invoices.md), [účtenky](docs/specs/purchase-receipts.md) |
+| Banka | Účty a salda, importy, ruční/dělené/dávkové párování včetně existujících úhrad, záloh a vratek; opt-in automatika | [Banka](docs/specs/banking.md), [měny](docs/specs/bank-currencies.md), [automatika](docs/specs/bank-auto-matching.md) |
+| Bankovní napojení | Fio a vlastní gateway, ruční/plánovaná synchronizace, autentizovaná notifikační brána | [Napojení](docs/specs/bank-connections.md), [notifikace](docs/specs/bank-notification-gateway.md) |
+| Pokladna a prodejky | CZK příjmy/výdaje, saldo, automatické doklady, samostatná plnění s DPH, kombinované úhrady prodejek, souhrnné zaúčtování a PDF | [Pokladna](docs/specs/cash-register.md), [prodejky](docs/specs/sales-receipts.md) |
+| Inbox | Nahrávání a náhled originálů, ISDOC/QR návrhy, příjem přes gateway/IMAP, volitelný poskytovatel vytěžení, oznámení a předání účetnímu | [Inbox](docs/specs/inbox.md), [IMAP](docs/specs/inbox-mailbox.md), [předání](docs/specs/inbox-delivery.md) |
+| Sklad | Ruční i dokladové pohyby, inventury, stavy k datu, ruční ocenění a průběžný průměr, vratky, cenové opravy a vedlejší náklady | [Sklad](docs/specs/stock.md) |
+| Přehledy | Měsíce/kvartály/roky, kumulace a meziroční srovnání, bilance, dlužníci, prodeje položek a uložené bankovní kurzové rozdíly | [Období](docs/specs/period-report.md), [položky](docs/specs/item-sales.md), [kurzové rozdíly](docs/specs/exchange-difference-report.md) |
+| Daňové podklady | Evidence DPH, orientační obrat, CSV/XLSX, explicitní uživatelská klasifikace podkladů a profil daňového subjektu | [Přehled](docs/specs/tax-dashboard.md), [klasifikace](docs/specs/tax-classification.md), [profil](docs/specs/taxpayer-filing-profile.md) |
+| Import a export | CSV/XLSX s mapováním a náhledem, Money S3 základní ceník XML, export seznamů a běžných faktur ISDOC 6.0.2 | [Import](docs/specs/data-migration.md), [ceník](docs/specs/catalog-import.md), [export](docs/specs/register-export.md), [ISDOC](docs/specs/isdoc-export.md) |
+| Správa a výstupy | Štítky, omezený vratný koš, exportní snapshoty/zámky, přenosný archiv profilu, logo/podpis, hromadné PDF, RTF, dodací list a potvrzení úhrady | [Stav P20](docs/P16_P20_COMPLETION.md#p20--úplnost-produktu) |
+| Rozhraní a provoz | CS/EN, světlý/tmavý/systémový vzhled, REST a lokální MCP, vlastní server, zálohy/obnova, online PWA a Tauri klient | [Instalace](docs/INSTALLATION.md), [PWA](docs/specs/pwa.md), [desktop](docs/DESKTOP_RELEASES.md) |
 
-## Současná omezení
+## Současná omezení a zbývající práce
 
-- České prostředí je základ agendy. Vydané a přijaté faktury, zálohy, dobropisy a bankovní účty podporují také cizí měny s uloženými kurzy. Hotovostní doklady a některé návaznosti zůstávají omezené; viz [aktuální stav](docs/P16_P20_COMPLETION.md).
-- Importní předvolby pro konkrétní služby zatím nejsou ověřené adaptéry. Obecný import nepřenáší zdrojová PDF ani přílohy.
-- Sklad má ruční i dokladové pohyby, stavy k datu, ruční ocenění a konzervativní průměr z pořizovacích cen nákupních příjmů. Vratky, cenové opravy a vedlejší náklady jsou zahrnuté; pořizovací ocenění ručních příjmů, počátečních stavů a inventurních přebytků je zahrnuté. Přehled prodeje položek nabízí filtry, zdrojové doklady a CSV/XLSX. Money S3 má import základního ceníku XML s náhledem a deduplikací; S4/S5 bez doloženého kontraktu řeší obecné mapování nebo vlastní adaptér provozovatele.
-- Desktop vyžaduje samostatný backend a PostgreSQL. Osobní režim bez ruční správy serveru a podepsané instalátory nejsou hotové.
-- Správa členství pracuje s existujícími účty. E-mailové pozvánky a vzdálené MCP přihlášení přes OAuth se připravují.
-- Výpočty mají vlastní [specifikaci](docs/specs/invoice-calculation.md); numerická shoda s externími systémy není potvrzená.
-
-## Plánované rozšíření
-
-| Oblast | Plánovaný rozsah |
-| --- | --- |
-| Prodej | Rozšíření daňových režimů a vyúčtování záloh s rozdílnými kurzy |
-| Automatizace | Pravidelné faktury, upomínky a poděkování implementovány v rozsahu P14-01/02; zbývají pravidelné zálohy, proměnné a další hromadné operace |
-| Nákup | Základ přijatých faktur, účtenek, závazků a výdajových úhrad je hotový; zbývá dodavatelská role, rozšířený editor, cizí měny a další výstupy |
-| Finance | Základ banky, pokladny a prodejek je hotový; zbývají úplné daňové klasifikace a ověření konkrétních externích zařízení |
-| Sklad | Pohyby, dokladové vazby a ocenění jsou hotové; neověřené externí formáty lze doplnit vlastním adaptérem |
-| Příjem dokumentů | Inbox, ISDOC/QR a volitelné vytěžování dokumentů |
-| Přehledy a integrace | Rozšířené přehledy, registry, účetní exporty, daňové podklady a integrační události |
-| Správa agendy | Štítky, koš, uzávěrky, hromadné akce a úpravy vzhledu dokladů |
-| Distribuce | Veřejná vydání, aktualizace, správa přístupů a osobní desktopový režim |
-
-Celý rozsah zůstává součástí plánu; tabulka nepředstavuje termín dodání. Přesné požadavky, závislosti a kritéria dokončení jsou v [dodávkách P00–P20](docs/IMPLEMENTATION_PLAN.md).
+- Podporované cizí měny jsou implementované u dokladů, banky i přehledů s uloženými kurzy. Pokladna/prodejky zůstávají CZK. Vyúčtování neplátce bez DDPP dovoluje různé obchodní kurzy; různé daňové kurzy DDPP plátce zůstávají nepodporované. [Měnový rozsah](docs/specs/report-currencies.md), [vyúčtování](docs/specs/advance-settlement.md).
+- Zbývají pravidelné zálohy, rozšíření nákupního editoru a výstupů, další hromadné operace, typy koše a tiskové preference. [Checklist](docs/FEATURE_CHECKLIST.md).
+- Evidence DPH a uživatelská klasifikace nenahrazují přiznání DPH, kontrolní/souhrnné hlášení ani právní posouzení obratu. Úplné daňové režimy a podání zůstávají otevřené.
+- Importní předvolby služeb nejsou ověřené nativní adaptéry. Obecný import nepřenáší zdrojová PDF/přílohy; přenosný profilový archiv není záloha pro obnovu PostgreSQL ani automaticky importovatelná migrace. Neověřené Money S4/S5 a další formáty řeší obecné mapování nebo [vlastní adaptér](docs/INTEGRATION_ADAPTERS.md).
+- Parsery bank a bankovní napojení mají syntetické testy; živé ověření konkrétních bank/exportů, další nativní adaptéry a externí terminálový hardware zbývají.
+- Výpočty a skladové ocenění mají dokumentovaná vlastní pravidla; úplná numerická shoda s iDokladem není potvrzená.
+- Správa členství pracuje s existujícími účty. E-mailové pozvánky, dvoufázové ověření a vzdálené MCP přes OAuth zbývají.
+- Desktop vyžaduje samostatný backend a PostgreSQL. Existuje build matice a opt-in podepsaný updater; produkční platformní podpisy/notarizace, skutečné OS instalace/upgrady a osobní desktopový runtime zbývají. PWA nepodporuje offline fakturaci; instalace na fyzických zařízeních zatím není ověřená.
+- Veřejná beta vyžaduje dokončení provozního, bezpečnostního a zátěžového ověření. Rozsah funkcí nelze zaměňovat s připraveností vydání.
 
 ## Podklady pro vývoj
 
-Pravidla jednotlivých modulů popisují [specifikace](docs/README.md#specifikace-modulů). Historický průzkum trhu se zdroji je zachován v [referenčním soupisu](docs/research/FEATURES_REFERENCE.md); slouží k dohledání původu požadavků, nikoli jako seznam současných funkcí Open Faktury.
-
-
-Aktuální rozlišení hotových funkcí a zbývající práce je soustředěné v [přehledu P16–P20](docs/P16_P20_COMPLETION.md). Historické poznámky v implementačním plánu popisují stav v době jednotlivých dodávek, nikoli dnešní omezení.
+Pravidla určují [specifikace](docs/README.md#specifikace-modulů). Historický průzkum trhu se zdroji zůstává v [referenčním soupisu](docs/research/FEATURES_REFERENCE.md); dokládá původ požadavků, nikoli současný stav implementace. Celý přijatý rozsah zůstává v [plánu P00–P20](docs/IMPLEMENTATION_PLAN.md); tento přehled nemění jeho akceptační kritéria.

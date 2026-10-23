@@ -1,6 +1,6 @@
 # Aktuální stav P16–P20
 
-Aktualizace: 18. 10. 2026. Aktivní rozsah zahrnuje všechny zbývající části
+Stav zkontrolován 23. 10. 2026 proti implementaci v repozitáři. Aktivní rozsah zahrnuje všechny zbývající části
 P16–P20, backend, PostgreSQL, REST/MCP a češtinu i angličtinu. Tento soubor
 popisuje **současný stav**, nikoli historický stav jednotlivých dodávek.
 Historii zachovává [implementační plán](IMPLEMENTATION_PLAN.md). Přesný rozsah
@@ -8,7 +8,7 @@ je ve specifikacích a [referenčním soupisu](research/FEATURES_REFERENCE.md).
 
 ## P16 — banky, pokladna a prodejky
 
-Základ banky není rozpracovaný znovu. Implementované jsou účty a počáteční
+Implementované jsou účty a počáteční
 salda, importy, ruční/dělené/dávkové párování, připojení existujících úhrad,
 zálohy a vratky, různé měny účtů, zahraniční IBAN a uložené kurzové rozdíly.
 Vlastní napojení podporuje Fio a instalačně schválené brány, test spojení,
@@ -24,7 +24,7 @@ zaúčtování, storno, skladové návaznosti a PDF souhrnné dávky.
 | Párování různých měn záloh/vratek | P16-13j implementované; migrace 058, nové i existující úhrady, ochrana DDPP; bankovní regrese 71/71                       |
 | Příjem bankovních notifikací      | Implementovaná autentizovaná vlastní brána nad stejnými importními příkazy; nejde o univerzální parser textů e-mailů bank |
 | Tiskové předvolby                 | Navazují na P20; původní uložená PDF se nemění                                                                            |
-| Členění DPH                       | Vyžaduje klasifikaci a verzovaná pravidla P19, samotný součet DPH ji nenahrazuje                                          |
+| Členění DPH                       | Uživatelská klasifikace podkladů P19 je implementovaná; úplné daňové režimy a výkazy zůstávají otevřené, samotný součet DPH je nenahrazuje                                          |
 | Terminálový hardware              | Konfigurace a identifikace existují, externí zařízení potřebují konkrétní protokol                                        |
 | Skutečné bankovní exporty         | Syntetické testy fungování parserů nenahrazují ověření anonymizovaného výpisu konkrétní banky/verze                       |
 
@@ -84,7 +84,7 @@ Uložené bankovní kurzové rozdíly mají samostatný přehled.
 | Různé kurzy záloh/DDPP/vyúčtování | Neplátce bez DDPP má samostatné původní kurzy záloh a kurz konečného plnění; přesné native odpočty zůstávají. Různé ekonomické kurzy DDPP u plátce zůstávají blokované do ověření daňového algoritmu                                      |
 | Účetní exporty dalších systémů    | Doložené formáty jako nativní adaptéry; ostatní může podle rozhodnutí uživatele 18. 10. 2026 doplnit provozovatel přes dokumentované rozhraní                                                                                             |
 | Údaje daňového subjektu           | Explicitní profil s verzí, auditem a oficiálním číselníkem finančních úřadů/pracovišť; neověřuje místní příslušnost ani nepodává přiznání                                                                                                 |
-| Daňové režimy a formuláře         | Explicitní klasifikace podkladů obratu a uplatňované vstupní DPH se snapshotem zdroje implementovaná; vlastní přiznání/KH/SH stále otevřené; nutná klasifikace plnění, pravidla nároku na odpočet a oficiální schémata konkrétního období |
+| Daňové režimy a formuláře         | Explicitní klasifikace podkladů obratu a uplatňované vstupní DPH se snapshotem zdroje implementovaná; vlastní přiznání/KH/SH stále otevřené; zbývají úplná klasifikace plnění, pravidla nároku na odpočet a oficiální schémata konkrétního období |
 
 Evidence DPH není daňové přiznání a orientační obrat není právní posouzení
 zákonného obratu. Technické regresní testy tato pravidla nenahrazují.
@@ -108,6 +108,10 @@ zákonného obratu. Technické regresní testy tato pravidla nenahrazují.
 | Instalovatelný web          | Manifest, ikony a online režim; při nedostupné navigaci obecná CS/EN obrazovka, bez offline ukládání účetních dat                                                                                                                                                          |
 | Tiskový text před položkami | Firemní CS/EN předvolba přes uložený document_style; nové faktury/nabídky/zálohy/DDPP/dobropisy, bez pokladny. DB 4/4 a product-admin UI 12/12; [rozsah](specs/document-style.md). Samostatný vizuální PDF důkaz víceřádkového textu nebyl pořízen.                        |
 | Stále otevřené              | Koš dalších typů dokladů, rozšíření oznámení, širší tiskové preference/výstupy, úplný audit přístupnosti, pokročilé migrace, skutečné OS upgrade/release ověření a osobní desktopový provoz                                                                                |
+
+## Stav ověření
+
+Tento přehled vzniká kontrolou specifikací, kontraktů, migrací a implementace. Poslední souhrn zaznamenaných integračních a browser kontrol je v [protokolu z 18. 10. 2026](VALIDATION_2026_10_18.md). Datum kontroly dokumentace neznamená nový běh těchto testů ani ověření živých bank nebo instalace do OS.
 
 ## Pravidla uzavření
 

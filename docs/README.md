@@ -2,13 +2,15 @@
 
 Vyberte si podle toho, co potřebujete udělat. Základní představení je v [README](../README.md), dostupné možnosti v [přehledu funkcí](../FEATURES.md).
 
-[Checklist hotových a chybějících funkcí](FEATURE_CHECKLIST.md).
+Stav zkontrolován 23. 10. 2026. Implementace zahrnuje fakturaci i prodejní, nákupní a finanční moduly, inbox, sklad a přehledy; pokračuje dokončování a ověřování rozsahu P16–P20 a veřejné distribuce. Projekt zatím nemá uzavřenou veřejnou betu.
+
+[Checklist funkcí](FEATURE_CHECKLIST.md) uvádí současný rozsah a mezery. [Stav P16–P20](P16_P20_COMPLETION.md) shrnuje návaznosti. Datované záznamy v implementačním plánu jsou také historií; [validační protokol](VALIDATION_2026_10_18.md) dokládá dosavadní kontroly a jejich limity.
 
 ## Používání a provoz
 
 - [Instalace](INSTALLATION.md) — vlastní server, první přihlášení, SMTP, zálohy a obnova.
 - [Firmy a nastavení](COMPANIES.md) — fakturační profily, jejich údaje a oprávnění.
-- [Licence](LICENSING.md) — současný stav a zamýšlené podmínky použití.
+- [Licence](LICENSING.md) — platná GNU AGPL v3 a podmínky použití.
 
 ## Vývoj a integrace
 
@@ -30,13 +32,21 @@ Tyto dokumenty určují chování, validace, omezení a testovací scénáře. N
 | Kontakty a ceník | [Kontakty](specs/contacts.md), [ceník](specs/catalog.md) |
 | Fakturace | [Přehled](specs/issued-invoices.md), [výpočty](specs/invoice-calculation.md), [návrhy](specs/invoice-drafts.md), [vystavení a PDF](specs/invoice-issue.md), [úhrady](specs/invoice-payments.md) |
 | Nabídky a šablony | [Prodejní dokumenty](specs/sales-documents.md) |
-| Komunikace | [Odesílání faktur](specs/invoice-delivery.md), [SMTP](specs/smtp-settings.md), [přílohy](specs/document-attachments.md) |
-| Přenos dat | [Import a migrace dat](specs/data-migration.md), [export seznamů](specs/register-export.md) |
+| Zálohy a opravy | [Zálohy](specs/advance-invoices.md), [DDPP](specs/advance-tax-receipts.md), [vyúčtování](specs/advance-settlement.md), [dobropisy](specs/credit-notes.md) |
+| Komunikace a automatizace | [Odesílání faktur](specs/invoice-delivery.md), [SMTP](specs/smtp-settings.md), [přílohy](specs/document-attachments.md), [opakování](specs/recurring-invoices.md), [upomínky/poděkování](specs/invoice-communication.md), [veřejné faktury](specs/invoice-sharing.md) |
+| Nákup | [Přijaté faktury](specs/received-invoices.md), [účtenky](specs/purchase-receipts.md) |
+| Banka a pokladna | [Banka](specs/banking.md), [výpisy](specs/bank-statements.md), [dávkové párování](specs/bank-batch-matching.md), [měny](specs/bank-currencies.md), [kurzové párování](specs/bank-foreign-matching.md), [napojení](specs/bank-connections.md), [pokladna](specs/cash-register.md), [prodejky](specs/sales-receipts.md) |
+| Příjem dokladů | [Inbox](specs/inbox.md), [IMAP](specs/inbox-mailbox.md), [předání účetnímu](specs/inbox-delivery.md) |
+| Sklad | [Pohyby a ocenění](specs/stock.md), [prodeje položek](specs/item-sales.md), [import ceníku](specs/catalog-import.md) |
+| Přehledy a daňové podklady | [Období](specs/period-report.md), [bilance](specs/dashboard-finance.md), [DPH](specs/tax-dashboard.md), [klasifikace](specs/tax-classification.md), [kurzy](specs/exchange-rates.md) |
+| Správa a výstupy | [Členství a archiv](specs/company-administration.md), [štítky](specs/document-tags.md), [vzhled dokumentů](specs/document-style.md), [tiskové výstupy](specs/document-outputs.md) |
+| Přenos dat | [Import a migrace dat](specs/data-migration.md), [export seznamů](specs/register-export.md), [ISDOC](specs/isdoc-export.md), [vlastní adaptéry](INTEGRATION_ADAPTERS.md) |
+| Distribuce | [PWA](specs/pwa.md), [desktopové instalátory](DESKTOP_RELEASES.md), [updater](specs/desktop-updates.md) |
 
 ## Plán a architektura
 
 - [Checklist funkcí](FEATURE_CHECKLIST.md) — podrobná evidence dokončených a zbývajících položek.
-
+- [Aktuální stav P16–P20](P16_P20_COMPLETION.md) — souhrn implementace a otevřených návazností.
 - [Implementační plán](IMPLEMENTATION_PLAN.md) — stav dodávek, zbývající práce a kritéria dokončení.
 - [Konceptuální datový model](DATA_MODEL.md) — původní návrh entit; skutečné schéma určují [migrace](../migrations/).
 - [Technický průzkum](architecture/STACK_RESEARCH.md) — historické srovnání variant; přijatá rozhodnutí určují vývojové konvence.
@@ -53,14 +63,3 @@ Odkazy na jiné produkty slouží k doložení výzkumu a interoperability. Nevy
 ## Jak dokumentaci udržovat
 
 U nové funkce aktualizujte specifikaci a implementační plán; po dokončení také přehled funkcí. Návod pro provoz doplňte, pokud se mění konfigurace, instalace nebo obnova. README má zůstat krátkým vstupem do projektu. Historické záznamy označujte datem a nepoužívejte je jako tvrzení o aktuálním stavu aplikace.
-
-- [Vyúčtování záloh P13-03](specs/advance-settlement.md) — uložené daňové rozpisy, rezervace a doplatky.
-- [Veřejné faktury P14-03](specs/invoice-sharing.md) — přístup odkazem, expirace, odvolání a historie zobrazení.
-- [Přijaté faktury P15-01](specs/received-invoices.md) — originál, přesné částky a oddělené výdajové úhrady.
-
-- [Účtenky a výdajové přehledy P15-02](specs/purchase-receipts.md) — vlastní řada, hotově/kartou a auditované opravy.
-- [Bankovní výpisy P16-02](specs/bank-statements.md) — adaptéry, návrhy a neověřené varianty.
-- [Hromadné párování P16-03](specs/bank-batch-matching.md) — náhled a atomické potvrzení.
-- [Banka P16-01](specs/banking.md) — účty, vlastní CSV formát, párování a odpojení úhrad.
-
-- [Pokladna — P16-04](specs/cash-register.md)

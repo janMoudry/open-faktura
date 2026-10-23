@@ -1,6 +1,6 @@
 # Checklist funkcí Open Faktury
 
-Stav k 18. 10. 2026. Aktuální souhrn P16–P20: [stav dokončení](P16_P20_COMPLETION.md). [Zpět na README](../README.md) · [Implementační plán](IMPLEMENTATION_PLAN.md) · [Úplný cílový rozsah](research/FEATURES_REFERENCE.md)
+Stav zkontrolován 23. 10. 2026 proti implementaci v repozitáři. Aktuální souhrn P16–P20: [stav dokončení](P16_P20_COMPLETION.md). [Zpět na README](../README.md) · [Implementační plán](IMPLEMENTATION_PLAN.md) · [Úplný cílový rozsah](research/FEATURES_REFERENCE.md)
 
 Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s iDokladem nebo připravenost celého produktu pro produkci. Nezaškrtnuté položky chybí nebo vyžadují dokončení a ověření. Podrobné podmínky a testy uvádějí odkazované specifikace. Checklist aktualizujte s každou dodávkou; nenahrazuje úplný soupis FEATURES.
 
@@ -54,7 +54,8 @@ Zaškrtnutí znamená implementaci v uvedeném rozsahu, nikoli úplnou shodu s i
 - [x] Základní přehled pohledávek a plateb aktivního profilu.
 - [ ] Úplně ověřená numerická shoda s iDokladem.
 - [x] Podporované cizí měny, uložené kurzy a přepočty přehledů podle [rozsahu](specs/report-currencies.md).
-- [ ] Širší daňové režimy a různé kurzy záloh/DDPP/vyúčtování.
+- [x] Různé obchodní kurzy plně uhrazených záloh a vyúčtování neplátce bez DDPP. [Rozsah](specs/advance-settlement.md#rozšíření-18-10-2026--různé-obchodní-kurzy-neplátce).
+- [ ] Širší daňové režimy a různé daňové kurzy DDPP při vyúčtování plátce.
 - [ ] Kompletní opravný tok vystavených dokladů.
 
 [Výpočty](specs/invoice-calculation.md) · [Vystavení](specs/invoice-issue.md) · [Úhrady](specs/invoice-payments.md)
@@ -99,7 +100,8 @@ Export má nejvýše 10 000 řádků, zachovává hodnoty jako text a není úpl
 - [ ] Úplná migrace položek, úhrad, vazeb a příloh podle zdrojových možností.
 - [ ] Účetní exporty do konkrétních systémů, webhooks a další integrace.
 - [ ] Vzdálené MCP s OAuth.
-- [ ] Úplný přenositelný datový export včetně dokumentů a příloh.
+- [x] Přenosný ZIP archiv profilu s explicitním manifestem, dokumenty/přílohami a redakcí tajemství; není záloha pro obnovu PostgreSQL. [Rozsah a limity](specs/company-administration.md#přenosný-datový-archiv).
+- [ ] Automatický import profilového archivu a úplné migrační pokrytí všech zdrojů.
 
 Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupnost CSV ve FaktuřeOnline není potvrzena. [Hranice importu](specs/data-migration.md)
 
@@ -111,14 +113,16 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P13-03: vyúčtování jedné/více plně zaplacených záloh, rezervace, uložené daňové odpočty, doplatek/nulová faktura, PDF, REST/MCP a CS/EN. [Rozsah a odchylky](specs/advance-settlement.md).
 - [ ] Částečné vyúčtování, přeplatky a vrácení záloh; numerická shoda odpočtů s referenční aplikací.
 - [x] P13-04: dobropisy z vydaných faktur, částečné opravy, PDF, zápočet, ruční vratky/storna, REST/MCP a CS/EN. [Rozsah a odchylky](specs/credit-notes.md).
-- [ ] Rozšíření oprav: e-mail/přílohy dobropisů, přímé opravy DDPP, cizí měny a vrubopisy.
-- [x] P14-01: pravidelné CZK faktury, kalendář/ukončení/náhled, pauza/aktivace, historie, volitelné vystavení a PDF e-mail, CS/EN a REST/MCP. [Rozsah a odchylky](specs/recurring-invoices.md).
+- [x] Cizoměnové dobropisy, zápočty a vratky s uloženým kurzem zdrojové faktury.
+- [ ] Rozšíření oprav: e-mail/přílohy dobropisů, přímé opravy DDPP a vrubopisy.
+- [x] P14-01: pravidelné faktury v CZK i podporovaných cizích měnách, kalendář/ukončení/náhled, pauza/aktivace, historie, volitelné vystavení a PDF e-mail, CS/EN a REST/MCP. [Rozsah a odchylky](specs/recurring-invoices.md).
 - [x] P14-02: ruční upomínky/poděkování, náhled, PDF a historie; automatizace profilu, intervaly/limit, pauza faktury, kontrola aktuální úhrady před SMTP, CS/EN a REST/MCP. [Rozsah a odchylky](specs/invoice-communication.md).
 - [x] P14-03: veřejné odkazy faktur, původní PDF, aktuální stav úhrady, expirace/odvolání, e-mail s odkazem a historie zobrazení, CS/EN a REST/MCP. [Rozsah a odchylky](specs/invoice-sharing.md).
 - [ ] P14: pravidelné zálohy, proměnné v textech, více příjemců, editace automatických e-mailových šablon, pravidla na kontaktu.
 - [x] P15-01: přijaté faktury v CZK, vlastní PF řada, snapshot dodavatele, přesné částky z originálu, přílohy, seznam/filtry, ruční výdajové úhrady/storno, revize/audit, REST/MCP a CS/EN. [Hranice](specs/received-invoices.md).
 - [x] P15-02: účtenky v CZK, UC řada, hotově/kartou, atomická úhrada a auditované opravy, přílohy, společný seznam úhrad a základní přehled nákupů/výdajů/závazků, REST/MCP a CS/EN. [Hranice](specs/purchase-receipts.md).
-- [ ] P15: dodavatelská role adresáře, množství/jednotkové ceny, ceník, přeplatky, cizí měny, tisk rekapitulace a e-mail účetnímu.
+- [x] Přijaté faktury v podporovaných cizích měnách s uloženým kurzem a přepočty přehledů do CZK.
+- [ ] P15: dodavatelská role adresáře, množství/jednotkové ceny, ceník, přeplatky, tisk rekapitulace a další výstupy; předání originálu z inboxu účetnímu je implementované samostatně v P17.
 - [x] P16-01: profilové CZK účty, archivace/obnova, ruční pohyby, vlastní CSV s náhledem a deduplikací, ruční párování vydaných/přijatých faktur a existujících karetních úhrad účtenek, odpojení/historie, REST/MCP, CS/EN. [Hranice](specs/banking.md).
 - [x] P16-02: adaptéry podle veřejných kontraktů (camt.053, Fio JSON, MONETA XML, RB ABO), kontrola účtu, atomický náhled/import a návrhy shod VS/částka s potvrzením, REST/MCP, CS/EN. [Přesné varianty a omezení](specs/bank-statements.md).
 - [ ] P16-02: ověření anonymizovaných originálů všech uvedených bank a doplnění nepokrytých variant; syntetické testy nejsou certifikace kompatibility.
@@ -131,11 +135,11 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P16-11: rozdělení pohybu mezi více dokladů, přesný nerozdělený zbytek/přeplatek, atomické odpojení a CS/EN. [Rozsah](specs/bank-split-matching.md).
 - [x] P16-12: ruční bankovní/pokladní párování záloh a vratek dobropisů, vlastní platební operace, existující úhrady bez zdvojení a ochrana DDPP/vyúčtování. [Rozsah](specs/treasury-documents.md).
 - [x] P16-13: cizoměnové účty, importy, shodné i rozdílné měny faktur, záloh a vratek; explicitní kurzy a existující úhrady bez duplicity.
-- [x] P16-13h: české i zahraniční IBAN bankovních účtů, kontrola formátu a checksumu, import se shodou účtu/měny; bez rozšíření IBAN na dokladech a QR ([rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů)).
+- [x] P16-13h/i: české i zahraniční IBAN bankovních účtů i profilů/dokladů, kontrola formátu a checksumu, import se shodou účtu/měny; QR má vlastní omezení ([rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů)).
 - [x] P16-04: CZK pokladny, počáteční stav, PP/VP doklady, saldo za období, storno, ruční párování nových/existujících hotovostních úhrad, REST/MCP a CS/EN. [Hranice](specs/cash-register.md).
 - [x] P16-05: volitelná hlavní pokladna, automatické PP/VP ze skutečných hotovostních úhrad vydaných/přijatých faktur a účtenek, opravy/storna, PDF a náhled tisku v CS/EN. [Rozsah](specs/cash-register.md).
 - [x] P16-06: jedna samostatná položka pokladního dokladu s DPH, cena net/gross, serverový náhled, uložený rozpis, filtr a PDF CS/EN. Bez členění DPH a daňových výkazů. [Rozsah](specs/cash-register.md).
-- [ ] P16: dokončení měnových vazeb záloh/dobropisů, členění DPH, externí terminály a konfigurace tiskových sestav.
+- [ ] P16: úplné členění DPH, externí terminály a další konfigurace tiskových sestav.
 - [x] CZK prodejky: kombinované úhrady, terminál, číslování, historie a PDF CS/EN.
 - [x] Dávkové zaúčtování: náhled, uložené rozpisy, pokladní příjem pouze hotovosti, replay a storno; PDF celé dávky včetně interních skupin doplňuje P16-08b.
 - [x] Inbox základ: originály, deduplikace, archiv a atomické vytvoření přijaté faktury s přílohou v CS/EN.
@@ -155,8 +159,11 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 - [x] P18-05b: pro neověřené varianty Money S4/S5 je podle rozhodnutí uživatele dostupné obecné mapování a [vlastní adaptér](INTEGRATION_ADAPTERS.md); nejde o nativní podporu S4/S5 (E-059).
 - [x] P18-05c: obecný import ceníku CSV/XLSX s mapováním a přesnými cenami, CS/EN.
 - [x] Měsíční CZK přehled prodeje/nákupu, kumulace, meziroční srovnání a zdrojové doklady s profilovou izolací.
-- [ ] P19: další přehledy, daňové podklady a účetní exporty.
+- [x] P19: evidence DPH a orientační obrat včetně samostatných pokladních plnění, export zdrojů CSV/XLSX. [Rozsah](specs/tax-dashboard.md).
+- [x] P19: explicitní uživatelská klasifikace obratu/vstupní DPH a profil daňového subjektu; nejde o podání. [Klasifikace](specs/tax-classification.md) · [Profil](specs/taxpayer-filing-profile.md).
+- [ ] P19: další přehledy, úplné daňové režimy, přiznání DPH/KH/SH a další nativní účetní exporty.
 - [x] P20: štítky a serverové filtry, koš nepropojených návrhů, exportní snapshoty a zámky, hromadné PDF.
+- [x] P20: pořadí, viditelnost a kompaktní/podrobná varianta widgetů přehledu.
 - [x] P20: nevratná anonymizace adresáře a jeho historie vlastníkem; historické finanční snapshoty a původní dokumenty zachované. [Hranice](specs/contact-anonymization.md).
 - [x] P20: koš nepoužitých nabídek a šablon; obnova a audit, ochrana odeslaných/sdílených/navázaných/exportovaných zdrojů.
 - [ ] P20: další přípustné typy koše a zbývající hromadné akce.
@@ -184,74 +191,17 @@ Předvolba zdroje v importu není důkaz kompatibility s jeho exportem. Dostupno
 
 [Matice shody s iDokladem](design/idoklad-parity.md) · [Lokalizace](LOCALIZATION.md) · [Plán](IMPLEMENTATION_PLAN.md)
 
-- [x] P16-10: počáteční stav bankovního účtu s revizí a důvodem změny, saldo za období nad všemi pohyby, REST/MCP a CS/EN. [Pravidla](specs/bank-balances.md).
-- [x] P16-16 (část): částka slovy v CS/EN na nově generovaných pokladních PDF; historická uložená PDF se nemění. Konfigurace tiskových sestav zbývá.
+## Další implementované návaznosti
 
-Úplný zbývající rozsah P16 sleduje [plán dokončení](P16_COMPLETION.md); P16 jako celek není dokončena.
+- [x] P16-10: počáteční stav účtu, revize/důvod změny a saldo za období nad všemi pohyby. [Pravidla](specs/bank-balances.md).
+- [x] P16-09a: profilová konfigurace terminálů, archivace a snapshot na prodejce; externí hardware zbývá. [Rozsah](specs/sales-terminals.md).
+- [x] P16-16 (část): částka slovy CS/EN na nových pokladních PDF; širší konfigurace sestav zbývá.
+- [x] QR Platba, QR Faktura a Platba+F pro podporované nové dokumenty; historická PDF beze změny. [Podmínky](specs/payment-qr.md).
+- [x] P19-01c/d: měsíční/kvartální/roční přehledy, kumulace, meziroční srovnání, bilance, TOP 3 a prodlení v CZK. [Období](specs/period-report.md) · [Bilance](specs/dashboard-finance.md).
+- [x] P19-01j/n: návrh kurzu ČNB na vyžádání a explicitní volba ČNB podle plánovaného data pravidelné faktury. [Rozsah](specs/exchange-rates.md).
+- [x] P19-01m: přehled uložených bankovních kurzových rozdílů; neprovádí účetní zápisy. [Pravidla](specs/exchange-difference-report.md).
+- [x] P16-08b: PDF souhrnného zaúčtování prodejek včetně interních skupin a storna. [Rozsah](specs/sales-receipts.md).
+- [x] P16-13j: párování různých měn záloh/vratek včetně existujících úhrad a ochran DDPP. [Rozsah](specs/bank-foreign-matching.md).
+- [x] P16-14b: samostatný opt-in automatického párování záloh/vratek ve shodné měně. [Pravidla](specs/bank-auto-matching.md).
 
-- [x] P16-09a: správa označení prodejních terminálů (profil, revize, archiv/obnova, REST/MCP a CS/EN). Volba terminálu a jeho snapshot na prodejce jsou hotové; napojení platebního hardwaru zbývá. [Specifikace](specs/sales-terminals.md).
-
-- [x] QR Platba v nových PDF faktur a záloh s platnými bankovními údaji.
-- [x] QR Faktura a kombinovaný formát Platba+F pro podporované nové faktury; explicitní výběr, nezávislé dekódování CS/EN a původní PDF beze změny. [Podmínky QR](specs/payment-qr.md).
-
-- [x] P19-01c: měsíční, kvartální a roční přehled CZK hodnot dokladů, kumulace a srovnání roku, REST/MCP a CS/EN. [Specifikace](specs/period-report.md).
-
-- [x] P19-01d: bilance prodeje/nákupu, TOP 3 odběratelé a dlužníci, prodlení pohledávek/závazků; aktuální CZK zůstatky, REST/MCP, CS/EN. [Rozsah a pravidla](specs/dashboard-finance.md).
-
-- [x] P19-01e: [Evidence DPH a orientační obrat](specs/tax-dashboard.md) — uložené daně, DDPP/odpočty, měsíce/kvartály a dohledání zdrojů, REST/MCP a CS/EN.
-- [ ] Daňové členění pro zákonný obrat, nárok na odpočet a přiznání; měnové návaznosti záloh, oprav a bankovního párování.
-
-- [x] P19-01f: samostatná pokladní plnění v evidenci DPH a orientačním obratu, podle uloženého rozpisu a DUZP, bez dvojího započtení úhrad.
-
-- [x] P19-01g: měna a uložený kurz běžných vydaných/přijatých faktur, ruční bankovní úhrady v měně dokladu a přepočty přehledů do CZK. Rozsah a zbývající měnové moduly: [specifikace](specs/report-currencies.md).
-
-P19-01h: cizoměnové dobropisy, zápočty a ruční bankovní vratky se snapshotem původního kurzu, přepočty přehledů a CS/EN. [Rozsah a omezení](specs/credit-notes.md).
-
-P19-01i: cizoměnové zálohy, ruční bankovní úhrady, DDPP a vyúčtování se shodným uloženým kurzem. Rozdílné kurzy zůstávají nepodporované. [Pravidla a rozsah](specs/advance-settlement.md).
-
-P19-01j: návrh kurzu ČNB na vyžádání v editoru, REST/MCP, kontrola profilu a CS/EN. Ukládá se vybraný kurz; automatika pravidelných dokladů a kurzové rozdíly zbývají. [Rozsah a omezení](specs/exchange-rates.md).
-
-P16-13a / P19-01k: ruční párování CZK pohybu s běžnou cizoměnovou vydanou/přijatou fakturou, oddělené částky a uložený rozdíl vůči kurzu dokladu. Bez automatického odhadu a účetního zápisu. Cizoměnové účty, existující úhrady a širší měnové návaznosti zbývají. [Specifikace](specs/bank-foreign-matching.md).
-
-P16-13b / P19-01l: připojení existujících cizoměnových převodních úhrad běžných faktur bez duplikace; odpojení zachová původní platbu. CS/EN, REST/MCP a migrace 053. [Pravidla a zbývající rozsah](specs/bank-foreign-matching.md).
-
-P19-01m: souhrnný přehled uložených kurzových rozdílů z aktivních bankovních vazeb, zisky/ztráty/netto, období a stránkované zdroje s odkazy. CS/EN, REST/MCP; bez účetních zápisů a nové migrace. [Specifikace](specs/exchange-difference-report.md).
-
-P16-13c: cizoměnové bankovní účty, ruční pohyby a CSV/camt/Fio/MONETA importy,
-saldo v měně účtu, kontrola měny a migrace 054. CS/EN, REST/MCP.
-Párování z cizoměnových účtů a zahraniční RB ABO stále navazují.
-[Specifikace](specs/bank-currencies.md).
-
-P16-13d: ruční párování a rozdělení cizoměnových pohybů s běžnými fakturami
-ve stejné měně, existující převodní úhrady bez duplikace, odpojení a CS/EN.
-Bez nové migrace; REST/MCP sdílejí bankovní příkazy. Automatiku doplňuje P16-13e,
-zálohy/vratky P16-13f. Různé měny a zahraniční IBAN zbývají.
-[Specifikace](specs/bank-currencies.md#p16-13d--ruční-párování-ve-shodné-měně).
-
-P16-13e (18. 10. 2026): dávkové a opt-in automatické párování běžných faktur
-ve shodné měně, konkurenční pohyby se porovnávají jen v téže měně. CS/EN,
-stejné REST/MCP příkazy a worker, bez migrace. Ruční non-CZK párování záloh/vratek
-doplňuje P16-13f; různé měny a zahraniční IBAN zbývají. [Specifikace](specs/bank-currencies.md).
-
-P16-13f (18. 10. 2026): ruční a dělené párování záloh a vratek dobropisů
-z účtů ve shodné měně, připojení existujících převodních úhrad bez duplicity,
-ochrany DDPP a rezervací. CS/EN, společné REST/MCP, bez migrace.
-Zbývá párování rozdílných měn z non-CZK účtů, zahraniční IBAN a automatika
-záloh/vratek. [Specifikace](specs/bank-currencies.md).
-
-P16-13g: ruční párování různých měn z cizoměnové banky s běžnou vydanou
-a přijatou fakturou, včetně připojení existující úhrady. Explicitní bankovní
-kurz do CZK, uložené hodnoty obou stran a rozdíl; migrace 055, REST/MCP a CS/EN.
-Zbývají rozdílné měny záloh/vratek, jejich automatika a zahraniční IBAN.
-[Specifikace](specs/bank-foreign-matching.md#p16-13g--rozdílné-měny-z-cizoměnového-účtu).
-
-### Dodávka 18. 10. 2026 — P16-13i, P16-08b, P16-14b
-
-- [x] Zahraniční IBAN profilů a vystavených dokladů; historické PDF beze změny. QR zůstává CZ/CZK.
-- [x] PDF/tisk souhrnného zaúčtování prodejek v CS/EN, snapshot vystavitele, cache po revizích, označení storna (migrace 056).
-- [x] Samostatný opt-in pro automatické párování záloh a vratek ve stejné měně, existující úhrady bez duplicity (migrace 057).
-
-Specifikace: [měny](specs/bank-currencies.md), [prodejky](specs/sales-receipts.md),
-[automatika](specs/bank-auto-matching.md). Neuzavírá celé P16–P20. Otevřené
-zůstávají rozdílné měny záloh/vratek, notifikace bank, příjem e-mailů a
-vytěžování, S4/S5, účetní/daňové exporty a zbývající funkce P20.
+Tento checklist popisuje současný stav. Historii jednotlivých měnových a integračních dodávek zachovává [implementační plán](IMPLEMENTATION_PLAN.md); tehdejší seznamy zbývající práce nejsou aktuální backlog. P16 ani P16–P20 jako celek nejsou uzavřené; viz [akceptace P16](P16_COMPLETION.md) a [aktuální souhrn P16–P20](P16_P20_COMPLETION.md).

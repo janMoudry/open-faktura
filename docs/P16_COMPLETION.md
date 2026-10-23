@@ -5,21 +5,26 @@ Tento soubor sleduje pouze část P16; navazující rozsah zůstává v implemen
 plánu a FEATURES.md. Toto není
 potvrzení dokončení. Dřívější P16-01 až P16-06 mají vymezený rozsah ve specifikacích.
 
+Stav zkontrolován 23. 10. 2026 proti implementaci v repozitáři. Tento seznam uvádí současnou akceptaci; datované poznámky na konci zachovávají historický stav dodávek. Souhrn návazností je v [aktuálním stavu P16–P20](P16_P20_COMPLETION.md).
+
 ## Aktuální měnová návaznost
 
-P16-13h doplňuje zahraniční IBAN bankovní evidence bez migrace: normalizace,
-validace formátu/checksumu, profilová unikátnost a zachování kontroly účtu/měny
-importu. [Rozsah](specs/bank-currencies.md#p16-13h--zahraniční-iban-bankovních-účtů).
-P16-13i doplňuje zahraniční IBAN dokladů a P16-14b opt-in automatiku záloh
-a vratek. P16-13j nyní doplňuje i jejich párování mezi různými měnami (058), včetně připojení existující úhrady a ochrany DDPP. QR Faktura/Platba+F se řeší ve společném dokumentovém výstupu. Historické záznamy níže popisují stav v době dodání.
+Implementované jsou cizoměnové účty, zahraniční IBAN bank i profilů/dokladů,
+ruční párování a rozdělení faktur, záloh i vratek ve shodných měnách,
+párování rozdílných měn s explicitními kurzy a existujícími úhradami bez
+duplicity. Automatika záloh/vratek má samostatný opt-in a vyžaduje shodnou měnu.
+P16-13j (058) doplnilo i párování různých měn záloh/vratek s ochranou DDPP.
+QR formáty mají samostatné podmínky ve [specifikaci](specs/payment-qr.md).
 
 ## Akceptační celky
 
-- [ ] P16-07 Prodejky: položky, nepovinný odběratel, skutečné plné úhrady
+- [x] P16-07 Prodejky v podporovaném CZK režimu: položky, nepovinný odběratel, skutečné plné úhrady
   hotovost/karta/stravenka včetně kombinace; číslování, opravy, historie a PDF.
-- [ ] P16-08 Souhrnné zaúčtování prodejek: pokladní doklad za hotovost,
+- [x] P16-08 Souhrnné zaúčtování prodejek: pokladní doklad za hotovost,
   interní doklad za kartu/stravenku; uložené daňové rozpisy, storno ze zdroje,
-  zabránění dvojímu zaúčtování i dvojímu započítání do přehledů.
+  zabránění dvojímu zaúčtování i dvojímu započítání do přehledů. PDF celé dávky
+  včetně interních skupin je implementované v P16-08b. [Rozsah](specs/sales-receipts.md).
+  Zaškrtnutí P16-07/08 nezahrnuje všechny daňové režimy ani ověření fyzického tisku.
 - [ ] P16-09 Terminály: profilové nastavení, archivace, volba u prodejek,
   zachování historické identifikace zařízení; externí integrace dle kontraktu.
   P16-09a: profilová konfigurace terminálů, revize, archivace/obnova, REST/MCP
@@ -44,7 +49,8 @@ a vratek. P16-13j nyní doplňuje i jejich párování mezi různými měnami (0
   P16-15a implementuje nastavení, test a ruční synchronizaci pro Fio a vlastní
   gateway, včetně REST/MCP a CS/EN. [Specifikace a limity](specs/bank-connections.md).
   P16-15b přidává opt-in plánování synchronizace a worker s oprávněním aktéra.
-  Notifikace, další nativní adaptéry a živé ověření zůstávají otevřené.
+  Autentizovaná vlastní [notifikační brána](specs/bank-notification-gateway.md)
+  je implementovaná; další nativní adaptéry a živé ověření zůstávají otevřené.
   [Rozhodnutí a akceptace](#vlastní-bankovní-napojení-p16-15).
 - [ ] P16-16 Tisk: částka slovy CS/EN, konfigurace sestav, kontrola PDF,
   archivované a stornované dokumenty; fyzický tisk není browser emulace.
@@ -95,6 +101,12 @@ Akceptace navrženého řešení:
 - Vývoj a automatické testy používají syntetická data a lokální simulátory.
   Skutečné integrační ověření evidovat samostatně pro konkrétní banku a metodu;
   osobní bankovní přístupy zadavatele nejsou podmínkou implementace.
+
+## Historické poznámky dodávek
+
+Následující záznamy zachovávají tehdejší rozsah a otevřené návaznosti. Aktuální
+stav uvádí seznam výše; například zahraniční IBAN, notifikační brána i párování
+různých měn záloh/vratek již mají pozdější implementaci.
 
 P16-13c: účty českých bank v podporovaných cizích měnách, importy a saldo
 v měně účtu; migrace 054. Párování z těchto účtů, zahraniční IBAN a RB ABO

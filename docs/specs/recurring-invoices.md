@@ -1,7 +1,10 @@
 # RECURRING-01 / P14-01 — pravidelné faktury
 
 Reference E-036, veřejná nápověda; žádné nové živé pozorování ani numerická či
-vizuální 1:1 shoda. CZK běžné faktury, CS/EN, společné REST/MCP příkazy.
+vizuální 1:1 shoda. Běžné faktury, CS/EN, společné REST/MCP příkazy.
+Původní dodávka P14-01 byla CZK; současná implementace podporuje i cizí měny
+s uloženým kurzem a explicitní volbu ČNB podle plánovaného data výskytu.
+Navazující pravidla a ověření určuje [P19-01n](exchange-rates.md#p19-01n--volitelný-kurz-pravidelných-faktur). Stav dokumentace zkontrolován 23. 10. 2026.
 
 ## Vlastní rozhodnutí a rozsah
 
@@ -39,7 +42,7 @@ chyba SMTP nemění vystavení ani nevytváří další fakturu. Stav doručení
 historii faktury i výskytu. Zařazení po přerušení znovu použije stejné UUID.
 Stav SMTP uncertain se automaticky neopakuje (stejná pravidla jako P10).
 
-P14-01 zatím neobsahuje pravidelné zálohy, cizí měny, proměnné v textech,
+Pravidelné faktury zatím neobsahují pravidelné zálohy, proměnné v textech,
 více příjemců, více číselných řad, kopírování příloh ani upomínky. To jsou
 samostatná rozšíření, nikoli tvrzená plná shoda s referencí.
 
